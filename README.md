@@ -20,8 +20,8 @@ kpost-testbench/
 
 Each **suite** is an independent Playwright project with its own `playwright.config.ts`,
 its own source/test tree, and its own Bugzilla product — because API and UI testing are
-genuinely different disciplines (a Playwright *project* means a Swagger tag in the API bench
-and a *browser* in the UI bench, and their auth artifacts are not interchangeable). The
+genuinely different disciplines (a Playwright _project_ means a Swagger tag in the API bench
+and a _browser_ in the UI bench, and their auth artifacts are not interchangeable). The
 monorepo co-locates them so they can share plumbing without duplicating it.
 
 ## The test pyramid — read this before adding tests
@@ -50,14 +50,14 @@ npm install
 
 From the repo root:
 
-| Command | Runs |
-| --- | --- |
-| `npm run test:api` | the KPost API suite (~4,600 cases) |
-| `npm run test:kmail` | the KMail API sister suite |
-| `npm run test:admin` | the KPost Admin sister suite |
-| `npm run test:ui` | the KPost UI suite (cross-browser) |
-| `npm run typecheck` | type-check every suite |
-| `npm run typecheck:api` / `:kmail` / `:admin` / `:ui` | one suite |
+| Command                                               | Runs                               |
+| ----------------------------------------------------- | ---------------------------------- |
+| `npm run test:api`                                    | the KPost API suite (~4,600 cases) |
+| `npm run test:kmail`                                  | the KMail API sister suite         |
+| `npm run test:admin`                                  | the KPost Admin sister suite       |
+| `npm run test:ui`                                     | the KPost UI suite (cross-browser) |
+| `npm run typecheck`                                   | type-check every suite             |
+| `npm run typecheck:api` / `:kmail` / `:admin` / `:ui` | one suite                          |
 
 Each suite can also be run from its own directory exactly as before
 (`cd suites/kpost-api && npm test`). Per-suite conventions, safety rules and known API
@@ -79,7 +79,9 @@ its own application slug. These are generated per run and are gitignored.
 ## Roadmap (Phase 2 — shared-package extraction)
 
 The migration into this monorepo is **Phase 1**: every suite is co-located, cleaned of
-generated artifacts, and runs unchanged. **Phase 2** removes the remaining duplication:
+generated artifacts, and runs unchanged. **Phase 2** removes the remaining duplication —
+the full execution plan, with the risks and per-step verification, is in
+[`docs/phase-2-plan.md`](docs/phase-2-plan.md). In summary:
 
 1. **`packages/reporting`** — extract the run-model → `BUG_REPORT`/`DEV_DIGEST` → Bugzilla →
    dashboard pipeline (the API and UI benches each re-implement it "to the same schema";

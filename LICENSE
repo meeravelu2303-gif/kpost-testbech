@@ -1,0 +1,12 @@
+Copyright (c) KPost. All rights reserved.
+
+PROPRIETARY AND CONFIDENTIAL — INTERNAL USE ONLY.
+
+This repository and its contents are the confidential property of KPost and are provided
+solely for internal quality-assurance and test-automation purposes. No part of this software
+may be copied, distributed, published, sublicensed, or disclosed to any third party without
+prior written permission from KPost.
+
+The repository targets and probes internal KPost systems. It must only be run against
+environments and accounts you are authorised to test. Credentials and secrets live in each
+suite's gitignored `.env` file and must never be committed.

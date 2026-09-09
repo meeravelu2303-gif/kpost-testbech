@@ -7,7 +7,8 @@
     "suites/*"
   ],
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   },
   "scripts": {
     "test:api": "npm test -w kpost-api",
@@ -20,6 +21,11 @@
     "typecheck:admin": "npm run typecheck:adminmodule -w kpost-api",
     "typecheck:ui": "npm run typecheck -w kpost-ui",
     "lint:ui": "npm run lint -w kpost-ui",
+    "format": "prettier --write \"**/*.{ts,js,cjs,mjs,json,md,yml,yaml}\" --ignore-path .gitignore --log-level warn",
+    "format:check": "prettier --check \"**/*.{ts,js,cjs,mjs,json,md,yml,yaml}\" --ignore-path .gitignore --log-level warn",
     "clean": "npm run clean -w kpost-api --if-present && npm run clean -w kpost-ui --if-present"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
   }
 }

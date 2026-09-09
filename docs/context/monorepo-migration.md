@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: b67c8dde-d115-46a2-b4d6-3797ba8e08c1
-  modified: 2026-09-09T18:13:52.144Z
+  modified: 2026-09-09T18:32:08.222Z
 ---
 
 **A monorepo `D:\TEST-BENCH-AUTOMATIONS\kpost-testbech` now co-locates the API and UI benches**
@@ -66,6 +66,35 @@ So a new Claude Code session in kpost-testbech starts with full context:
 - **Banner added to each suite CLAUDE.md** (kpost-api, admin, kpost-ui) pointing to root CLAUDE.md +
   docs/context. KMail conventions live in the kpost-api CLAUDE.md (kmail has no own CLAUDE.md).
 All doc cross-links verified to resolve.
+
+### Phase 2 groundwork (added 2026-09-09; the risky dedup itself deliberately NOT done)
+Did the SAFE, verifiable Phase-2 prep, and deliberately did NOT blind-refactor the reporting because
+(a) the API bench's content-hash bug IDs are load-bearing — a subtly different shared impl silently
+re-files every ticket, and (b) reporting changes can only be verified by a live reporting run, which
+the degraded backend blocks. Added instead:
+- `.github/workflows/ci.yml` — monorepo CI gate: install (--ignore-scripts) + typecheck all 4 suites +
+  lint UI. Does NOT run integration suites (need a live backend).
+- `.editorconfig` (root) — consistent formatting.
+- `docs/phase-2-plan.md` — precise incremental extraction plan with the GOLDEN RULE (never change
+  content-hash id inputs; verify every reporting change with a BUGZILLA_DRY_RUN=true id diff), ordered
+  low-risk→high-risk (taxonomy→id→bugzilla client→dashboard client→orchestration last), + notes that
+  dep-alignment is BLOCKED (TS7/faker10 vs TS5.7/faker9) and UI visual-regression/account-pool need a
+  working app/backend. README roadmap points to it.
+The reporting dedup (~2,800 LOC) should be executed incrementally WITH live-run verification once the
+backend is healthy — not blind.
+
+### Production-grade hardening (2026-09-10)
+Full repo-hygiene pass:
+- **Secret audit PASSED**: suite `.env` files are gitignored (verified `git check-ignore`); Bugzilla
+  key / DB password appear in NO committed file. **Fixed one leak**: redacted the plaintext test
+  password out of the committed `docs/context/qa-accounts-949.md` (→ `<QA_PASSWORD — see suite .env>`).
+- Added root config: `.gitattributes` (LF normalization + linguist-generated marks), `.nvmrc` (20),
+  `.prettierrc.json` (matches UI style), `.editorconfig`, `LICENSE` (proprietary/internal), `SECURITY.md`
+  (secret-handling + safe-testing policy).
+- Root `package.json`: added `format`/`format:check` (prettier) + prettier devDep + npm engine.
+- Authored root docs formatted prettier-clean (did NOT run prettier on suite source — that would churn
+  hundreds of working files under divergent per-suite configs; left for the user's call).
+- Verified: all 4 suites typecheck clean; CI scripts all resolve; workspaces resolve; prettier config valid.
 
 ### Honest status
 Phase 1 = production-grade FOUNDATION, migrated + cleaned + verified. "100% production-grade" is

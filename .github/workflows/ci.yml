@@ -1,0 +1,47 @@
+name: CI
+
+# Production-grade gate for the monorepo. It does NOT run the integration suites — those need a
+# live KPost backend and are executed against a target environment on demand, not in CI. CI's job
+# is to keep the code that DRIVES those suites healthy: install, type-check every suite, and lint.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Skip Playwright's browser download here — CI only type-checks/lints, it doesn't run browsers.
+      - name: Install (workspaces)
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Type-check — KPost API
+        run: npm run typecheck:api
+
+      - name: Type-check — KMail
+        run: npm run typecheck:kmail
+
+      - name: Type-check — KPost Admin
+        run: npm run typecheck:admin
+
+      - name: Type-check — KPost UI
+        run: npm run typecheck:ui
+
+      - name: Lint — KPost UI
+        run: npm run lint:ui

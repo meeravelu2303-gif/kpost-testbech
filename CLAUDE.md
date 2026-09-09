@@ -24,7 +24,7 @@ kpost-testbench/
 ```
 
 Each **suite** is an independent Playwright project with its own `playwright.config.ts`, source
-tree, `.env`, and Bugzilla product. They are separate on purpose: a Playwright *project* means a
+tree, `.env`, and Bugzilla product. They are separate on purpose: a Playwright _project_ means a
 **Swagger tag** in the API bench and a **browser** in the UI bench, and their auth artifacts are
 not interchangeable. The monorepo co-locates them so they can share plumbing without duplicating
 it.
@@ -47,13 +47,13 @@ One install at the root sets up every suite (npm workspaces):
 npm install                 # then, for the UI bench's browsers: npx playwright install
 ```
 
-| Command (from root) | Runs |
-| --- | --- |
-| `npm run test:api` | KPost API suite (~4,600 cases) |
-| `npm run test:kmail` | KMail sister suite |
-| `npm run test:admin` | KPost Admin sister suite |
-| `npm run test:ui` | KPost UI suite (cross-browser) |
-| `npm run typecheck` | type-check every suite (`:api` / `:kmail` / `:admin` / `:ui` for one) |
+| Command (from root)  | Runs                                                                  |
+| -------------------- | --------------------------------------------------------------------- |
+| `npm run test:api`   | KPost API suite (~4,600 cases)                                        |
+| `npm run test:kmail` | KMail sister suite                                                    |
+| `npm run test:admin` | KPost Admin sister suite                                              |
+| `npm run test:ui`    | KPost UI suite (cross-browser)                                        |
+| `npm run typecheck`  | type-check every suite (`:api` / `:kmail` / `:admin` / `:ui` for one) |
 
 Any suite also runs standalone (`cd suites/kpost-api && npm test`). The suites pin **different
 major versions** of shared dev-deps (the API bench requires **TypeScript 7 + faker 10 ESM**, hence
@@ -75,11 +75,11 @@ default behaviour:
 
 - **Do NOT commit or push.** The user commits manually. Make the changes only.
 - **The Excel workbooks are authoritative for request payloads, not swagger.** When they
-  disagree, match the Excel. Swagger gives paths and *documented* behaviour, which frequently
+  disagree, match the Excel. Swagger gives paths and _documented_ behaviour, which frequently
   diverges from actual behaviour. Excel dump locations: [`excel-dumps-location.md`](docs/context/excel-dumps-location.md).
 - **Never test with real OTP.** Builders are pinned to `TEST_MOBILE`/`TEST_EMAIL`. **Mock OTP
   `123456` (+ `000000` fallback) is an intentional dev bypass — tests must accept it, never file
-  it as a bug, never fail on it.** Only a genuinely un-issued *non-mock* OTP being accepted is a
+  it as a bug, never fail on it.** Only a genuinely un-issued _non-mock_ OTP being accepted is a
   finding.
 - **Never aim destructive calls at the shared session** — use synthetic / disposable identities.
 - **One defect per fault, not per failing test.** Severity is graded deliberately
@@ -99,7 +99,7 @@ gitignored `.env` (template in `.env.example`) — **never commit them.**
 
 ## Current environment & known backend blockers (READ before a run)
 
-*Verify these are still true — they change.* Full detail in
+_Verify these are still true — they change._ Full detail in
 [`docs/context/qa-accounts-949.md`](docs/context/qa-accounts-949.md) and
 [`docs/context/kmail-alignment.md`](docs/context/kmail-alignment.md).
 
