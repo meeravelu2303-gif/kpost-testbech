@@ -1,0 +1,204 @@
+name: KPost UI E2E
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  # Nightly full regression across all browsers.
+  schedule:
+    - cron: '0 2 * * *'
+  # Allow manual runs from the Actions tab.
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref to save CI minutes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# ---------------------------------------------------------------------------
+# Required repository/organization secrets (Settings → Secrets → Actions):
+#   STANDARD_USER_EMAIL     seeded standard test-user email
+#   STANDARD_USER_PASSWORD  seeded standard test-user password
+#   ADMIN_USER_EMAIL        seeded admin test-user email
+#   ADMIN_USER_PASSWORD     seeded admin test-user password
+#   DASHBOARD_INGEST_URL    QA Monitor ingest endpoint, reachable FROM the runner
+#   DASHBOARD_API_KEY       bearer key for that endpoint
+# Never hard-code credentials in this file.
+#
+# The two DASHBOARD_* secrets must be set together or `env.ts` fails fast; leave
+# both unset and the reporter no-ops cleanly, writing files but posting nothing.
+# Note a GitHub-hosted runner cannot reach a dashboard on localhost — either host
+# QA Monitor somewhere the runner can resolve, or use a self-hosted runner.
+# ---------------------------------------------------------------------------
+env:
+  BASE_URL: https://localhost:3000
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Stage 1 — Static quality gate. Fast, no browsers, no app. Fails the build
+  # early on type errors, lint violations or a broken reporting engine before
+  # spending CI on browsers.
+  #
+  # The unit suite covers `src/reporting/run-model.ts`, which decides what every
+  # report and the QA dashboard claim about a run. It needs no app and no test
+  # account, so unlike the stages below it runs on every push TODAY — it is not
+  # gated on KPOST_START_CMD.
+  # -------------------------------------------------------------------------
+  static:
+    name: Typecheck, Lint & Unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests (reporting engine)
+        run: npm run test:unit
+
+  # -------------------------------------------------------------------------
+  # Stage 2 — Smoke. Chromium only, @smoke-tagged tests. Gives PRs a fast
+  # pass/fail signal on the critical happy paths before the full matrix runs.
+  # -------------------------------------------------------------------------
+  smoke:
+    name: Smoke (chromium)
+    needs: static
+    # Skip (rather than fail) when no app-boot command is configured, so the PR
+    # stays green on the checks that can run without a live app. Set the
+    # KPOST_START_CMD repository variable to enable this job.
+    if: ${{ vars.KPOST_START_CMD != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      TEST_ENV: ci
+      STANDARD_USER_EMAIL: ${{ secrets.STANDARD_USER_EMAIL }}
+      STANDARD_USER_PASSWORD: ${{ secrets.STANDARD_USER_PASSWORD }}
+      ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
+      ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
+      # Without these the run is reported locally but never reaches QA Monitor.
+      DASHBOARD_INGEST_URL: ${{ secrets.DASHBOARD_INGEST_URL }}
+      DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Playwright (chromium)
+        run: npx playwright install --with-deps chromium
+
+      - name: Start KPost app
+        # The exact boot command is repo-specific, so it's supplied as a
+        # repository variable (Settings → Secrets and variables → Actions →
+        # Variables → KPOST_START_CMD) rather than hard-coded here. Examples:
+        #   docker compose up -d --wait kpost-web
+        #   npm --prefix ./app ci && (npm --prefix ./app run start &)
+        #   docker run -d -p 3000:3000 ghcr.io/your-org/kpost-web:latest
+        env:
+          KPOST_START_CMD: ${{ vars.KPOST_START_CMD }}
+        run: |
+          if [ -z "$KPOST_START_CMD" ]; then
+            echo "::error::KPOST_START_CMD is not set. Add a repository variable" \
+                 "with the command that boots KPost on ${BASE_URL}."
+            exit 1
+          fi
+          echo "Starting KPost app: $KPOST_START_CMD"
+          bash -c "$KPOST_START_CMD"
+
+      - name: Wait for app to be ready
+        run: npx wait-on --timeout 120000 --interval 2000 "${BASE_URL}"
+
+      - name: Run smoke tests
+        run: npx playwright test --project=chromium --grep @smoke
+
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-smoke
+          path: playwright-report/
+          retention-days: 7
+
+  # -------------------------------------------------------------------------
+  # Stage 3 — Full cross-browser regression. Sharded per browser so failures
+  # are isolated and readable. Runs only after smoke passes.
+  # -------------------------------------------------------------------------
+  e2e:
+    name: E2E (${{ matrix.project }})
+    needs: smoke
+    # Same gate as smoke — runs only once KPOST_START_CMD is configured.
+    if: ${{ vars.KPOST_START_CMD != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
+    env:
+      CI: 'true'
+      TEST_ENV: ci
+      STANDARD_USER_EMAIL: ${{ secrets.STANDARD_USER_EMAIL }}
+      STANDARD_USER_PASSWORD: ${{ secrets.STANDARD_USER_PASSWORD }}
+      ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
+      ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
+      # Each matrix leg posts its own run, so QA Monitor records one row per
+      # browser rather than one row per push — see the note in OPERATIONS.md.
+      DASHBOARD_INGEST_URL: ${{ secrets.DASHBOARD_INGEST_URL }}
+      DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Playwright (${{ matrix.project }})
+        run: npx playwright install --with-deps ${{ matrix.project }}
+
+      - name: Start KPost app
+        # See the smoke job — boot command comes from the KPOST_START_CMD repo
+        # variable rather than being hard-coded here.
+        env:
+          KPOST_START_CMD: ${{ vars.KPOST_START_CMD }}
+        run: |
+          if [ -z "$KPOST_START_CMD" ]; then
+            echo "::error::KPOST_START_CMD is not set. Add a repository variable" \
+                 "with the command that boots KPost on ${BASE_URL}."
+            exit 1
+          fi
+          echo "Starting KPost app: $KPOST_START_CMD"
+          bash -c "$KPOST_START_CMD"
+
+      - name: Wait for app to be ready
+        run: npx wait-on --timeout 120000 --interval 2000 "${BASE_URL}"
+
+      - name: Run Playwright tests
+        run: npx playwright test --project=${{ matrix.project }}
+
+      - name: Upload HTML report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload traces & videos on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.project }}
+          path: test-results/
+          retention-days: 14

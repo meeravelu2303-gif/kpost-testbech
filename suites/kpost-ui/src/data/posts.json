@@ -1,0 +1,13 @@
+{
+  "validPost": {
+    "title": "Release notes: KPost 2.4",
+    "body": "We shipped virtualized feeds and faster search. Here's what changed.",
+    "tags": ["release", "changelog"],
+    "visibility": "public"
+  },
+  "boundaries": {
+    "maxTitleLength": 120,
+    "maxBodyLength": 5000,
+    "maxTags": 5
+  }
+}

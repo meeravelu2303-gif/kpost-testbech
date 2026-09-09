@@ -1,0 +1,25 @@
+{
+  "name": "kpost-testbench",
+  "version": "1.0.0",
+  "description": "KPost Test Bench — production-grade monorepo for API and UI test automation of the KPost platform.",
+  "private": true,
+  "workspaces": [
+    "suites/*"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "test:api": "npm test -w kpost-api",
+    "test:kmail": "npm run test:kmail -w kpost-api",
+    "test:admin": "npm run test:adminmodule -w kpost-api",
+    "test:ui": "npm test -w kpost-ui",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck:api": "npm run typecheck -w kpost-api",
+    "typecheck:kmail": "npm run typecheck:kmail -w kpost-api",
+    "typecheck:admin": "npm run typecheck:adminmodule -w kpost-api",
+    "typecheck:ui": "npm run typecheck -w kpost-ui",
+    "lint:ui": "npm run lint -w kpost-ui",
+    "clean": "npm run clean -w kpost-api --if-present && npm run clean -w kpost-ui --if-present"
+  }
+}

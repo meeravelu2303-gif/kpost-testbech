@@ -1,0 +1,55 @@
+node_modules/
+dist/
+reports/
+playwright-report/
+test-results/
+# Every env file except the documented template. Playwright's loader also reads
+# .env.local, and a committed credential is not recoverable from a public repo.
+.env
+.env.*
+!.env.example
+*.log
+.bug-cache/
+.testbench/
+
+# Generated per-run digest artifacts. BUG_REPORT.md / BUG_REPORT.json are deliberately NOT
+# ignored: they are the deliverable this suite exists to produce and are reviewed in diffs.
+DEV_DIGEST.md
+DEV_DIGEST.json
+
+# Build output of the standalone tsc steps (vector audit, scorecard, bugzilla filing)
+.audit-build/
+.scorecard-build/
+.bugzilla-build/
+
+.triage-build/
+TIERED_TRIAGE.md
+
+# Run-scoped session cache (bearer tokens). Never committed.
+.auth/
+.dashboard-build/
+
+# Pre-created throwaway accounts (credentials). Never committed.
+.auth/disposable-pool.json
+.auth/disposable-claims/
+.verify-open-results.json
+kmail/.env
+kmail/.env.*
+kmail/node_modules/
+kmail/reports/
+kmail/test-results/
+kmail/.auth/
+kmail/playwright-report/
+
+# Admin Module sister suite (ported from KPOST-ADMIN-AUTOMATION) — same rules as kmail/
+admin/.env
+admin/.env.*
+admin/node_modules/
+admin/reports/
+admin/test-results/
+admin/.auth/
+admin/.bug-cache/
+admin/.audit-build/
+admin/.scorecard-build/
+admin/DEV_DIGEST.md
+admin/DEV_DIGEST.json

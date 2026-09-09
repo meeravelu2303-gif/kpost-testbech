@@ -1,0 +1,54 @@
+# --- dependencies ---
+node_modules/
+.pnp
+.pnp.js
+
+# --- secrets / local env (NEVER commit; .env.example is the checked-in template) ---
+.env
+**/.env
+!**/.env.example
+
+# --- test run artifacts (generated; never committed) ---
+reports/
+**/reports/
+test-results/
+**/test-results/
+playwright-report/
+**/playwright-report/
+allure-results/
+**/allure-results/
+.auth/
+**/.auth/
+.bug-cache/
+**/.bug-cache/
+
+# --- generated report ledgers (produced per run) ---
+**/BUG_REPORT.md
+**/BUG_REPORT.json
+**/DEV_DIGEST.md
+**/DEV_DIGEST.json
+
+# --- transient build/scratch dirs from the transpile-on-run scripts ---
+.audit-build/
+**/.audit-build/
+.bugzilla-build/
+**/.bugzilla-build/
+.dashboard-build/
+**/.dashboard-build/
+.scorecard-build/
+**/.scorecard-build/
+.testbench/
+**/.testbench/
+
+# --- editor / OS / logs ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+*.lnk
+*.7z
+
+# --- local AI assistant config (kept per-developer, not shared) ---
+.claude/
+**/.claude/

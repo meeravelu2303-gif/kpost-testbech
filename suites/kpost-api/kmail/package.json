@@ -1,0 +1,38 @@
+{
+  "name": "kpost-kmail-automation",
+  "version": "1.0.0",
+  "description": "Playwright API test automation framework for the KPOST KMail API (v5.0)",
+  "scripts": {
+    "test": "playwright test",
+    "test:auth": "playwright test --project=auth",
+    "test:compose": "playwright test --project=compose",
+    "test:drafts": "playwright test --project=drafts",
+    "test:read": "playwright test --project=read",
+    "test:attachments": "playwright test --project=attachments",
+    "test:folders": "playwright test --project=folders",
+    "test:actions": "playwright test --project=actions",
+    "test:search": "playwright test --project=search",
+    "test:contacts": "playwright test --project=contacts",
+    "test:settings": "playwright test --project=settings",
+    "test:translator": "playwright test --project=translator",
+    "typecheck": "tsc --noEmit",
+    "report": "playwright show-report reports/diagnostic"
+  },
+  "keywords": [
+    "playwright",
+    "api-testing",
+    "kmail",
+    "kpost"
+  ],
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "zod": "^4.4.3"
+  }
+}

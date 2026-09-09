@@ -1,0 +1,14 @@
+{
+  "invalidIds": [
+    {
+      "description": "unknown account",
+      "id": "nobody-does-not-exist@kpost.test",
+      "password": "Whatever-Passw0rd!"
+    },
+    {
+      "description": "malformed id",
+      "id": "not-a-valid-id",
+      "password": "Whatever-Passw0rd!"
+    }
+  ]
+}
