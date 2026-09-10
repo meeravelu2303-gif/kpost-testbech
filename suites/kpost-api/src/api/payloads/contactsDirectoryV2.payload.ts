@@ -1,4 +1,5 @@
 import { faker } from '../../utils/dataGen';
+import { FOREIGN } from '../clients/generic.client';
 import { qaIdentifier, qaLabel, safeTestEmail, safeTestMobile } from '../../utils/safeTestData';
 
 /**
@@ -57,6 +58,37 @@ export function buildMultipleContactsPayload(
   overrides: Record<string, unknown> = {}
 ): Array<Record<string, unknown>> {
   return Array.from({ length: count }, () => buildContactPayload(overrides));
+}
+
+/**
+ * A contact add that can actually SUCCEED — for the happy-path and idempotency cases.
+ *
+ * `buildContactPayload` defaults `contactID` to a **non-existent** id, which is right for the
+ * fuzz, ownership and destructive cases: they must not touch a real directory entry. It is wrong
+ * for a happy path. You can only add a contact who is a real KPost user, so a synthetic id can
+ * never succeed — verified live on 2026-09-10:
+ *
+ * ```
+ * addContact { contactID: "qa-nonexistent-zzz@kpostindia.com" } -> "Failed to add contact"
+ * addContact { contactID: "meera961@kpostindia.com" }           -> 200, contact created
+ * ```
+ *
+ * With the synthetic id the "happy path" reported the endpoint as broken (a Major "returns HTTP
+ * 500 where 200 is required" against a route that works), and the idempotency case counted three
+ * HTTP-200-but-body-failed responses as three accepted duplicates — a second Major that never
+ * happened. Both were the payload's fault, not the API's.
+ *
+ * The victim account is used deliberately: it is a QA-owned inbox, adding a contact is reversible
+ * through `deleteContact`, and it keeps the happy path off any live subscriber.
+ */
+export function buildRealContactPayload(overrides: Record<string, unknown> = {}): ContactRequest {
+  return buildContactPayload({
+    contactID: FOREIGN.victimKpostID,
+    firstName: 'Meera',
+    lastName: 'Victim',
+    userType: 'PERSONAL',
+    ...overrides,
+  });
 }
 
 /** Block toggle. The spec stresses this is payload-driven, not an inversion of current state. */

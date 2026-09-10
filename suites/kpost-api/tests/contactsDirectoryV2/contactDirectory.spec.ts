@@ -25,6 +25,7 @@ import {
 } from '../../src/utils/apiAssertions';
 import {
   buildContactPayload,
+  buildRealContactPayload,
   buildMultipleContactsPayload,
   nonExistentContactId,
 } from '../../src/api/payloads/contactsDirectoryV2.payload';
@@ -282,13 +283,27 @@ test.describe('POST /v2/contacts/addContact', () => {
     contactsClient,
     staticToken,
   }) => {
-    const payload = buildContactPayload();
-    const [first, second, third] = await Promise.all([
+    /*
+     * Two corrections, both of which turned this into a false Major.
+     *
+     * The payload now names a REAL contact: an add of a non-existent user cannot be accepted at
+     * all, so the duplicate question was never actually asked.
+     *
+     * And acceptance is read from the ENVELOPE, not from the HTTP status. This route answers
+     * HTTP 200 while the body carries `statusCode: 500, "Failed to add contact"` — counting
+     * those as accepted reported "3 of three concurrent identical adds were accepted" when
+     * none of them were.
+     */
+    const payload = buildRealContactPayload();
+    const responses = await Promise.all([
       contactsClient.addContact(payload, { token: staticToken }),
       contactsClient.addContact(payload, { token: staticToken }),
       contactsClient.addContact(payload, { token: staticToken }),
     ]);
-    const accepted = [first, second, third].filter((r) => r.status() === 200).length;
+    const bodies = await Promise.all(responses.map((r) => readBody(r)));
+    const accepted = bodies.filter(
+      ({ json }) => json !== null && json.statusCode === 200 && String(json.status ?? "").toUpperCase() !== "FAILURE"
+    ).length;
 
     expect(
       accepted,
@@ -358,7 +373,13 @@ test.describe('POST /v2/contacts/addMultipleContact', () => {
     contactsClient,
     staticToken,
   }) => {
-    const payload = buildMultipleContactsPayload(3);
+    /*
+     * A REAL contact id: you can only add a contact who is a registered KPost user, so the
+     * default synthetic id makes this "happy path" impossible to satisfy. With it the case
+     * reported the endpoint as broken; with a real id the endpoint answers 200 "Contacts added
+     * successfully". Verified live 2026-09-10.
+     */
+    const payload = [buildRealContactPayload()];
     const response = await contactsClient.addMultipleContact(payload, { token: staticToken });
 
     await expectValidContract(
@@ -991,21 +1012,67 @@ test.describe('POST /v2/contacts/deleteContact', () => {
     const payload = buildContactPayload({ contactID: SQLI_PAYLOAD });
     const response = await contactsClient.deleteContact(payload, { token: staticToken });
     const { json, text } = await readBody(response);
-    const succeeded = json !== null && json.statusCode === 200;
 
     await assertNoInternalLeak(response, { ...META, body: payload }, SQLI_PAYLOAD);
 
-    if (succeeded) {
+    /*
+     * A CONTROL is required before calling this injection.
+     *
+     * This route answers `200 "Contact Deleted Successfully"` for **any** contactID — a plain
+     * nonsense string gets the same response as a tautology (verified live 2026-09-10). Inferring
+     * injection from that 200 alone reported a Critical "SQL injection accepted" against a route
+     * whose real defect is different and far less alarming: it does not check whether the row
+     * existed. Sending a developer to hunt an unparameterised query that is not there costs more
+     * than the finding is worth, and it spends the credibility the report needs.
+     *
+     * So the verdict is COMPARATIVE: the tautology is only evidence of injection if it behaves
+     * differently from an ordinary id that also matches nothing.
+     */
+    const control = buildContactPayload({ contactID: `qa-no-such-contact-${Date.now()}` });
+    const controlResponse = await contactsClient.deleteContact(control, { token: staticToken });
+    const { json: controlJson } = await readBody(controlResponse);
+
+    const tautologySucceeded = json !== null && json.statusCode === 200;
+    const controlSucceeded = controlJson !== null && controlJson.statusCode === 200;
+
+    if (tautologySucceeded && !controlSucceeded) {
       await reportBusinessLogicFlaw(
         response,
         {
           ...META,
           body: payload,
           title: 'SQL injection accepted on deleteContact: a tautology contactID returns success',
-          scenario: `a SQL tautology as contactID returned success on a delete. Unparameterised, that could remove every contact in the caller's directory in one request. Body: ${text.slice(0, 200)}`,
+          scenario:
+            `a SQL tautology as contactID returned success on a delete while an ordinary ` +
+            `non-existent contactID was refused — the difference is the evidence, because it means ` +
+            `the tautology reached the query rather than the not-found path. Unparameterised, that ` +
+            `could remove every contact in the caller's directory in one request. Body: ${text.slice(0, 200)}`,
         },
         'Security/Access Control',
         'Critical'
+      );
+    } else if (tautologySucceeded && controlSucceeded) {
+      /*
+       * Both "succeeded", so this says nothing about injection — but it does say the delete
+       * reports success for a row that does not exist. That is a real defect of a different kind
+       * and a different severity, and it is the one worth filing.
+       */
+      await reportBusinessLogicFlaw(
+        response,
+        {
+          ...META,
+          body: payload,
+          title: 'deleteContact reports success for a contactID that matches nothing',
+          scenario:
+            `deleteContact answered 200 "Contact Deleted Successfully" for a contactID that cannot ` +
+            `exist, and identically for an ordinary non-existent id — so the handler never checks ` +
+            `whether a row was actually removed. A client cannot tell a real deletion from a no-op, ` +
+            `and a UI built on this will report success for contacts it did not delete. ` +
+            `(This is NOT SQL injection: the tautology and the plain string behave the same.) ` +
+            `Body: ${text.slice(0, 200)}`,
+        },
+        'Business Logic Flaw',
+        'Major'
       );
     }
   });
@@ -1041,20 +1108,33 @@ test.describe('POST /v2/contacts/deleteContact', () => {
   test('[8c] IDOR: a body-supplied kpostID must not delete from another user\'s list', async ({
     contactsClient,
     staticToken,
-    authSession,
   }) => {
     const payload = buildContactPayload({
       kpostID: VICTIM_KPOST_ID,
       contactID: nonExistentContactId(),
     });
     const response = await contactsClient.deleteContact(payload, { token: staticToken });
-    const { json, text } = await readBody(response);
-    const deleted = json !== null && json.statusCode === 200;
 
-    expect(
-      deleted,
-      `a delete succeeded while the body carried kpostID="${VICTIM_KPOST_ID}" and the caller was ${authSession.kpostID ?? 'a different identity'}. The spec states the deletion is confined to the caller's own list by stamping kpostID from the token; if the body wins, one user can strip entries out of another's address book. Body: ${text.slice(0, 200)}`
-    ).toBeFalsy();
+    /*
+     * Verdict on ACKNOWLEDGEMENT, not on the status code.
+     *
+     * This route answers `200 "Contact Deleted Successfully"` for **any** contactID, existing or
+     * not (verified live 2026-09-10). So "it returned 200, therefore the foreign kpostID took
+     * effect" is not an inference this endpoint supports — it returns 200 either way, and the
+     * assertion reported a Critical IDOR that the response never evidenced.
+     *
+     * What would actually prove the body won is the foreign identifier coming back in the
+     * response, which is what `assertNoForeignAcknowledgement` checks and what the rest of this
+     * suite already uses for ownership. The separate, real defect on this route — success
+     * reported for a row that does not exist — is filed by the `[7] SQL injection` case above,
+     * where the control makes it demonstrable.
+     */
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      body: payload,
+      what: 'kpostID',
+      foreignValue: VICTIM_KPOST_ID,
+    });
   });
 
   test('[9] status misreporting: HTTP 200 must not carry a failure payload', async ({

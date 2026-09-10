@@ -162,8 +162,42 @@ function truncate(value: string, max = 400): string {
  * rejections now compare equal and file nothing, while a genuine difference in returned data
  * still fails the assertion and is still reported.
  */
+/**
+ * Server-generated, per-request fields that carry no information about WHO asked.
+ *
+ * `comparableBody` exists to answer "did these two responses differ in substance?", and the
+ * ownership cases compare a normal call against the same call carrying a foreign `kpostID`. Any
+ * field the server stamps from its own clock differs between two sequential requests no matter
+ * what, so leaving one in turns every such comparison into a guaranteed failure.
+ *
+ * `lastFetchDate` did exactly that. It is the sync cursor the contacts routes stamp on every
+ * response, and its absence here produced **four Critical IDOR tickets** on 2026-09-10 against
+ * routes that were behaving correctly — the bodies were byte-identical apart from a 16-millisecond
+ * clock difference, and the victim's identifier appeared nowhere in either.
+ *
+ * Keep this list EXPLICIT rather than pattern-matching every `*Date`/`*Time` key: `messageTime`,
+ * `readTime` and friends are payload data on the Katchup routes, and stripping those could hide a
+ * genuine difference. A name belongs here only when the server sets it from its own clock.
+ */
+const VOLATILE_RESPONSE_FIELDS = [
+  'timestamp',
+  'traceId',
+  'lastFetchDate',
+  'lastFetchTime',
+  'serverTime',
+  'responseTime',
+  'currentTime',
+];
+
 export function comparableBody(text: string): string {
-  return text.replace(/"(timestamp|traceId)"\s*:\s*"[^"]*"\s*,?/g, '');
+  const names = VOLATILE_RESPONSE_FIELDS.join('|');
+  return (
+    text
+      // string-valued form: "lastFetchDate":"2026-09-10T13:05:55.607+00:00"
+      .replace(new RegExp(`"(${names})"\\s*:\\s*"[^"]*"\\s*,?`, 'g'), '')
+      // number/null-valued form: "lastFetchDate":1789041955607
+      .replace(new RegExp(`"(${names})"\\s*:\\s*(?:-?\\d+(?:\\.\\d+)?|null)\\s*,?`, 'g'), '')
+  );
 }
 
 /** Body text plus a best-effort JSON parse — many endpoints return bare strings. */
