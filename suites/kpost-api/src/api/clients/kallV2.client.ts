@@ -8,6 +8,12 @@ export const KALL_V2_PATHS = {
   updateSenderAndReceiverKallStatus: '/v2/kall/updateSenderAndReceiverKallStatus',
   getKallStatus: '/v2/kall/getKallStatus',
   getKallStatusUsingKallID: '/v2/kall/getKallStatusUsingKallID',
+  /*
+   * Excel row 88. Distinct from `endKoolKall` (the group/Kool Kall form) and
+   * `endIndividualKall`: the documented body is `{ id, kallID }`, carrying BOTH the
+   * participant row id and the call id.
+   */
+  endKall: '/v2/kall/endKall',
   endKoolKall: '/v2/kall/endKoolKall',
   endIndividualKall: '/v2/kall/endIndividualKall',
   scheduledKall: '/v2/kall/scheduledKall',
@@ -60,6 +66,10 @@ export class KallV2Client extends BaseClient {
   }
 
   /** End a group call for everyone. */
+  endKall(data: unknown, options?: RequestOptions): Promise<APIResponse> {
+    return this.post(KALL_V2_PATHS.endKall, data, options);
+  }
+
   endKoolKall(data: unknown, options?: RequestOptions): Promise<APIResponse> {
     return this.post(KALL_V2_PATHS.endKoolKall, data, options);
   }

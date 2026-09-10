@@ -294,6 +294,81 @@ export function buildDeleteProfileRecordPayload(
   };
 }
 
+/* ===========================================================================================
+ * The nested education family — updateSchoolDetails / updateCollegeDetails /
+ * updateUniversityDetails (Excel rows 107-109).
+ *
+ * These are NOT aliases of `saveOrUpdate*Details`. That family takes the flat `UserProfileRO`
+ * discriminated by `requestType`; this one takes an ARRAY of full records under a per-type key,
+ * each carrying the row id, the course/standard/field detail, a free-text `about`, and an
+ * `attachmentPath` list of uploaded-file uuids. Two different DTOs, two different shapes.
+ *
+ * Every record id defaults to a **non-existent** row: an update that resolves would overwrite
+ * real profile history, which the API offers no way to restore.
+ * ======================================================================================== */
+
+/** School history, nested form. */
+export function buildUpdateSchoolDetailsPayload(overrides: Record<string, unknown> = {}) {
+  return {
+    schoolDetails: [
+      {
+        schoolID: String(nonExistentProfileRecordId()),
+        schoolName: qaLabel('school'),
+        standard: '11th to 12th',
+        course: 'Computer Science & Mathematics',
+        yearFrom: '2017',
+        yearTo: '2019',
+        logoPath: '',
+        about: 'QA automation placeholder',
+        attachmentPath: [],
+      },
+    ],
+    ...overrides,
+  };
+}
+
+/** College history, nested form. */
+export function buildUpdateCollegeDetailsPayload(overrides: Record<string, unknown> = {}) {
+  return {
+    collegeDetails: [
+      {
+        collegeID: String(nonExistentProfileRecordId()),
+        collegeName: qaLabel('college'),
+        degree: 'Bachelors',
+        course: 'Computer Application',
+        field: 'Computer Application',
+        yearFrom: '2019',
+        yearTo: '2022',
+        logoPath: '',
+        about: 'QA automation placeholder',
+        attachmentPath: [],
+      },
+    ],
+    ...overrides,
+  };
+}
+
+/** University history, nested form. Excel gives yearFrom/yearTo as NUMBERS on this one. */
+export function buildUpdateUniversityDetailsPayload(overrides: Record<string, unknown> = {}) {
+  return {
+    universityDetails: [
+      {
+        universityID: String(nonExistentProfileRecordId()),
+        universityName: qaLabel('university'),
+        degree: 'Masters',
+        course: 'Computer Application',
+        field: 'Computer Application',
+        yearFrom: 2019,
+        yearTo: 2022,
+        logoPath: '',
+        about: 'QA automation placeholder',
+        attachmentPath: [],
+      },
+    ],
+    ...overrides,
+  };
+}
+
 /** The free-text biography. */
 export function buildAboutYourselfPayload(overrides: Record<string, unknown> = {}) {
   return {

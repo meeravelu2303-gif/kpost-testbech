@@ -56,6 +56,13 @@ jobs:
       - name: Vector gate — KPost API
         run: npm run audit:vectors -w kpost-api
 
+      # The contract gate: the Excel workbook is authoritative for request payloads, and this
+      # refuses the build when a mandatory endpoint stops sending a documented field. Pinned at
+      # 100% — a new Excel row should fail on arrival rather than drift in unnoticed. Offline:
+      # it reads the checked-in contract at suites/kpost-api/docs/excel/endpoints.json.
+      - name: Excel payload-conformance gate — KPost API
+        run: npm run audit:excel -w kpost-api
+
       # Offline unit tests for the bench's own reporting code (Bugzilla payloads, dedup).
       - name: Unit tests — reporter internals
         run: npm run test:unit -w kpost-api

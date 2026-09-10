@@ -1349,6 +1349,237 @@ test.describe('POST /v2/kall/getKallStatusUsingKallID', () => {
 });
 
 /* =========================================================================================
+ * POST /v2/kall/endKall
+ *
+ * Excel row 88. A THIRD end-call route alongside `endKoolKall` (the group / Kool Kall form) and
+ * `endIndividualKall`. It was in the workbook as mandatory and reachable on the live host, but
+ * nothing in the bench referenced it until now — so the one route a client uses to hang up a
+ * call had no coverage at all.
+ *
+ * The documented body is `{ id, kallID }`, carrying BOTH the per-receiver row id and the shared
+ * call id — the pair `buildExistingKallPayload` already produces. Every id addresses a
+ * non-existent call: ending a real one would drop a call another spec is mid-way through.
+ * ====================================================================================== */
+test.describe('POST /v2/kall/endKall', () => {
+  const META = {
+    method: 'POST',
+    path: KALL_V2_PATHS.endKall,
+    repro: `await kallV2Client.endKall(buildExistingKallPayload(), { token });`,
+  };
+
+  /**
+   * Marks a case SKIPPED rather than letting it pass when the route is not deployed.
+   *
+   * This route answers 404 to a valid token on 192.168.0.66 (verified 2026-09-10), and every
+   * assertion here passes trivially against a 404. A skip states the truth; a pass would launder
+   * a missing endpoint into evidence of a working one.
+   */
+  const skipIfUndeployed = (status: number): void => {
+    test.skip(
+      status === 404,
+      '/v2/kall/endKall is not deployed on this environment (404 with a valid token) — see the [deployment] case'
+    );
+    // 429 stands down too: a throttled response describes our request rate, not the endpoint.
+    test.skip(
+      status === 429,
+      '/v2/kall/endKall: throttled (HTTP 429) — the response describes our request rate, not the endpoint'
+    );
+  };
+
+  /** Statuses that prove a route EXISTS. Anything else (404 above all) means it does not. */
+  const REACHABLE_STATUSES = [200, 201, 204, 400, 401, 403, 405, 415, 422];
+
+  test('[deployment] /v2/kall/endKall must be reachable with a valid token', async ({
+    kallV2Client,
+    staticToken,
+  }) => {
+    /*
+     * Excel row 88 lists this as mandatory, so a 404 is a deployment gap worth a ticket rather
+     * than something to route around quietly. Note the bench DOES cover `endKoolKall` and
+     * `endIndividualKall`, which are deployed — so this is one missing member of a family, not
+     * an un-implemented feature.
+     */
+    const payload = buildExistingKallPayload();
+    const response = await kallV2Client.endKall(payload, { token: staticToken });
+
+    /*
+     * Asserted POSITIVELY — the route must answer something that proves it EXISTS — rather than
+     * as `.not.toBe(404)`. The negative form passes on ANY other status, and under full-suite load
+     * this API returns 429: written that way, the sibling cases in educationNested.spec.ts went
+     * green in a full run while their routes were still missing. Deliberately NOT guarded by
+     * skipIfUndeployed — this case exists to report the 404.
+     */
+    test.skip(
+      response.status() === 429,
+      'throttled (HTTP 429) — a rate limit cannot be told apart from a missing route'
+    );
+
+    expect(
+      REACHABLE_STATUSES.includes(response.status()),
+      `/v2/kall/endKall is documented as mandatory in the API workbook (Excel row 88) but answers HTTP ${response.status()} to a valid token, while its siblings endKoolKall and endIndividualKall are deployed. Either it was never deployed here or the workbook is stale.`
+    ).toBe(true);
+  });
+
+  test('[1] happy path: ending a call satisfies the Zod contract', async ({
+    kallV2Client,
+    staticToken,
+  }) => {
+    const payload = buildExistingKallPayload();
+    const response = await kallV2Client.endKall(payload, { token: staticToken });
+    skipIfUndeployed(response.status());
+
+    await expectValidContract(
+      response,
+      kallResponseSchema,
+      { ...META, body: payload },
+      [200, 400, 401, 403, 404]
+    );
+  });
+
+  test('[2] boundary: a kallID beyond int32 must not overflow', async ({
+    kallV2Client,
+    staticToken,
+  }) => {
+    const payload = buildExistingKallPayload({ kallID: 2147483648, id: 2147483648 });
+    const response = await kallV2Client.endKall(payload, { token: staticToken });
+    skipIfUndeployed(response.status());
+
+    expect(
+      response.status(),
+      `a kallID of 2147483648 exceeds int32 and produced HTTP ${response.status()}. An id that cannot be represented must be refused, never wrapped into a different call.`
+    ).toBeLessThan(500);
+  });
+
+  test('[3] missing required parameter: no kallID must be refused', async ({
+    kallV2Client,
+    staticToken,
+  }) => {
+    const payload = buildExistingKallPayload();
+    delete (payload as Record<string, unknown>).kallID;
+
+    const response = await kallV2Client.endKall(payload, { token: staticToken });
+    skipIfUndeployed(response.status());
+
+    await assertRejectsInvalidInput(
+      response,
+      { ...META, body: payload, scenario: 'no kallID supplied — the request ends nothing' },
+      [400, 401, 403, 404, 422]
+    );
+  });
+
+  test('[4] null fuzzing: a null kallID must be refused', async ({ kallV2Client, staticToken }) => {
+    const payload = buildExistingKallPayload({ kallID: null });
+    const response = await kallV2Client.endKall(payload, { token: staticToken });
+    skipIfUndeployed(response.status());
+
+    await assertRejectsInvalidInput(
+      response,
+      { ...META, body: payload, scenario: 'field "kallID" set to null' },
+      [400, 401, 403, 404, 422]
+    );
+  });
+
+  test('[5] typefuzz: a kallID sent as an array must be refused', async ({
+    kallV2Client,
+    staticToken,
+  }) => {
+    const payload = buildExistingKallPayload({ kallID: [1, 2, 3] });
+    const response = await kallV2Client.endKall(payload, { token: staticToken });
+    skipIfUndeployed(response.status());
+
+    expect(
+      response.status(),
+      `kallID sent as an array produced HTTP ${response.status()}. A type mismatch is a 400, not a fault.`
+    ).toBeLessThan(500);
+  });
+
+  test('[6] XSS: a script payload in kallID must not be reflected unescaped', async ({
+    kallV2Client,
+    staticToken,
+  }) => {
+    const payload = buildExistingKallPayload({ kallID: XSS_PAYLOAD });
+    const response = await kallV2Client.endKall(payload, { token: staticToken });
+    skipIfUndeployed(response.status());
+
+    await assertNoReflectedScript(response, { ...META, body: payload }, XSS_PAYLOAD);
+  });
+
+  test('[7] SQL injection: a tautology must not leak database internals', async ({
+    kallV2Client,
+    staticToken,
+  }) => {
+    const payload = buildExistingKallPayload({ kallID: SQLI_PAYLOAD });
+    const response = await kallV2Client.endKall(payload, { token: staticToken });
+    skipIfUndeployed(response.status());
+
+    await assertNoInternalLeak(response, { ...META, body: payload }, SQLI_PAYLOAD);
+  });
+
+  test('[8] auth: a request with no Authorization header must be 401/403', async ({
+    kallV2Client,
+  }) => {
+    const payload = buildExistingKallPayload();
+    const response = await kallV2Client.endKall(payload, { token: null });
+
+    await assertUnauthorized(response, { ...META, body: payload });
+  });
+
+  test('[8b] auth: an expired token must be refused', async ({ kallV2Client }) => {
+    const payload = buildExistingKallPayload();
+    const response = await kallV2Client.endKall(payload, { token: EXPIRED_TOKEN });
+
+    await assertUnauthorized(response, { ...META, body: payload });
+  });
+
+  test('[8c] auth: a malformed token must be refused', async ({ kallV2Client }) => {
+    const payload = buildExistingKallPayload();
+    const response = await kallV2Client.endKall(payload, { token: MALFORMED_TOKEN });
+
+    await assertUnauthorized(response, { ...META, body: payload });
+  });
+
+  test('[8d] auth: an alg=none forged token must not end a call', async ({ kallV2Client }) => {
+    const payload = buildExistingKallPayload();
+    const response = await kallV2Client.endKall(payload, { token: FORGED_ALG_NONE_JWT });
+
+    await assertUnauthorized(response, { ...META, body: payload });
+  });
+
+  test('[9] status parity: the HTTP status must equal the envelope statusCode', async ({
+    kallV2Client,
+    staticToken,
+  }) => {
+    const payload = buildExistingKallPayload();
+    const response = await kallV2Client.endKall(payload, { token: staticToken });
+    skipIfUndeployed(response.status());
+
+    await assertStatusCodeParity(response, { ...META, body: payload });
+  });
+
+  test("[IDOR] a foreign kpostID must not end another user's call", async ({
+    kallV2Client,
+    staticToken,
+  }) => {
+    /*
+     * Hanging up someone else's call is a denial-of-service primitive that needs no read access:
+     * the caller never has to see the conversation to cut it off. Verdict is on
+     * ACKNOWLEDGEMENT, not the status code — a correct implementation may answer 200 having
+     * ignored the foreign identity entirely.
+     */
+    const payload = buildExistingKallPayload({ kpostID: FOREIGN.victimKpostID });
+    const response = await kallV2Client.endKall(payload, { token: staticToken });
+    skipIfUndeployed(response.status());
+
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      body: payload,
+      what: 'kpostID',
+      foreignValue: FOREIGN.victimKpostID,
+    });
+  });
+});
+
+/* =========================================================================================
  * POST /v2/kall/endKoolKall
  * ====================================================================================== */
 test.describe('POST /v2/kall/endKoolKall', () => {

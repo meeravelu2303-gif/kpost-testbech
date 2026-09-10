@@ -83,8 +83,12 @@ node scripts/traceability.js
 | ---------------- | ------------------------------------------------- |
 | `typecheck`      | silent, exit 0                                     |
 | `audit:excel`    | `CONFORMANCE : 100.00%` · `[excel] PASS`           |
-| `audit:vectors`  | `2029/2029 (100.00%)` · `[vectors] PASS`           |
+| `audit:vectors`  | `2057/2057 (100.00%)` · `[vectors] PASS`           |
 | `traceability`   | `traced to a tagged test : 56 (87.5%)`             |
+
+All ten CI gates are green (`.github/workflows/ci.yml`), and `npm run lint:ui` is one of them — it
+was failing until the `ts-api-utils` hoist was pinned in `kpost-ui`, so check that first if it
+breaks again.
 
 `audit:excel` failing means a payload no longer matches the workbook — fix the payload, don't lower
 the threshold. The 8 requirements traceability still reports untraced are 7 UI-layer (the UI phase)
@@ -153,6 +157,11 @@ These are confirmed product faults on `192.168.0.66`, already characterised:
 | KMail `postMail`                                     | 500 — QA accounts have no mail-server credentials      |
 | KMail draft/settings/PDF routes                      | assorted 500s and missing validation                   |
 | kdiary `updateEvent` / `editScheduleEvent`           | 500 on a non-existent event id                         |
+| `[deployment]` cases (4)                            | `endKall` + the 3 nested education routes answer 404  |
+
+**Skips are not failures, and they are not silence.** Every skip states its reason. The blocks for
+the four undeployed endpoints skip deliberately: their assertions would all pass against a 404, so
+a skip is the honest result and the paired `[deployment]` case carries the finding.
 
 **The mock OTP `123456` / `000000` is an intentional dev bypass.** Tests accept it. It is never a
 bug. Only a genuinely un-issued *non-mock* OTP being accepted would be.

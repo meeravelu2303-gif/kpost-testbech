@@ -121,3 +121,93 @@ tests:
 `SUCCESS`/`FAILURE` everywhere — a real deviation, but one the bench asserts **once** by design, in
 the dedicated envelope-contract test (`strictDocumentedEnvelopeSchema`), with every other schema
 using `z.string()`. The login schema was re-filing a known fault as a second ticket.
+
+---
+
+# Second pass — closing the blind spots the gates could not see
+
+The gates above all read source code. A green gate therefore says "the test is written", never
+"the test ran and meant something". This pass hunted the difference.
+
+## The governing failure mode: a test that passes while proving nothing
+
+Three distinct instances were found and fixed. They share a shape worth naming, because it will
+recur:
+
+| where | how it passed while proving nothing |
+| ----- | ----------------------------------- |
+| `NFR-SEC01` sweep | five of six paths were wrong; "must not be 2xx" is green against a 404. **20 of 24 cases** |
+| the four newly-covered endpoints | all four answer 404 — 55 new tests went green against nothing |
+| `BR-X02` | asserted only "some 4xx", which a rejection for an unrelated field satisfies |
+
+It happened a **fourth** time, in the guard written to prevent it. The `[deployment]` cases were
+written as `expect(status).not.toBe(404)` — which passes on any other status. Under full-suite
+load this API returns **429**, so in a full run three of the four deployment cases went green
+while their routes were still missing; only running them in isolation showed the failure. They now
+assert **positively** (`REACHABLE_STATUSES.includes(status)` — the route must answer something
+that proves it exists) and stand down on 429, because a rate limit cannot be told apart from a
+missing route.
+
+That is the sharper form of the lesson: **a negative assertion is not repaired by adding another
+negative assertion.** State what must be true, not what must not.
+
+The countermeasure is now a convention: **every negative assertion needs a positive control.**
+`crossModule` has a per-route reachability guard that fails when a valid token does not get a 200;
+the undeployed endpoints have `skipIfUndeployed` plus a `[deployment]` case that reports the 404
+as the finding. A skip states the truth. A pass launders a missing endpoint into evidence of a
+working one.
+
+## Coverage gaps closed
+
+**Four mandatory Excel endpoints had no test at all** — `/v2/kall/endKall` (row 88) and the nested
+education family `updateSchoolDetails` / `updateCollegeDetails` / `updateUniversityDetails` (rows
+107-109). The nested family is not an alias of `saveOrUpdate*Details`: that takes a flat
+`UserProfileRO` keyed by `requestType`, this takes an array of full records with the row id,
+`course`/`standard`/`field`, `about` and `attachmentPath`. All four are now covered with the seven
+mandatory vectors — and all four answer **404 to a valid token**, which is itself the finding.
+
+Endpoint reference coverage is 290/301 mandatory; the remaining 11 are matcher artefacts
+(query strings, literal path params) verified covered by hand.
+
+## The disposable-account fix — the biggest real win
+
+`freshUser()` called `signup` **without the OTP flow**, so registration could never succeed:
+`disposableToken` was permanently null and roughly fourteen destructive-path tests skipped every
+run — account deactivation, credential change, session revocation. The surface where a defect is
+most expensive was the least exercised.
+
+The seeder's premise ("the OTP is random and reaches only SMS") is **out of date**: mock OTP
+`123456` validates over plain REST on this host. `freshUser()` now runs sendOTP → validateOTP →
+signup, with a 429 retry because dispatch is throttled at ~1 per 6s. Verified: the destructive
+slice went from 14 skips to **30 passed, 0 skipped**.
+
+## Gate corrections
+
+- **CI never ran the Excel gate.** Added to `ci.yml`. Without it the contract could drift while
+  every other gate stayed green.
+- **`lint:ui` was failing, so CI was red.** `ts-api-utils` hoisted to the root resolved the root's
+  TypeScript 7, while the UI's `@typescript-eslint` needs TS 5.x (`TypeFlags.Intrinsic` is gone in
+  7). Fixed by pinning `ts-api-utils@2.4.0` in `kpost-ui` — a version deliberately different from
+  the root's, because npm only nests a dependency when the hoisted copy does not satisfy the
+  range. All ten CI gates now pass.
+- **Table-driven specs are invisible to both gates.** They read `test.describe('<literal>')` and
+  the builder calls inside it, so a loop hides the endpoint behind a template literal and the
+  payload behind `route.build()`. The first draft of `educationNested.spec.ts` was a loop; the
+  Excel gate then reported all ten documented fields as never sent — a false finding against code
+  that does send them. Unrolled into three literal describes. **Write specs one literal describe
+  per endpoint**; the duplication is what makes coverage measurable.
+
+## Skip audit
+
+167 skips across the full run, every one carrying a stated reason. The 17 without one are a single
+`test.describe.skip` on `/kword/documentsType1`, a developer-only endpoint — documented, and
+correctly excluded from the vector gate's denominator (its regex requires `test.describe(`, which
+`.skip` does not match). The rest are data-dependent ("lookup returned no data", "send did not
+succeed") and shrink as the environment gains data.
+
+## Are the failures real?
+
+228 failures in the baseline run group into product-fault classes, not bench faults: 95 unhandled
+500s, 25 envelope/status-parity, 19 the `getActiveSession`/`getLoginHistory` 409, 15 missing rate
+limiting, 11 XSS reflections, 8 accepts-bad-input. The 404 group is the API answering 404 where a
+400 belongs — also a finding, not the bench calling dead routes.

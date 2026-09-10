@@ -20,6 +20,7 @@ import { KatchupV2Client } from '../api/clients/katchupV2.client';
 import { IntegrationsClient } from '../api/clients/integrations.client';
 import { GenericClient } from '../api/clients/generic.client';
 import { buildLoginPayload, buildSignupPayload, SignupPayload } from '../api/payloads/auth.payload';
+import { buildSendOtpPayload, buildValidateOtpPayload } from '../api/payloads/common.payload';
 import { claimDisposableAccount } from './disposablePool';
 import {
   AuthSession,
@@ -306,7 +307,7 @@ export const test = base.extend<ApiFixtures, WorkerFixtures>({
     await use(() => requireToken(authSession));
   },
 
-  freshUser: async ({ authClient }, use) => {
+  freshUser: async ({ authClient, commonClient }, use) => {
     const create = async (): Promise<FreshUser> => {
       /*
        * Prefer a pre-created account when one is available.
@@ -353,7 +354,52 @@ export const test = base.extend<ApiFixtures, WorkerFixtures>({
         // test. Fall through and let the REST path report why registration is unavailable.
       }
 
+      /*
+       * Registration requires a VERIFIED OTP for the mobile number. This path used to call
+       * `signup` on its own, which the server always refused with 400 "Enter valid Credentials"
+       * — so `disposableToken` was permanently null and roughly fourteen destructive-path tests
+       * (account deactivation, credential change, session revocation) skipped every run. That is
+       * the surface where a defect is most expensive, and it was the least exercised.
+       *
+       * The mock OTP `123456` is an intentional non-production dev bypass (`sendOTP` writes an
+       * extra `created_by=AUTOMATION` row carrying it), so the whole flow runs over plain REST
+       * with no database access. Verified end to end on 2026-09-10: sendOTP -> validateOTP
+       * -> signup returns HTTP 200 and the account logs in.
+       *
+       * `000000` is tried as a fallback because environments have carried either value.
+       */
       const signupPayload = buildSignupPayload();
+      const mobileNumber = String(signupPayload.mobileNumber);
+
+      /*
+       * OTP dispatch is throttled at roughly one per six seconds and answers 429 over that.
+       * Workers registering at the same moment collide, so a 429 is retried rather than treated
+       * as a failure — without this, parallel runs silently lose disposable accounts again.
+       */
+      let sendDate = Date.now();
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const otpResponse = await commonClient.sendOTP(
+          buildSendOtpPayload({ mobileNumber, requestType: 'signup' })
+        );
+        if (otpResponse.status() !== 429) {
+          try {
+            const body = (await otpResponse.json()) as { sendDate?: number };
+            if (typeof body.sendDate === 'number') sendDate = body.sendDate;
+          } catch {
+            /* the endpoint answers `data: ""` on success; the local timestamp is the fallback */
+          }
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 7_000));
+      }
+
+      for (const otp of ['123456', '000000']) {
+        const validation = await commonClient.validateOTP(
+          buildValidateOtpPayload(mobileNumber, otp, { sendDate })
+        );
+        if (validation.ok()) break;
+      }
+
       await authClient.signup(signupPayload);
 
       let accessToken: string | null = null;
