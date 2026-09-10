@@ -25,6 +25,7 @@ import {
   FETCH_MAIL_TYPE,
   KMAIL_STATUS_FLAG,
   buildCommonPayload,
+  buildImportantMailsPayload,
   buildDashboardPagePayload,
   buildDashboardRefreshPayload,
   buildFollowUpPayload,
@@ -543,7 +544,8 @@ test.describe('POST /v2/common/getAllImportantMails', () => {
     mailboxClient,
     token,
   }) => {
-    const payload = buildCommonPayload();
+    // Excel row 15 documents this fetch as `{ selectedContact }` — see buildImportantMailsPayload.
+    const payload = buildImportantMailsPayload();
     const response = await mailboxClient.getAllImportantMails(payload, { token });
 
     await expectValidContract(

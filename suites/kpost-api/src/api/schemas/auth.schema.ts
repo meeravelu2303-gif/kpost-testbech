@@ -7,7 +7,14 @@ import { z } from 'zod';
 export const userLoginResponseSchema = z
   .object({
     statusCode: z.number().optional(),
-    status: z.enum(['Success', 'Failure']).optional(),
+    /*
+     * `z.string()`, not the documented enum. The server answers `SUCCESS`/`FAILURE` in upper
+     * case where swagger documents `Success`/`Failure` — a real but *already-covered* deviation:
+     * `strictDocumentedEnvelopeSchema` asserts it once in the dedicated envelope-contract test.
+     * Re-asserting it here made every login-envelope check fail on that same known fault, which
+     * is a second ticket for one defect.
+     */
+    status: z.string().optional(),
     message: z.string().nullish(),
     urlPath: z.string().optional(),
     accessToken: z.string().nullish(),

@@ -30,7 +30,9 @@
     "format:check": "prettier --check \"**/*.{ts,js,cjs,mjs,json,md,yml,yaml}\" --ignore-path .gitignore --log-level warn",
     "clean": "npm run clean -w kpost-api --if-present && npm run clean -w kpost-ui --if-present",
     "trace": "node scripts/traceability.js",
-    "trace:md": "node scripts/traceability.js --markdown"
+    "trace:md": "node scripts/traceability.js --markdown",
+    "audit:excel": "npm run audit:excel -w kpost-api",
+    "audit:vectors": "npm run audit:vectors -w kpost-api"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

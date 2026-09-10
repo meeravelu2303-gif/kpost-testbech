@@ -136,5 +136,12 @@ export default defineConfig({
     { name: 'kallV2', testDir: './tests/kallV2' },
     { name: 'redbus', testDir: './tests/redbus' },
     { name: 'katchupV2', testDir: './tests/katchupV2' },
+    /*
+     * Not a controller tag — the platform-wide requirements that belong to no single controller
+     * (NFR-SEC01, BR-X02, NFR-R02). Every other project above maps one-to-one to a swagger tag;
+     * this one deliberately does not, because the rules it proves are properties of the platform
+     * rather than of an endpoint. See tests/crossModule/platformRules.spec.ts.
+     */
+    { name: 'crossModule', testDir: './tests/crossModule' },
   ],
 });

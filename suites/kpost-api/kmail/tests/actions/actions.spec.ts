@@ -18,6 +18,7 @@ import {
   KMAIL_STATUS_FLAG,
   buildClearStatusPayload,
   buildCommonPayload,
+  buildReplyNotRequiredPayload,
   buildDashboardPagePayload,
   buildDeleteKmailPayload,
   buildGroupReadStatusPayload,
@@ -625,7 +626,7 @@ test.describe('Clearing follow-up status', () => {
       path: MAILBOX_PATHS.replyNotRequiredBySender,
       repro: `await mailboxClient.replyNotRequiredBySender(buildCommonPayload(), { token });`,
     };
-    const payload = buildCommonPayload({ kmailIDs: [nonExistentKmailId()] });
+    const payload = buildReplyNotRequiredPayload({ kmailIDs: [nonExistentKmailId()] });
     const response = await mailboxClient.replyNotRequiredBySender(payload, { token });
 
     await expectValidContract(
@@ -665,7 +666,7 @@ test.describe('Clearing follow-up status', () => {
       path: MAILBOX_PATHS.replyNotRequiredByReceiver,
       repro: `await mailboxClient.replyNotRequiredByReceiver(buildCommonPayload(), { token });`,
     };
-    const payload = buildCommonPayload({ kmailIDs: [nonExistentKmailId()] });
+    const payload = buildReplyNotRequiredPayload({ kmailIDs: [nonExistentKmailId()] });
     const response = await mailboxClient.replyNotRequiredByReceiver(payload, { token });
 
     await expectValidContract(
@@ -683,7 +684,7 @@ test.describe('Clearing follow-up status', () => {
     // Sender-side ("I don't need a reply") and receiver-side ("I don't owe a reply") dismissal are
     // separate endpoints. If either accepts the other's role, a sender can clear a recipient's
     // obligation, removing the mail from their to-answer list without them seeing it.
-    const payload = buildCommonPayload({ kmailIDs: [nonExistentKmailId()] });
+    const payload = buildReplyNotRequiredPayload({ kmailIDs: [nonExistentKmailId()] });
     const [bySender, byReceiver] = await Promise.all([
       mailboxClient.replyNotRequiredBySender(payload, { token }),
       mailboxClient.replyNotRequiredByReceiver(payload, { token }),

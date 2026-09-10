@@ -162,6 +162,10 @@ export function buildVoiceTranslatePayload(overrides: Record<string, unknown> = 
 export function buildMetaDeePayload(overrides: Record<string, unknown> = {}) {
   return {
     message: 'QA automation probe. Reply with the single word OK.',
+    // Excel row 82 documents the prompt body as `content` with a `requestType` selector
+    // alongside `message`; sending only `message` left the documented shape unreachable.
+    content: 'QA automation probe. Reply with the single word OK.',
+    requestType: 'message',
     ...overrides,
   };
 }
@@ -217,6 +221,11 @@ export function buildEnterpriseLoginPayload(overrides: Record<string, unknown> =
     deviceIdentity_secondary: 'Desktop-Chrome',
     sessionID: faker.string.uuid(),
     logintime: Date.now(),
+    // Excel row 211 carries the same geo/push trio as the standard login (the misspelling of
+    // "latitude" is the server's own field name, matched deliberately).
+    login_lattitude: null,
+    login_longitude: null,
+    oneSignal_Key: '',
     module: 0,
     voip: 'voip',
     loginRO: { countryID: '1', password: 'Qa@Passw0rd123', userType: 'BUSINESS' },

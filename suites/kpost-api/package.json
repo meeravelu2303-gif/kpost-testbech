@@ -54,7 +54,8 @@
     "typecheck:kmail": "cd kmail && npx tsc --noEmit",
     "test:adminmodule": "cd admin && npx playwright test",
     "test:adminmodule:list": "cd admin && npx playwright test --list --reporter=line",
-    "typecheck:adminmodule": "cd admin && npx tsc --noEmit"
+    "typecheck:adminmodule": "cd admin && npx tsc --noEmit",
+    "audit:excel": "node scripts/excel-conformance.js --threshold 100"
   },
   "keywords": [],
   "author": "",

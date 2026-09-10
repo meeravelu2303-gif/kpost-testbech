@@ -36,6 +36,24 @@ export const KMAIL_STATUS_FLAG = {
   replyNotSent: 2,
 } as const;
 
+/**
+ * The important-mail fetch (`getAllImportantMails`).
+ *
+ * Excel row 15 documents `{ selectedContact }` — the correspondent whose flagged mail is wanted.
+ * It is NOT folded into `buildCommonPayload`: that builder is shared by a dozen endpoints, and
+ * KMail entities are not `@JsonIgnoreProperties(ignoreUnknown = true)`, so an extra field on the
+ * shared shape is a hard Jackson 400 anywhere the field does not belong. Verified accepted
+ * (HTTP 200) on this route against the live KMail backend on 2026-09-10.
+ */
+export function buildImportantMailsPayload(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return buildCommonPayload({
+    selectedContact: syntheticRecipient(),
+    ...overrides,
+  });
+}
+
 /** The `KmailCommonRequestObject` DTO — the workhorse of this controller. */
 export function buildCommonPayload(
   overrides: Record<string, unknown> = {}
@@ -134,6 +152,25 @@ export function buildDeleteKmailPayload(
   };
 }
 
+/**
+ * Dismisses a thread as needing no reply — `replyNotRequiredBySender` / `...ByReceiver`.
+ *
+ * Excel rows 11 and 12 document the body as `{ selectedContact, kmailID }`: the correspondent and
+ * the specific mail being dismissed. These tests used the bare `buildCommonPayload()`, which
+ * carries neither, so the endpoint could not identify what to dismiss and the documented operation
+ * was never actually exercised. Verified body-accepted (the server reaches its own
+ * "No matching kmail found to update" rather than a Jackson 400) on 2026-09-10.
+ */
+export function buildReplyNotRequiredPayload(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return buildCommonPayload({
+    selectedContact: syntheticRecipient(),
+    kmailID: nonExistentKmailId(),
+    ...overrides,
+  });
+}
+
 /** Clears a follow-up status for selected mail. */
 export function buildClearStatusPayload(
   overrides: Record<string, unknown> = {}
@@ -142,6 +179,15 @@ export function buildClearStatusPayload(
     kmailStatusFlag: KMAIL_STATUS_FLAG.replyNotReceived,
     kmailIDs: [nonExistentKmailId()],
     selectMailType: FETCH_MAIL_TYPE.all,
+    /*
+     * Excel row 43 documents two forms: clear-ALL for one correspondent
+     * (`selectMailType: "A"` + `selectedContact`) and clear-SELECTED
+     * (`selectMailType: "S"` + `transactionIDs`). This builder is the "A" form, which is
+     * incomplete without the contact whose mail is being cleared — the endpoint had no way to
+     * scope the clear, so the documented behaviour was never exercised. Verified body-accepted
+     * (reaches business logic, not a Jackson 400) against the live KMail backend on 2026-09-10.
+     */
+    selectedContact: syntheticRecipient(),
     ...overrides,
   });
 }
@@ -206,6 +252,13 @@ export function buildContactSyncPayload(
   overrides: Record<string, unknown> = {}
 ): Record<string, unknown> {
   return {
+    /*
+     * Excel row 41: `{ lastFetchTime: "1695280938000" }` — epoch millis as a STRING, the cursor
+     * the client last synced from. The builder sent an empty body, so the baseline case only ever
+     * exercised a full sync and the incremental branch was unreachable from here. Verified
+     * accepted (HTTP 200) against the live KMail backend on 2026-09-10.
+     */
+    lastFetchTime: String(Date.now() - 86_400_000),
     ...overrides,
   };
 }

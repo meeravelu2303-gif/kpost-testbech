@@ -3,9 +3,10 @@ import { KATCHUP_PATHS, type KatchupV2Client } from '../../src/api/clients/katch
 import { reportBusinessLogicFlaw, readBody } from '../../src/utils/apiAssertions';
 import {
   buildKatchupMessagePayload,
-  syntheticReceiver,
 } from '../../src/api/payloads/katchupV2.payload';
 import { FOREIGN } from '../../src/api/clients/generic.client';
+import { buildLoginPayload } from '../../src/api/payloads/auth.payload';
+import { env } from '../../src/config/env.config';
 
 /**
  * Katchup V2 — **business-rule / does-the-feature-work layer.**
@@ -32,11 +33,22 @@ import { FOREIGN } from '../../src/api/clients/generic.client';
  * `getReadStatusGroupMessage` is **group-only** (an individual message answers 400 "Not
  * Applicable"), so an individual read receipt is verified from the message's own `status` field.
  *
- * ## Verified live behaviour (2026-09) driving the assertions below
+ * ## Verified live behaviour — re-checked 2026-09-10 against 192.168.0.66
  *
- * - Empty subject → HTTP 200, **accepted** — BR-K01 (subject required) is not enforced.
- * - Missing subject → HTTP 500 — an unhandled path where a 400 is owed.
+ * The earlier reading of this file is now OUT OF DATE and the backend has been fixed. Recorded
+ * so nobody re-files what is already resolved:
+ *
+ * - Empty subject → **HTTP 400 `"subject is required"`**. Previously 200-and-accepted, i.e.
+ *   BR-K01 was not enforced. It is now.
+ * - Subject omitted entirely → **HTTP 400**, same message. Previously an unhandled 500.
  * - Copies (14) / Secret (18) / Edit (6) / Recall (7) with correct payloads → 200, all work.
+ * - Copies (14) sent WITHOUT its companion fields (`isCopyMessage`, `sharedType`,
+ *   `sharedDetailReceiverList`) → 500. That is the ordinary 500-on-incomplete-input class this
+ *   suite already covers elsewhere, not a fault in the Copies feature itself — the FR-K04 case
+ *   below sends the complete shape and is accepted.
+ *
+ * The two BR-K01 cases below therefore now PASS. Keep them: they are the regression guard for a
+ * rule the product only recently started enforcing.
  *
  * ## Safety
  *
@@ -204,6 +216,8 @@ test.describe('POST /v2/katchup/sendMessage', () => {
 
   test('[NFR-SEC02] a Confidential Copy recipient must not be exposed to the other recipients', async ({
     katchupClient,
+    authClient,
+    authSession,
     staticToken,
   }) => {
     /*
@@ -212,14 +226,23 @@ test.describe('POST /v2/katchup/sendMessage', () => {
      * read the confidential list has been handed exactly what the sender chose to withhold.
      *
      * Katchup encodes this as messageType 18 rather than a `bcc` field, so the confidential party
-     * travels in the same envelope as everyone else. The risk is therefore concrete rather than
-     * theoretical, and the assertion is on the row delivered to the PRIMARY recipient — the sender
-     * may legitimately see their own confidential list echoed back.
+     * travels in the same envelope as everyone else. The risk is concrete, not theoretical.
+     *
+     * **The verdict is taken from the RECIPIENT's own fetch, not from the send response.** The
+     * send response is the *sender's* view, and a sender may legitimately see the confidential
+     * list they themselves chose — asserting on it would report a leak that is not one. Only what
+     * `katchupMessagesForSelectedContactID` returns to the primary recipient decides this.
+     *
+     * BOTH parties must be real accounts: `sendMessage` refuses a non-existent receiver with a
+     * 400, so a synthetic primary recipient made this test skip every run and the rule was
+     * silently never verified.
      */
     const confidential = VICTIM_KPOST_ID;
+    const primary = FOREIGN.businessReceiverKpostID;
+    const subject = `QA-CONF-${Date.now()}`;
     const body = buildKatchupMessagePayload({
-      subject: `QA-CONF-${Date.now()}`,
-      receiver: syntheticReceiver(),
+      subject,
+      receiver: primary,
       messageType: 18,
       selectedMembers: confidential,
       secretMessageExpireTime: Date.now() + 3_600_000,
@@ -229,11 +252,43 @@ test.describe('POST /v2/katchup/sendMessage', () => {
 
     test.skip(!wasAccepted(response.status(), json), 'the confidential send was not accepted on this environment');
 
-    const rows = Array.isArray((json as { data?: unknown })?.data)
-      ? (json as { data: Array<Record<string, unknown>> }).data
-      : [];
-    const primaryRow = rows.find((r) => String(r.receiver ?? '') !== confidential);
-    const leaked = primaryRow != null && JSON.stringify(primaryRow).includes(confidential);
+    /*
+     * Log the primary recipient in on a THROWAWAY device identity: the shared session belongs to
+     * QA_KPOST_ID, and reusing the default device id would evict whatever session this account
+     * already holds. Business accounts must send their size-suffixed tier or the login fails
+     * before credential validation.
+     */
+    const sender = authSession.kpostID ?? env.qaKpostId;
+    const login = await authClient.userLogin(
+      buildLoginPayload(primary, env.qaPassword, {
+        deviceIdentity_primary: `qa-nfrsec02-${Date.now()}`,
+        loginRO: { countryID: env.qaCountryId, password: env.qaPassword, userType: 'BUSINESS_M' },
+      })
+    );
+    const recipientToken = /eyJ[\w-]+\.[\w-]+\.[\w-]+/.exec(await login.text())?.[0] ?? null;
+    test.skip(
+      recipientToken === null,
+      `the primary recipient "${primary}" could not authenticate, so their view of the message cannot be read`
+    );
+
+    const inbox = await katchupClient.katchupMessagesForSelectedContactID(
+      { selectedContact: sender, receiver: sender, groupFlag: false, firstMsgID: null, lastMsgID: null, msgID: 0 },
+      { token: recipientToken as string }
+    );
+    const inboxText = await inbox.text();
+    test.skip(
+      !inboxText.includes(subject),
+      "the message did not appear in the primary recipient's conversation, so disclosure cannot be judged"
+    );
+
+    /*
+     * Isolate the delivered row before judging it — a substring match over the whole response
+     * would also fire on an unrelated message in the same conversation that legitimately names
+     * the victim account.
+     */
+    const delivered = (JSON.parse(inboxText) as { data?: Array<Record<string, unknown>> }).data ?? [];
+    const ourRow = delivered.find((row) => String(row.subject ?? '') === subject);
+    const leaked = ourRow != null && JSON.stringify(ourRow).includes(confidential);
 
     if (leaked) {
       await reportBusinessLogicFlaw(
@@ -243,9 +298,13 @@ test.describe('POST /v2/katchup/sendMessage', () => {
           body,
           title: 'A Confidential Copy recipient is disclosed to the primary recipient',
           scenario:
-            `The message delivered to the primary recipient carries the confidential identity "${confidential}". ` +
-            'NFR-SEC02 requires Confidential Copy recipients to stay invisible to other recipients — the feature ' +
-            `exists solely to withhold that identity, so disclosing it defeats it entirely. Body: ${text.slice(0, 200)}`,
+            'A messageType-18 (Confidential Copy) message was sent to the primary recipient with a ' +
+            'different account named in `selectedMembers`. Expected: that confidential recipient is ' +
+            "stripped from every other recipient's copy. Actual: the primary recipient fetches the " +
+            'message via katchupMessagesForSelectedContactID and receives the confidential recipient ' +
+            'in `selectedMembers`. NFR-SEC02 requires Confidential Copy recipients to stay invisible ' +
+            'to other recipients — the feature exists solely to withhold that identity, so disclosing ' +
+            `it defeats it entirely. Delivered row: ${JSON.stringify(ourRow).slice(0, 300)}`,
         },
         'Security/Information Disclosure',
         'Critical'
@@ -254,7 +313,7 @@ test.describe('POST /v2/katchup/sendMessage', () => {
 
     expect(
       leaked,
-      `the primary recipient's copy disclosed the Confidential Copy recipient "${confidential}" — NFR-SEC02 requires it stay hidden`
+      `the primary recipient's own copy disclosed the Confidential Copy recipient "${confidential}" — NFR-SEC02 requires it stay hidden. Send response: ${text.slice(0, 120)}`
     ).toBe(false);
   });
 

@@ -329,9 +329,17 @@ export function buildGenerateJWTokensPayload(
   };
 }
 
+/**
+ * Excel row 3: `{ kpostID, countryID }`.
+ *
+ * Without `countryID` the endpoint answers 400 "countryID does not match the account on record"
+ * (verified live 2026-09-10), so every case on this route was exercising a rejected request
+ * rather than the lookup it means to test.
+ */
 export function buildFetchUserDetailsPayload(kpostID: string, overrides: Record<string, unknown> = {}) {
   return {
     kpostID,
+    countryID: env.qaCountryId,
     ...overrides,
   };
 }
@@ -381,6 +389,8 @@ export function buildAdminRegistrationPayload(overrides: Record<string, unknown>
     designation: 'Managing Director',
     role: '',
     pinCode: '600004',
+    // Excel row 168: the company registration number travels with the business registration.
+    registerNo: '',
     referenceName: 'QAREF',
     ...overrides,
   };

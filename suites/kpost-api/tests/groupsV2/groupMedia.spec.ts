@@ -62,13 +62,24 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
     buffer: pngFileBuffer(),
   });
 
+  /*
+   * Excel row 101 documents the `text` part of this multipart as a JSON OBJECT —
+   * `{"groupKpostID": "hs798@kpostindia.com"}` — not the bare id string this spec used to send.
+   *
+   * The two forms could not be told apart live: the server rejects on the FILE part
+   * ("File size should be less than 1 MB or Invalid File Format") before it parses the text part,
+   * so both shapes answer an identical 400. Excel is authoritative for request payloads where it
+   * and observed behaviour cannot be reconciled, so the documented shape is what goes on the wire.
+   */
+  const groupImageTextPart = () => JSON.stringify({ groupKpostID: nonExistentGroupKpostId() });
+
   test('[1] happy path: a valid avatar upload satisfies the Zod contract', async ({
     groupsV2Client,
     staticToken,
   }) => {
     const response = await groupsV2Client.updateGroupProfileImage(
       { file: imagePart() },
-      { token: staticToken, params: { text: nonExistentGroupKpostId() } }
+      { token: staticToken, params: { text: groupImageTextPart() } }
     );
 
     await expectValidContract(
@@ -86,7 +97,7 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
     const oversized = Buffer.alloc(12 * 1024 * 1024, 0x41);
     const response = await groupsV2Client.updateGroupProfileImage(
       { file: { name: 'huge.png', mimeType: 'image/png', buffer: oversized } },
-      { token: staticToken, params: { text: nonExistentGroupKpostId() } }
+      { token: staticToken, params: { text: groupImageTextPart() } }
     );
 
     expect(
@@ -136,7 +147,7 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
   }) => {
     const response = await groupsV2Client.updateGroupProfileImage(
       { text: nonExistentGroupKpostId() },
-      { token: staticToken, params: { text: nonExistentGroupKpostId() } }
+      { token: staticToken, params: { text: groupImageTextPart() } }
     );
 
     await assertRejectsInvalidInput(
@@ -168,7 +179,7 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
   }) => {
     const response = await groupsV2Client.updateGroupProfileImage(
       { file: { name: 'empty.png', mimeType: 'image/png', buffer: Buffer.alloc(0) } },
-      { token: staticToken, params: { text: nonExistentGroupKpostId() } }
+      { token: staticToken, params: { text: groupImageTextPart() } }
     );
 
     await assertRejectsInvalidInput(
@@ -184,7 +195,7 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
   }) => {
     const response = await groupsV2Client.updateGroupProfileImage(
       { file: { name: 'shell.php', mimeType: 'image/png', buffer: scriptFileBuffer() } },
-      { token: staticToken, params: { text: nonExistentGroupKpostId() } }
+      { token: staticToken, params: { text: groupImageTextPart() } }
     );
     const { json, text } = await readBody(response);
     const stored = json !== null && json.statusCode === 200;
@@ -224,7 +235,7 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
   }) => {
     const response = await groupsV2Client.updateGroupProfileImage(
       { file: imagePart() },
-      { token: null, params: { text: nonExistentGroupKpostId() } }
+      { token: null, params: { text: groupImageTextPart() } }
     );
 
     await assertUnauthorized(response, META);
@@ -235,7 +246,7 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
   }) => {
     const response = await groupsV2Client.updateGroupProfileImage(
       { file: imagePart() },
-      { token: EXPIRED_TOKEN, params: { text: nonExistentGroupKpostId() } }
+      { token: EXPIRED_TOKEN, params: { text: groupImageTextPart() } }
     );
 
     await assertUnauthorized(response, META);
@@ -247,7 +258,7 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
   }) => {
     const response = await groupsV2Client.updateGroupProfileImage(
       { file: imagePart() },
-      { token: staticToken, params: { text: nonExistentGroupKpostId() } }
+      { token: staticToken, params: { text: groupImageTextPart() } }
     );
     const { json, text } = await readBody(response);
     const changed = json !== null && json.statusCode === 200;
@@ -264,7 +275,7 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
   }) => {
     const response = await groupsV2Client.updateGroupProfileImage(
       { file: imagePart() },
-      { token: staticToken, params: { text: nonExistentGroupKpostId() } }
+      { token: staticToken, params: { text: groupImageTextPart() } }
     );
 
     await assertNot200OKOnError(response, META);
@@ -276,7 +287,7 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
   }) => {
     const response = await groupsV2Client.updateGroupProfileImage(
       { file: imagePart() },
-      { token: staticToken, params: { text: nonExistentGroupKpostId() } }
+      { token: staticToken, params: { text: groupImageTextPart() } }
     );
 
     await assertStatusCodeParity(response, META);
@@ -289,7 +300,7 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
     const response = await groupsV2Client.sendRaw(
       GROUPS_V2_PATHS.updateGroupProfileImage,
       JSON.stringify({ file: 'not-multipart' }),
-      { token: staticToken, params: { text: nonExistentGroupKpostId() } }
+      { token: staticToken, params: { text: groupImageTextPart() } }
     );
 
     expect(

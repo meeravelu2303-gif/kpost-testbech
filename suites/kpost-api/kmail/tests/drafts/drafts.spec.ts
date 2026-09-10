@@ -302,7 +302,13 @@ test.describe('POST /v2/draft/draftMailMultiPart/', () => {
   };
 
   test('[1] happy path: a draft with an attachment is saved', async ({ draftClient, token }) => {
-    const payload = buildComposePayload();
+    /*
+     * Excel row 44 documents `kmailID` on this route: `"0"` composes a NEW draft, a non-zero id
+     * updates the existing one. It is set here rather than in buildComposePayload because on
+     * postMail the server assigns kmailID from the token and sending it is wrong — the field is
+     * meaningful for drafts specifically.
+     */
+    const payload = buildComposePayload({ kmailID: '0' });
     const response = await draftClient.draftMailMultiPart(
       JSON.stringify(payload),
       [textAttachment()],

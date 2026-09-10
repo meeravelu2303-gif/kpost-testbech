@@ -102,11 +102,22 @@ export function buildSchedulePayload(
   } as DiarySchedulePayload;
 }
 
-/** A `DiarySchedule` addressing an existing record. Defaults to a non-existent id. */
+/**
+ * A `DiarySchedule` addressing an existing record. Defaults to a non-existent id.
+ *
+ * Excel row 6 (updateEvent) documents `{ eventID, repeat, weekly }` — the two recurrence flags
+ * decide whether the edit applies to one occurrence or the whole series, so leaving them unsent
+ * meant no case could ever exercise the series branch.
+ */
 export function buildExistingSchedulePayload(
   overrides: Record<string, unknown> = {}
 ): DiarySchedulePayload {
-  return buildSchedulePayload({ eventID: nonExistentEventId(), ...overrides });
+  return buildSchedulePayload({
+    eventID: nonExistentEventId(),
+    repeat: false,
+    weekly: false,
+    ...overrides,
+  });
 }
 
 /**
