@@ -140,16 +140,39 @@ recur:
 | the four newly-covered endpoints | all four answer 404 — 55 new tests went green against nothing |
 | `BR-X02` | asserted only "some 4xx", which a rejection for an unrelated field satisfies |
 
-It happened a **fourth** time, in the guard written to prevent it. The `[deployment]` cases were
-written as `expect(status).not.toBe(404)` — which passes on any other status. Under full-suite
-load this API returns **429**, so in a full run three of the four deployment cases went green
-while their routes were still missing; only running them in isolation showed the failure. They now
-assert **positively** (`REACHABLE_STATUSES.includes(status)` — the route must answer something
-that proves it exists) and stand down on 429, because a rate limit cannot be told apart from a
-missing route.
+It happened a **fourth and fifth** time, in the guard written to prevent it — and the fourth fix
+was itself wrong, which is the part worth reading.
 
-That is the sharper form of the lesson: **a negative assertion is not repaired by adding another
-negative assertion.** State what must be true, not what must not.
+`[deployment]` was first written as `expect(status).not.toBe(404)`. In a full run three of the
+four passed while their routes were still missing. My first diagnosis was throttling (429); that
+was a guess, it was wrong, and the "fix" built on it changed nothing — the next full run still
+showed 3 passes.
+
+The real cause: **this API runs its authentication filter BEFORE routing.** A rejected token
+answers **401 for a route that cannot possibly exist** — verified directly:
+
+```
+POST /v2/profile/thisRouteCannotPossiblyExist   bad token -> 401
+POST /v2/profile/updateSchoolDetails            bad token -> 401
+```
+
+I had listed 401 and 403 in `REACHABLE_STATUSES`, so a 401 "proved" the route existed. During a
+full run the shared QA account session is periodically evicted by another worker (KPost allows
+one session per account/device), those requests come back 401, and the case went green. Both
+statuses are now excluded from the reachable set and skip instead, with the reason stated.
+
+Two lessons, and the second is the one that cost the time:
+
+1. **A negative assertion is not repaired by another negative assertion.** State what must be
+   true, not what must not.
+2. **Diagnose before fixing.** The 429 theory was plausible, cheap to implement, and wrong; one
+   direct probe against a route that cannot exist would have settled it in seconds. A fix built
+   on an unverified cause is indistinguishable from no fix — except that it looks like progress.
+
+**Side observation worth its own ticket:** full runs produce occasional spurious 401s on the
+shared account because workers evict each other’s sessions. Most assertion helpers list 401
+among their acceptable statuses, so this is invisible today — but it means a full-run 401 is not
+always the API’s verdict on the request.
 
 The countermeasure is now a convention: **every negative assertion needs a positive control.**
 `crossModule` has a per-route reachability guard that fails when a valid token does not get a 200;

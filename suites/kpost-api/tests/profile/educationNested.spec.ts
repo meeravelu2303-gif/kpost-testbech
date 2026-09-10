@@ -64,8 +64,16 @@ const MAX_LENGTH_STRING = 'a'.repeat(50000);
 const UTF8_STRING = '日本語テスト-🚀-Ñoño';
 const VICTIM_KPOST_ID = FOREIGN.victimKpostID;
 
-/** Statuses that prove a route EXISTS. Anything else (404 above all) means it does not. */
-const REACHABLE_STATUSES = [200, 201, 204, 400, 401, 403, 405, 415, 422];
+/**
+ * Statuses that prove a route EXISTS — the request reached a handler.
+ *
+ * **401 and 403 are deliberately absent.** This API runs its authentication filter BEFORE
+ * routing, so a rejected token answers 401 for a route that cannot possibly exist — verified:
+ * POST /v2/profile/thisRouteCannotPossiblyExist with a bad token also returns 401. Treating
+ * 401 as proof of reachability is what let these cases pass green in a full run, where the
+ * shared account's session is periodically evicted by another worker and requests 401.
+ */
+const REACHABLE_STATUSES = [200, 201, 204, 400, 405, 415, 422];
 
 /**
  * Marks a case skipped rather than letting it pass green against an undeployed route.
@@ -115,6 +123,10 @@ test.describe('POST /v2/profile/updateSchoolDetails', () => {
     test.skip(
       response.status() === 429,
       'throttled (HTTP 429) — a rate limit cannot be told apart from a missing route'
+    );
+    test.skip(
+      [401, 403].includes(response.status()),
+      'our token was not accepted (HTTP 401/403) — this API authenticates before routing, so the response says nothing about whether the route exists'
     );
 
     expect(
@@ -338,6 +350,10 @@ test.describe('POST /v2/profile/updateCollegeDetails', () => {
       response.status() === 429,
       'throttled (HTTP 429) — a rate limit cannot be told apart from a missing route'
     );
+    test.skip(
+      [401, 403].includes(response.status()),
+      'our token was not accepted (HTTP 401/403) — this API authenticates before routing, so the response says nothing about whether the route exists'
+    );
 
     expect(
       REACHABLE_STATUSES.includes(response.status()),
@@ -559,6 +575,10 @@ test.describe('POST /v2/profile/updateUniversityDetails', () => {
     test.skip(
       response.status() === 429,
       'throttled (HTTP 429) — a rate limit cannot be told apart from a missing route'
+    );
+    test.skip(
+      [401, 403].includes(response.status()),
+      'our token was not accepted (HTTP 401/403) — this API authenticates before routing, so the response says nothing about whether the route exists'
     );
 
     expect(
