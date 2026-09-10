@@ -256,14 +256,27 @@ test.describe('Auth - POST /v2/signupLogin/signup', () => {
      *
      * A fresh synthetic number is used so no prior validated OTP can be lying around for it.
      */
-    const mobileNumber = syntheticTestMobile();
-    const payload = buildSignupPayload({ kpostID: randomKpostId(), mobileNumber });
-    const response = await authClient.signup(payload);
+    /*
+     * Retried through the throttle rather than skipped on the first 429.
+     *
+     * This is a High-priority security rule — it proves the activation gate cannot be walked
+     * around — and skipping on the first throttled response meant it went unverified on any busy
+     * run, silently. Dispatch is limited to roughly one per six seconds, so a short backoff is
+     * enough to get a real answer. Each attempt uses a FRESH synthetic number: retrying the same
+     * one could pick up a validated OTP left by the previous attempt and invert the test.
+     */
+    let payload = buildSignupPayload({ kpostID: randomKpostId(), mobileNumber: syntheticTestMobile() });
+    let response = await authClient.signup(payload);
+    for (let attempt = 0; attempt < 3 && response.status() === 429; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 7_000));
+      payload = buildSignupPayload({ kpostID: randomKpostId(), mobileNumber: syntheticTestMobile() });
+      response = await authClient.signup(payload);
+    }
     const { json, text } = await readBody(response);
 
     test.skip(
       response.status() === 429,
-      'backend throttled the request (HTTP 429) — rate limiting, not an activation result'
+      'backend still throttling after 3 retries (HTTP 429) — rate limiting, not an activation result'
     );
 
     const status = response.status();

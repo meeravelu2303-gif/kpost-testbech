@@ -356,9 +356,24 @@ test.describe('POST /v2/contacts/globalSearch', () => {
     ]);
     const statuses = [first.status(), second.status(), third.status()];
 
+    /*
+     * A throttled response is excluded from the comparison, not counted as disagreement.
+     *
+     * This test and `[10c]` directly below it were contradicting each other: [10c] asserts that a
+     * burst of directory searches SHOULD be rate-limited, and this one failed whenever it was —
+     * `(200, 200, 429)` was reported as the endpoint answering inconsistently. A 429 describes our
+     * request rate, not the endpoint's determinism, so it cannot be evidence either way. Observed
+     * on a full run: this produced a false finding against a route that behaved correctly.
+     */
+    const judged = statuses.filter((status) => status !== 429);
+    test.skip(
+      judged.length < 2,
+      `throttled (${statuses.join(', ')}) — fewer than two comparable responses, so consistency cannot be judged`
+    );
+
     expect(
-      new Set(statuses).size,
-      `three identical concurrent searches returned different statuses (${statuses.join(', ')}).`
+      new Set(judged).size,
+      `three identical concurrent searches returned different statuses (${statuses.join(', ')}); throttled responses are excluded from this comparison.`
     ).toBe(1);
   });
 
