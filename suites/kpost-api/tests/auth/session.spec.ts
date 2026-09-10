@@ -48,7 +48,7 @@ test.describe('Auth - POST /v2/signupLogin/userLogin', () => {
     repro: `await authClient.userLogin(buildLoginPayload(kpostID, password), { token: null });`,
   };
 
-  test('[FR-S09][public] login must stay reachable without a token — no one holds one yet', async ({
+  test('[FR-S09][NFR-R01][public] login must stay reachable without a token — no one holds one yet', async ({
     authClient,
   }) => {
     // security: [] in swagger. A token gate here is a total login blockade: a returning user
@@ -1730,7 +1730,7 @@ test.describe('Auth - GET /v2/signupLogin/getActiveSession', () => {
     repro: `await authClient.getActiveSession({ token });`,
   };
 
-  test('1. baseline returns a documented status', async ({ authClient, staticToken }) => {
+  test('[FR-S11] 1. baseline returns a documented status', async ({ authClient, staticToken }) => {
     const response = await authClient.getActiveSession({ token: staticToken });
     await assertStatus(response, [200, 400, 401, 403], META);
   });

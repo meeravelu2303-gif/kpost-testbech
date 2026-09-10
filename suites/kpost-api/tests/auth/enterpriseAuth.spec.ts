@@ -138,7 +138,7 @@ test.describe('POST /signupLoginForMediumAndLarge/signup', () => {
     );
   });
 
-  test('[6] business rule: a weak password must be refused', async ({ apiContext }) => {
+  test('[FR-S04][NFR-SEC03][6] business rule: a weak password must be refused', async ({ apiContext }) => {
     const payload = buildEnterpriseSignupPayload({ password: '1' });
     const response = await apiContext.post(META.path, { data: payload });
 

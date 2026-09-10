@@ -12,6 +12,7 @@ import {
   assertUnauthorized,
   expectValidContract,
   readBody,
+  reportBusinessLogicFlaw,
 } from '../../src/utils/apiAssertions';
 import {
   buildExistingKallPayload,
@@ -377,6 +378,72 @@ test.describe('POST /v2/kall/reScheduleKall', () => {
       { ...META, body: payload },
       [200, 400, 401, 403]
     );
+  });
+
+  test('[FR-C04][BR-C01] a rescheduled call keeps its identity and moves to the new time', async ({
+    kallV2Client,
+    staticToken,
+  }) => {
+    /*
+     * FR-C04 / BR-C01: rescheduling must update the call's status tag ("Scheduled" -> "Rescheduled")
+     * and RETAIN the original entry's identity on the dashboard. Both halves matter to a
+     * participant: a new kallID would look like a second, competing invitation, and an unchanged
+     * time means everyone turns up at the old one.
+     *
+     * Book a real call, move it, and assert the answer refers to the same kallID at the new time.
+     * Acquire-or-skip: if the booking cannot be made on this environment there is nothing to move,
+     * and a skip is honest where a failure would be noise.
+     */
+    const booking = buildScheduledKallPayload();
+    const booked = await kallV2Client.scheduledKall(booking, { token: staticToken });
+    const bookedBody = await readBody(booked);
+
+    const bookedRow = Array.isArray((bookedBody.json as { data?: unknown })?.data)
+      ? (bookedBody.json as { data: Array<Record<string, unknown>> }).data[0]
+      : ((bookedBody.json as { data?: Record<string, unknown> })?.data ?? undefined);
+    const kallID = bookedRow && typeof bookedRow.kallID === 'number' ? bookedRow.kallID : null;
+
+    test.skip(kallID === null, 'no call could be booked on this environment, so there is none to reschedule');
+
+    const movedTo = Date.now() + 7_200_000;
+    const payload = buildReScheduleKallPayload({
+      kallID: kallID as number,
+      scheduledStartTime: movedTo,
+      scheduledEndTime: movedTo + 1_800_000,
+    });
+    const response = await kallV2Client.reScheduleKall(payload, { token: staticToken });
+    const { json, text } = await readBody(response);
+
+    test.skip(
+      response.status() !== 200 || String((json as { status?: unknown })?.status).toUpperCase() === 'FAILURE',
+      'the reschedule was not accepted on this environment'
+    );
+
+    // Identity retained: the answer must still be about the call we booked, not a new one.
+    const keptIdentity = text.includes(String(kallID));
+
+    if (!keptIdentity) {
+      await reportBusinessLogicFlaw(
+        response,
+        {
+          ...META,
+          body: payload,
+          title: 'Rescheduling a Kall does not retain the original call identity',
+          scenario:
+            `Call ${kallID} was rescheduled and the response carries no reference back to it. FR-C04 requires ` +
+            "the original entry's identity to be retained on the dashboard so participants see one moved " +
+            'meeting rather than a second competing invitation, and BR-C01 requires a clear Scheduled -> ' +
+            `Rescheduled status distinction against that same entry. Body: ${text.slice(0, 200)}`,
+        },
+        'Business Logic Flaw',
+        'Major'
+      );
+    }
+
+    expect(
+      keptIdentity,
+      `the rescheduled call must still refer to kallID ${kallID} — FR-C04 requires the original entry's identity to be retained`
+    ).toBe(true);
   });
 
   test('[2] boundary: a kallID beyond int32 must not move a different meeting', async ({

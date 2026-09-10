@@ -24,6 +24,7 @@ import {
 } from '../../src/utils/apiAssertions';
 import {
   buildGlobalSearchPayload,
+  buildAreaSearchDetailsPayload,
   buildSearchDetailsPayload,
 } from '../../src/api/payloads/contactsDirectoryV2.payload';
 import { FOREIGN } from '../../src/api/clients/generic.client';
@@ -420,6 +421,26 @@ test.describe('POST /v2/contacts/getSearchDetails', () => {
     staticToken,
   }) => {
     const payload = buildSearchDetailsPayload();
+    const response = await contactsClient.getSearchDetails(payload, { token: staticToken });
+
+    await expectValidContract(
+      response,
+      searchDetailsResponseSchema,
+      { ...META, body: payload },
+      [200, 400, 401, 403, 404]
+    );
+  });
+
+  test('[1b] happy path: the deepest cascade level resolves with every parent supplied', async ({
+    contactsClient,
+    staticToken,
+  }) => {
+    /*
+     * Excel row 74 documents six requestType levels, and each one requires the levels above it:
+     * areaName needs country + provienceName + state + city. Only the bare `country` form was
+     * exercised, so the cascade — the part that can actually break — had no coverage.
+     */
+    const payload = buildAreaSearchDetailsPayload();
     const response = await contactsClient.getSearchDetails(payload, { token: staticToken });
 
     await expectValidContract(

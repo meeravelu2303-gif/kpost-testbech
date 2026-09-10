@@ -241,7 +241,78 @@ test.describe('Auth - POST /v2/signupLogin/signup', () => {
   });
 
 
-  test('12. registration through the OTP flow provisions a real account', async ({
+  test('[FR-S08][BR-S01] signup must be refused when the OTP step was never completed', async ({
+    authClient,
+  }) => {
+    /*
+     * FR-S06 makes activation a DISTINCT step before first login, and BR-S01 says an account must
+     * complete it before it can be used. On KPost the activation step is the mobile OTP: the
+     * backend requires a validated OTP of type SIGNUP before it will persist a user.
+     *
+     * This is the negative half of test 12 below, and it is the half that matters — test 12 proves
+     * the flow works when followed, this proves the gate cannot be walked around. Without it, a
+     * caller who skips straight to /signup could provision an account against a phone number they
+     * do not control, which is exactly what activation exists to prevent.
+     *
+     * A fresh synthetic number is used so no prior validated OTP can be lying around for it.
+     */
+    const mobileNumber = syntheticTestMobile();
+    const payload = buildSignupPayload({ kpostID: randomKpostId(), mobileNumber });
+    const response = await authClient.signup(payload);
+    const { json, text } = await readBody(response);
+
+    test.skip(
+      response.status() === 429,
+      'backend throttled the request (HTTP 429) — rate limiting, not an activation result'
+    );
+
+    const status = response.status();
+    const created = status === 200 && String(json?.status ?? '').toUpperCase() !== 'ERROR';
+
+    if (created) {
+      await reportBusinessLogicFlaw(
+        response,
+        {
+          ...META,
+          body: payload,
+          title: 'An account can be created without completing the OTP activation step',
+          scenario:
+            'A signup submitted with no validated OTP for its mobile number was accepted. FR-S06/BR-S01 ' +
+            'require activation as a distinct step before an account is usable, and on this platform the ' +
+            'mobile OTP is that step. If signup can be called directly, anyone can register an account ' +
+            `against a phone number they do not control. Body: ${text.slice(0, 200)}`,
+        },
+        'Security/Access Control',
+        'Critical'
+      );
+    }
+
+    expect(
+      created,
+      'signup succeeded with no validated OTP — the activation gate (FR-S06 / BR-S01) is not enforced'
+    ).toBe(false);
+
+    // Secondary, lower-severity: the refusal must be a clean client error, not an unhandled NPE.
+    // The suite has observed a 500 on the null expireDate path; that is a real but separate defect.
+    if (status >= 500) {
+      await reportBusinessLogicFlaw(
+        response,
+        {
+          ...META,
+          body: payload,
+          title: 'Signup without a validated OTP returns HTTP 500 instead of a 4xx',
+          scenario:
+            'The activation gate holds, but it refuses by crashing: signup with no validated OTP produces ' +
+            `HTTP ${status} rather than a clean 400/422. The caller is told the server malfunctioned when ` +
+            `in fact they skipped a required step. Body: ${text.slice(0, 200)}`,
+        },
+        'Unhandled NPE / Server Error',
+        'Minor'
+      );
+    }
+  });
+
+  test('[FR-S06][FR-S07] 12. registration through the OTP flow provisions a real account', async ({
     authClient,
     commonClient,
   }) => {
@@ -912,7 +983,7 @@ test.describe('Auth - POST /v2/signupLogin/adminRegistration', () => {
   });
 
   for (const field of REQUIRED_FIELDS) {
-    test(`3. required field "${field}" omitted must be a 400/422`, async ({ authClient }) => {
+    test(`[FR-S02] 3. required field "${field}" omitted must be a 400/422`, async ({ authClient }) => {
       const payload = buildAdminRegistrationPayload();
       delete (payload as Record<string, unknown>)[field];
 

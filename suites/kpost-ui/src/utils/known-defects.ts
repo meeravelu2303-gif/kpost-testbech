@@ -274,38 +274,6 @@ export const KNOWN_APP_DEFECTS = {
       'signed in, regardless of how long or how many page loads the session has been active for.',
   },
 
-  /** The login form's country list never populates, so login is impossible. */
-  LOGIN_COUNTRY_LIST_NEVER_POPULATES: {
-    id: 'KPOST-AUTH-004',
-    severity: 'High',
-    module: 'Auth',
-    summary:
-      'The login screen renders a Country list showing "No options", leaving the KPOST ID field ' +
-      'permanently disabled — nobody can sign in at all.',
-    evidence:
-      'Verified 2026-08-28 (chromium, http://localhost:3000). /login renders a Country combobox ' +
-      'above the KPOST ID field, and the ID input is `disabled={!country}`. The combobox shows ' +
-      '"No options" forever, so the ID field never enables and the login flow cannot start.\n' +
-      'The data is NOT missing: GET /v2/common/countries answers HTTP 200 with 26,702 bytes ' +
-      'listing 200+ countries, India first. This is a response-contract mismatch. Login.js:970 ' +
-      'gates the whole list on a case-sensitive `response.status === "SUCCESS"` while that ' +
-      'endpoint answers `"status":"Success"`, so the branch that calls setcountryAll() and ' +
-      'setCountry() never runs.\n' +
-      'Both sides drifted, and both are provable. The shared dev backend ' +
-      '(devapi2.kpostindia.com) still returns "SUCCESS", which is why the same build signs in ' +
-      'there; the local backend (192.168.1.176:8989) returns "Success" — but only from its ' +
-      'common/* controller. Its own signupLogin/fetchUserDetails still returns "SUCCESS", and ' +
-      'its failures still return "FAILURE", so one controller deviates from the platform ' +
-      'convention rather than the convention having changed. Login.js is inconsistent too: its ' +
-      'other three status checks (lines 292, 329, 355) all use `.toLowerCase() === "success"`; ' +
-      'CountryGetAll alone compares strictly.\n' +
-      'Proved by isolation: intercepting the response and rewriting ONLY "Success" to "SUCCESS" ' +
-      '— no other change — makes the country default to "+91 India", enables the KPOST ID field, ' +
-      'and a full sign-in completes to /home.',
-    expected:
-      'The login screen loads its country list and enables the KPOST ID field, so a user can ' +
-      'sign in.',
-  },
 
   /** Logging out does not guard protected routes. */
   LOGOUT_NO_ROUTE_GUARD: {

@@ -18,6 +18,14 @@ import { qaLabel } from '../../utils/safeTestData';
  */
 
 /** An event id that must not resolve to a real diary entry. */
+/**
+ * A well-formed participant id that is not a real subscriber. Adding someone to a schedule
+ * invites and notifies them, so participants are always synthetic.
+ */
+export function syntheticParticipant(): string {
+  return `qa-participant-${faker.string.alphanumeric({ length: 8, casing: 'lower' })}@kpostindia.com`;
+}
+
 export function nonExistentEventId(): number {
   return 999_000_000 + faker.number.int({ min: 1, max: 999_999 });
 }
@@ -89,7 +97,7 @@ export function buildSchedulePayload(
     preferredWeek: '',
     preferredDate: '',
     preferredMonth: '',
-    participants: [],
+    participants: [{ participant: syntheticParticipant(), userType: 'PERSONAL' }],
     ...overrides,
   } as DiarySchedulePayload;
 }
@@ -134,7 +142,7 @@ export function buildKdiaryROPayload(overrides: Record<string, unknown> = {}): R
     daily: false,
     weekly: false,
     monthly: false,
-    participants: [],
+    participants: [{ participant: syntheticParticipant(), userType: 'PERSONAL' }],
     ...overrides,
   };
 }
@@ -188,7 +196,7 @@ export function buildAddParticipantsPayload(
     eventID: nonExistentEventId(),
     participants: [
       {
-        participant: `qa-participant-${faker.string.alphanumeric(6)}@kpostindia.com`,
+        participant: syntheticParticipant(),
         userType: 'PERSONAL',
       },
     ],

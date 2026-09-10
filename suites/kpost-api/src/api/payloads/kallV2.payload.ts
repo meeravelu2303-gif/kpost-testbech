@@ -78,6 +78,12 @@ export function buildKallROPayload(overrides: Record<string, unknown> = {}): Rec
     kallSessionName: qaLabel('session'),
     callingToPrimaryDevice: true,
     deviceType: 'Web',
+    // Excel initiateKall (row 91) also carries `kallStartTime` (epoch ms) — the moment the call
+    // was placed. contactInfo (row 96) and kallInfo (row 97) key on `contactID`, and contactInfo
+    // additionally on `fetchType`. All three read their subset from this superset DTO.
+    kallStartTime: kallEpoch(0),
+    contactID: syntheticReceiver(),
+    fetchType: 'knownContact',
     ...overrides,
   };
 }
@@ -86,7 +92,9 @@ export function buildKallROPayload(overrides: Record<string, unknown> = {}): Rec
 export function buildExistingKallPayload(
   overrides: Record<string, unknown> = {}
 ): Record<string, unknown> {
-  return buildKallROPayload({ kallID: nonExistentKallId(), ...overrides });
+  // `id` is the per-RECEIVER row id (kallID is shared across the whole call). joinScheduleKall
+  // (Excel row 85) keys on it, so the existing-call shape carries both.
+  return buildKallROPayload({ kallID: nonExistentKallId(), id: nonExistentKallId(), ...overrides });
 }
 
 /**
@@ -258,6 +266,10 @@ export function buildRepeatKallPayload(
     isReminder: false,
     priority: 1,
     kdairyEvent: false,
+    // Excel rows 83/136: the series carries its recipients as kallDetails[{receiver}] (the same
+    // shape scheduledKall uses) and a snoozeDetails reminder window.
+    kallDetails: [{ receiver: syntheticReceiver() }],
+    snoozeDetails: JSON.stringify({ remainderBefore: 5, remainderType: 'Minutes', isSnoozeOn: true }),
     ...overrides,
   };
 }

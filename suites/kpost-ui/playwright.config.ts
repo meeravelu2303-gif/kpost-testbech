@@ -117,10 +117,23 @@ export default defineConfig({
     locale: 'en-US',
     timezoneId: 'UTC',
 
-    /* Tag every request so app logs can distinguish automation traffic. */
-    extraHTTPHeaders: {
-      'x-automated-test': 'kpost-playwright',
-    },
+    /*
+     * NO extraHTTPHeaders. There used to be an `x-automated-test` tag here so app logs could
+     * distinguish automation traffic, and it silently broke the entire suite.
+     *
+     * A custom request header makes every cross-origin call a PREFLIGHTED one, and this API
+     * answers `OPTIONS` with `Access-Control-Allow-Methods` and `Access-Control-Expose-Headers`
+     * but **no `Access-Control-Allow-Headers`** — so the preflight is rejected:
+     *
+     *   OPTIONS /v2/common/countries  (no custom header)        -> 200
+     *   OPTIONS /v2/common/countries  + x-automated-test        -> 403
+     *
+     * The browser then never issues the real GET, the country list never arrives, the KPOST ID
+     * field stays disabled, and the suite blamed the environment — it reported a mixed-content
+     * problem that was not happening. A harness must not change the app's network behaviour in
+     * a way that changes the outcome; if the tag is ever wanted back, the API has to send
+     * `Access-Control-Allow-Headers: x-automated-test` first.
+     */
   },
 
   /* Global setup performs a one-time authentication and stores session state

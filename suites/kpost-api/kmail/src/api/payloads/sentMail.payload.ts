@@ -65,8 +65,8 @@ export function buildComposePayload(
     // Aligned to Excel row 43 (/v2/sentMail/postMail) and the live web-client capture. The server
     // ASSIGNS fromAddress/senderUniqueMailID/kmailID from the token — sending them is wrong (the IDOR
     // cases add fromAddress via override on purpose). mailFlag/senderName/receiverName are not in the
-    // Excel body. Forward-only fields (forwardList/forwardNote/forwardRevealDetails/…) belong to
-    // buildForwardPayload, not a plain compose.
+    // Excel body. The forward fields ARE in it (see below) and default to null/empty here;
+    // buildForwardPayload populates them.
     toAddress: syntheticRecipient(),
     kmailSubject: qaLabel('subject'),
     kmailContent: qaMailBody('compose'),
@@ -89,6 +89,15 @@ export function buildComposePayload(
     // Client-settable geo per the DTO; null on a normal compose (a geo-spoof case overrides these).
     senderLatitde: null,
     senderLongitude: null,
+    // Excel row 43 lists the forward envelope on postMail itself, null/false on a plain compose.
+    // buildForwardPayload populates them; leaving them off the base made the documented body
+    // unreachable from the compose describe.
+    forwardList: null,
+    revealSource: false,
+    forwardNote: null,
+    forwardRevealDetails: null,
+    forwardAttachmentLists: [],
+    sendDate: null,
     ...overrides,
   };
 }

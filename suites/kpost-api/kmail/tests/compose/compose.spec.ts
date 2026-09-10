@@ -1055,7 +1055,7 @@ test.describe('Group and external recipients', () => {
     );
   });
 
-  test('[4] an external recipient is accepted and relayed', async ({ sentMailClient, token }) => {
+  test('[FR-M06][4] an external recipient is accepted and relayed', async ({ sentMailClient, token }) => {
     const payload = buildExternalComposePayload();
     const response = await sentMailClient.postMail(payload, { token });
 

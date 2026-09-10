@@ -20,20 +20,19 @@
  * false bug.
  *
  *  - The request came back and the app still has no country → the app mishandled
- *    a good response. That is KPOST-AUTH-004, a real product defect.
- *  - The request never came back at all → the environment is misconfigured (an
- *    unreachable backend, or an http:// API called from an https:// page, which
- *    the browser blocks as mixed content). That is not a product defect and
- *    must not be filed as one.
+ *    a good response. A real product defect.
+ *  - The request never came back at all → the environment, the harness, or the
+ *    network is at fault: a rejected CORS preflight (often caused by a custom
+ *    request header THIS SUITE added), a mixed-content block, or an unreachable
+ *    host. Not a product defect. Each is distinguished from EVIDENCE below —
+ *    never inferred from the URL scheme, which produced a confident wrong
+ *    answer once already and cost real debugging time.
  *
  * Telling them apart needs the network traffic, which is why `watchCountryList()`
  * is armed BEFORE navigating rather than inspected afterwards — a request the
  * browser blocks outright leaves nothing behind to find later.
  */
 import { type Locator, type Page } from '@playwright/test';
-import { KNOWN_APP_DEFECTS } from './known-defects';
-
-const DEFECT = KNOWN_APP_DEFECTS.LOGIN_COUNTRY_LIST_NEVER_POPULATES;
 const COUNTRIES_ENDPOINT = /common\/countries/i;
 
 interface CountryListTraffic {
@@ -41,6 +40,17 @@ interface CountryListTraffic {
   readonly attempted: string[];
   /** `<status> <url>` for each one that actually came back. */
   readonly answered: string[];
+  /**
+   * `<errorText> <url>` for each one the browser aborted.
+   *
+   * This is what separates the causes. A request that never returns looks identical from the
+   * outside whether it was blocked as mixed content, refused by a CORS preflight, or sent to a
+   * dead host — but `request.failure().errorText` names which, and guessing from the URL scheme
+   * alone produces a confident wrong answer.
+   */
+  readonly failed: string[];
+  /** `<status> <url>` for each CORS preflight (OPTIONS) the browser sent. */
+  readonly preflight: string[];
 }
 
 /**
@@ -58,16 +68,28 @@ const TRAFFIC = new WeakMap<Page, CountryListTraffic>();
 export function watchCountryList(page: Page): void {
   if (TRAFFIC.has(page)) return;
 
-  const traffic: CountryListTraffic = { attempted: [], answered: [] };
+  const traffic: CountryListTraffic = { attempted: [], answered: [], failed: [], preflight: [] };
   TRAFFIC.set(page, traffic);
 
   page.on('request', (request) => {
-    if (COUNTRIES_ENDPOINT.test(request.url())) traffic.attempted.push(request.url());
+    if (!COUNTRIES_ENDPOINT.test(request.url())) return;
+    // An OPTIONS to this URL is the CORS preflight, not the read itself — recorded separately so
+    // a rejected preflight is not miscounted as "the app never asked".
+    if (request.method() === 'OPTIONS') return;
+    traffic.attempted.push(request.url());
   });
   page.on('response', (response) => {
-    if (COUNTRIES_ENDPOINT.test(response.url())) {
-      traffic.answered.push(`${response.status()} ${response.url()}`);
+    if (!COUNTRIES_ENDPOINT.test(response.url())) return;
+    if (response.request().method() === 'OPTIONS') {
+      traffic.preflight.push(`${response.status()} ${response.url()}`);
+      return;
     }
+    traffic.answered.push(`${response.status()} ${response.url()}`);
+  });
+  page.on('requestfailed', (request) => {
+    if (!COUNTRIES_ENDPOINT.test(request.url())) return;
+    const reason = request.failure()?.errorText ?? 'unknown';
+    traffic.failed.push(`${reason} (${request.method()}) ${request.url()}`);
   });
 }
 
@@ -137,36 +159,72 @@ export async function describeBlockedLogin(page: Page): Promise<string> {
     const attempted = traffic.attempted.length
       ? traffic.attempted.map((url) => `  - ${url}`).join('\n')
       : '  (the page never even requested it)';
-    const insecure = traffic.attempted.filter((url) => url.startsWith('http://'));
-    const mixedContent =
-      insecure.length > 0 && page.url().startsWith('https://')
-        ? '\nMIXED CONTENT: this page is served over https:// but the country list is requested ' +
-          `over plain http:// (${insecure[0]}). Browsers block that outright, so the request can ` +
-          'never succeed from here. The app has to call its API over https, or same-origin ' +
-          'through the dev server proxy.'
-        : '';
+
+    /*
+     * Attribute the cause from EVIDENCE, in order of specificity. An earlier version declared
+     * "MIXED CONTENT" whenever the page was https and the API http — which is a guess, and it
+     * was wrong: the real cause was a CORS preflight rejected because this suite added an
+     * `x-automated-test` request header the API does not allow. That message cost real
+     * debugging time, so each branch below now requires proof before it will claim a cause.
+     */
+    const rejectedPreflight = traffic.preflight.filter((entry) => !/^2\d\d /.test(entry));
+    const failures = traffic.failed;
+    // Chromium's wording for a mixed-content block; matched explicitly rather than inferred.
+    const mixedBlocked = failures.filter((f) =>
+      /ERR_BLOCKED_BY_(CLIENT|RESPONSE)|mixed|insecure/i.test(f)
+    );
+
+    let cause: string;
+    if (rejectedPreflight.length > 0) {
+      cause =
+        '\nCORS PREFLIGHT REJECTED: the browser sent an OPTIONS preflight for the country list ' +
+        `and the API refused it (${rejectedPreflight.join(', ')}). The real GET is then never ` +
+        'sent, so the list can never arrive.\n' +
+        'A preflight only happens when the request is not "simple" — most often because a CUSTOM ' +
+        'REQUEST HEADER was added. Check `extraHTTPHeaders` in playwright.config.ts and any ' +
+        '`setExtraHTTPHeaders` call before blaming the environment: this suite caused exactly ' +
+        'this once, with an `x-automated-test` tag the API does not list in ' +
+        'Access-Control-Allow-Headers.';
+    } else if (mixedBlocked.length > 0) {
+      cause =
+        '\nMIXED CONTENT: the browser blocked the request outright ' +
+        `(${mixedBlocked.join(', ')}). This page is served over https:// and the country list is ` +
+        'requested over plain http://. The app has to call its API over https, or same-origin ' +
+        'through the dev-server proxy.';
+    } else if (failures.length > 0) {
+      cause =
+        `\nThe request was aborted by the browser: ${failures.join(', ')}. That is usually an ` +
+        'unreachable host, a TLS failure, or a connection reset — check the API host is up and ' +
+        'reachable from this machine.';
+    } else {
+      cause =
+        '\nThe request was started and simply never completed, with no failure reported — most ' +
+        'often the API host is accepting connections but not answering. Confirm it directly ' +
+        '(curl the country-list URL) before treating this as an app defect.';
+    }
 
     return [
       'ENVIRONMENT PROBLEM — not an application defect, and not a bug to file.',
       preamble,
       `The app requested its country list but never received a response (${unanswered} of ` +
         `${traffic.attempted.length} request(s) unanswered):`,
-      attempted + mixedContent,
+      attempted + cause,
       `Page origin: ${page.url()}`,
-      'Fix the environment — reachable API host, https or same-origin — then re-run. Nothing in ' +
-        'this suite can proceed until a user can sign in.',
+      'Fix the environment, then re-run. Nothing in this suite can proceed until a user can sign in.',
     ].join('\n');
   }
 
   // The request came back and the app still has no country: the app mishandled
   // a good response. That is the registered defect.
   return [
-    `KNOWN APPLICATION DEFECT ${DEFECT.id}: ${DEFECT.summary}`,
+    'APPLICATION DEFECT — the country list arrived and the app did not use it.',
     preamble,
     `The country list request DID succeed (${traffic.answered.join(', ')}) and the app still has ` +
-      'no country, so this is the app mishandling a good response — Login.js gates the list on a ' +
-      'case-sensitive `response.status === "SUCCESS"` while the backend answers "Success".',
+      'no country, so the app mishandled a good response. Compare the envelope it returned with ' +
+      'what Login.js expects — a status-value or shape mismatch is the usual cause. That was ' +
+      'KPOST-AUTH-004 (fixed 2026-09-10): a case-sensitive check against "SUCCESS" while the ' +
+      'backend answered "Success".',
     'Nothing in this suite can proceed until a user can sign in, so this is reported here rather ' +
-      'than as 300 identical timeouts. See src/utils/known-defects.ts for the full evidence.',
+      'than as 300 identical timeouts.',
   ].join('\n');
 }

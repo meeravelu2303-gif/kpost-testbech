@@ -822,7 +822,7 @@ test.describe('POST /v2/katchup/saveKatchupMessages', () => {
    * `subject`) that this endpoint does not read.
    */
 
-  test('[1] happy path: archiving messages satisfies the Zod contract', async ({
+  test('[FR-K18][1] happy path: archiving messages satisfies the Zod contract', async ({
     katchupClient,
     staticToken,
   }) => {

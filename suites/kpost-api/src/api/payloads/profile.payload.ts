@@ -28,6 +28,10 @@ export function buildContactInformationPayload(overrides: Record<string, unknown
     addressLine1: faker.location.streetAddress(),
     addressLine2: faker.location.secondaryAddress(),
     pinCode: faker.string.numeric(6),
+    // Excel row 106 carries the resolved locality alongside the free-text address lines.
+    country: 'INDIA',
+    city: 'CHENNAI',
+    areaName: 'CAMPROAD',
     ...overrides,
   };
 }
@@ -147,6 +151,9 @@ export function buildExperienceDetailPayload(overrides: Record<string, unknown> 
         achievements: qaLabel('achievement'),
         yearFrom: '2018',
         yearTo: '2021',
+        // Excel row 111: each experience row carries its company logo and any attachments.
+        logoPath: '',
+        attachmentPath: [],
       },
     ],
     ...overrides,

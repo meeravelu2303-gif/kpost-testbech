@@ -87,6 +87,8 @@ export function buildGroupMemberActionPayload(
     memberKpostIdList: [qaIdentifier('member')],
     hasAdminAccess: 'N',
     remarks: 'QA automation probe',
+    // Excel row 49 (leaveFromGroup) keys on the per-member row `id`, not the kpostID.
+    id: '999000001',
     ...overrides,
   } as GroupMemberActionRequest;
 }
@@ -138,7 +140,16 @@ export function buildAdminAccessPayload(
   hasAdminAccess: string,
   overrides: Record<string, unknown> = {}
 ): GroupMemberActionRequest {
-  return buildGroupMemberActionPayload({ hasAdminAccess, ...overrides });
+  // Excel row 48 addresses members as PARALLEL LISTS — `kpostIDs` with the matching row `ids` —
+  // and the remove form uses the singular `kpostID`/`id`. Both shapes are sent so the route works
+  // whichever the deployed build reads; `id` is also what leaveFromGroup (row 49) keys on.
+  return buildGroupMemberActionPayload({
+    hasAdminAccess,
+    kpostIDs: [qaIdentifier('member')],
+    ids: [999_000_001],
+    id: 999_000_001,
+    ...overrides,
+  });
 }
 
 /** Minimal valid PNG used for avatar upload cases. */

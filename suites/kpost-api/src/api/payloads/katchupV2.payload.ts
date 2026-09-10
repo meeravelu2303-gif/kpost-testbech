@@ -68,6 +68,27 @@ export function buildKatchupMessagePayload(
     isHtml: false,
     isVanished: false,
     temporaryMsgID: 0,
+    /*
+     * Excel rows 37/50/99/139/140: every send carries the attachment and reference envelope,
+     * defaulted to null/empty on a plain message. They are part of the DTO rather than optional
+     * extras — the forward routes populate them, the ordinary send leaves them empty, and the
+     * multipart/bulk variants document the same fields. `attachmentCaption` travels as a JSON
+     * STRING (an array of {fileName,caption}), not an array.
+     */
+    attachmentCaption: '[]',
+    uuid: [],
+    isVoiceMessage: false,
+    mapDetails: null,
+    contactDetails: null,
+    referenceMessage: null,
+    referenceMessageIDList: null,
+    referenceMessageList: null,
+    forwardReceiverList: null,
+    groupForwardList: null,
+    groupmemberList: [],
+    sharedMessageDetails: null,
+    secretMessageExpireTime: null,
+    sharedType: 0,
     ...overrides,
   };
 }
@@ -154,6 +175,12 @@ export function buildFetchKatchupPayload(
   return {
     selectedContact: syntheticReceiver(),
     groupFlag: false,
+    // Excel row 40: the conversation fetch keys on `receiver` and pages with the
+    // firstMsgID/lastMsgID cursor pair (null = first page); the group form pages on `msgID`.
+    receiver: syntheticReceiver(),
+    firstMsgID: null,
+    lastMsgID: null,
+    msgID: 0,
     ...overrides,
   };
 }

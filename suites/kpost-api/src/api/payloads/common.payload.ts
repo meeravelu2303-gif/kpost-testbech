@@ -308,6 +308,16 @@ export function buildCommonSendMessagePayload(overrides: Record<string, unknown>
  */
 export function buildAppVersionPayload(overrides: Record<string, unknown> = {}) {
   return {
+    /*
+     * Excel row 230: `{ currentVersion: "1.0.35:117" }` — the version string every Flutter client
+     * is then told to run. The builder used to send an EMPTY body, so the refusal cases below
+     * proved only that an empty request is refused, which a correctly-authorised caller would
+     * also see. Sending the real documented field is what makes those refusals mean something.
+     *
+     * The value stays deliberately implausible: this write changes what every installed client
+     * upgrades to, so even on an authorised run it must not name a version anyone could ship.
+     */
+    currentVersion: '0.0.0-qa-automation',
     ...overrides,
   };
 }

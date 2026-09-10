@@ -11,37 +11,45 @@
  */
 import { test, expect } from '../../src/fixtures/fixtures';
 import { LoginPage } from '../../src/pages/LoginPage';
-import { KNOWN_APP_DEFECTS, noteKnownDefect } from '../../src/utils/known-defects';
 import { countryStatusText } from '../../src/utils/login-preflight';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
+/*
+ * These carried a KPOST-AUTH-004 annotation ("country list never populates"). That defect was
+ * FIXED and verified on 2026-09-10 — the list now populates and defaults to +91 India even though
+ * the backend still answers `"status":"Success"`, so the app-side comparison was made
+ * case-insensitive. Proved by interception: rewriting the casing in flight changes nothing now.
+ * The annotation is gone per the rule in known-defects.ts — a stale entry excuses a real
+ * regression. The assertions stay: they are the precondition for the product being usable.
+ */
 test.describe('Login form readiness @smoke @auth', () => {
-  test('the login form is usable — the KPOST ID field accepts input', async ({ page }) => {
-    const message = noteKnownDefect(KNOWN_APP_DEFECTS.LOGIN_COUNTRY_LIST_NEVER_POPULATES);
+  const WHY =
+    'The KPOST ID field is disabled={!country}, so the country list loading IS the precondition ' +
+    'for anyone signing in. If this fails, check the country-list request before anything else.';
+
+  test('[FR-S09] the login form is usable — the KPOST ID field accepts input', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
     await loginPage.open();
     await loginPage.expectLoaded();
 
     // The single assertion that decides whether anyone can sign in today.
-    await expect(loginPage.idInputLocator, message).toBeEnabled({ timeout: 45_000 });
+    await expect(loginPage.idInputLocator, WHY).toBeEnabled({ timeout: 45_000 });
   });
 
   test('the country list offers a country to sign in with', async ({ page }) => {
-    const message = noteKnownDefect(KNOWN_APP_DEFECTS.LOGIN_COUNTRY_LIST_NEVER_POPULATES);
     const loginPage = new LoginPage(page);
 
     await loginPage.open();
     await loginPage.expectLoaded();
 
-    // The app fetches the list and defaults to India, so a healthy screen shows
-    // a chosen country. "No options" is react-select's empty state and is the
-    // exact symptom of KPOST-AUTH-004.
+    // The app fetches the list and defaults to India, so a healthy screen shows a chosen
+    // country. "No options" is react-select's empty state.
     await expect(async () => {
       const country = await countryStatusText(page);
-      expect(country, message).not.toMatch(/no options/i);
-      expect(country, message).toMatch(/\+\d/);
+      expect(country, WHY).not.toMatch(/no options/i);
+      expect(country, WHY).toMatch(/\+\d/);
     }).toPass({ timeout: 45_000 });
   });
 });

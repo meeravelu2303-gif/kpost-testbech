@@ -1676,7 +1676,7 @@ test.describe('POST /v2/katchup/sendKatchupMsgMultiPart/', () => {
     repro: `await katchupClient.sendKatchupMsgMultiPart({ files: [] }, { token, params: { text } });`,
   };
 
-  test('[1] happy path: a multipart send satisfies the Zod contract', async ({
+  test('[FR-K03][1] happy path: a multipart send satisfies the Zod contract', async ({
     katchupClient,
     staticToken,
   }) => {

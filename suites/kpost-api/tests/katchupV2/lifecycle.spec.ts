@@ -694,7 +694,7 @@ test.describe('POST /v2/katchup/reportAbuse', () => {
     repro: `await katchupClient.reportAbuse(buildReportAbusePayload(), { token });`,
   };
 
-  test('[1] happy path: an abuse report satisfies the Zod contract', async ({
+  test('[FR-K24][1] happy path: an abuse report satisfies the Zod contract', async ({
     katchupClient,
     staticToken,
   }) => {

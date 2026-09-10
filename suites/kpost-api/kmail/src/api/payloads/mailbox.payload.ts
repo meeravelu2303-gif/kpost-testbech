@@ -60,6 +60,10 @@ export function buildDashboardPagePayload(
 ): Record<string, unknown> {
   return buildCommonPayload({
     kmailID: '',
+    // Excel row 4: the dashboard read also accepts a `selectedDate` day filter and the
+    // `firstKmailID` forward cursor; "" / null is the first-page form.
+    selectedDate: null,
+    firstKmailID: null,
     ...overrides,
   });
 }
@@ -82,7 +86,9 @@ export function buildContactMailsPayload(
 ): Record<string, unknown> {
   return buildCommonPayload({
     selectedContact,
+    // Excel row 20 pages this conversation with BOTH ends of the keyset, not just the tail.
     lastKmailID: 0,
+    firstKmailID: null,
     ...overrides,
   });
 }
