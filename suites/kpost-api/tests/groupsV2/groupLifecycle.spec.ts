@@ -15,6 +15,7 @@ import {
   groupDetailsResponseSchema,
 } from '../../src/api/schemas/groupsV2.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertNoInternalLeak,
   assertNoReflectedScript,
   assertNot200OKOnError,
@@ -61,7 +62,7 @@ test.describe('POST /v2/group/createUserGroup', () => {
     repro: `await groupsV2Client.createUserGroup(buildCreateGroupPayload(), { token });`,
   };
 
-  test('[1] happy path: a valid creation satisfies the Zod contract', async ({
+  test('[FR-K06][1] happy path: a valid creation satisfies the Zod contract', async ({
     groupsV2Client,
     staticToken,
   }) => {
@@ -369,12 +370,11 @@ test.describe('POST /v2/group/createUserGroup', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { groupID: FOREIGN.groupID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.groupID)),
-      `the response acknowledged groupID "${FOREIGN.groupID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'groupID',
+      foreignValue: FOREIGN.groupID,
+    });
   });
 
 });
@@ -618,12 +618,11 @@ test.describe('POST /v2/group/editGroupName', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { groupID: FOREIGN.groupID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.groupID)),
-      `the response acknowledged groupID "${FOREIGN.groupID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'groupID',
+      foreignValue: FOREIGN.groupID,
+    });
   });
 
 });
@@ -886,12 +885,11 @@ test.describe('POST /v2/group/deleteGroup', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { groupID: FOREIGN.groupID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.groupID)),
-      `the response acknowledged groupID "${FOREIGN.groupID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'groupID',
+      foreignValue: FOREIGN.groupID,
+    });
   });
 
 });
@@ -1125,12 +1123,11 @@ test.describe('GET /v2/group/getGroupDetailsUsingGroupKpostID/{groupKpostID}', (
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.kpostID), { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
 

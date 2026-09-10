@@ -2,6 +2,7 @@ import { test, expect, EXPIRED_TOKEN, FORGED_ALG_NONE_JWT, MALFORMED_TOKEN } fro
 import { INTEGRATION_PATHS } from '../../src/api/clients/integrations.client';
 import { dataEnvelopeSchema } from '../../src/api/schemas/envelope.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertStatus,
   assertNoInternalLeak,
   assertNoReflectedScript,
@@ -241,12 +242,11 @@ test.describe('POST /taWallet/createHash', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -458,12 +458,11 @@ test.describe('POST /taWallet/paymentRequest', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -697,12 +696,11 @@ test.describe('POST /taWallet/fetchTransactionDetailsByOrderId', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -915,12 +913,11 @@ test.describe('POST /taWallet/sendCommunicationMessage', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({

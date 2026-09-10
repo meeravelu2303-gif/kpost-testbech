@@ -5,6 +5,7 @@ import {
 } from '../../src/api/clients/groupsV2.client';
 import { groupAckResponseSchema } from '../../src/api/schemas/groupsV2.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertNoInternalLeak,
   assertNoReflectedScript,
   assertNot200OKOnError,
@@ -337,12 +338,11 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { groupID: FOREIGN.groupID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.groupID)),
-      `the response acknowledged groupID "${FOREIGN.groupID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'groupID',
+      foreignValue: FOREIGN.groupID,
+    });
   });
 
 });
@@ -616,12 +616,11 @@ test.describe('POST /v2/group/removeGroupProfileImage', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { groupID: FOREIGN.groupID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.groupID)),
-      `the response acknowledged groupID "${FOREIGN.groupID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'groupID',
+      foreignValue: FOREIGN.groupID,
+    });
   });
 
 });
@@ -877,12 +876,11 @@ test.describe('GET /v2/group/downloadGroupProfileImage/{groupKpostID}/{kpostID}'
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.kpostID), { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
 
@@ -1167,12 +1165,11 @@ test.describe('GET /v2/group/downloadGroupFullProfileImage/{groupKpostID}/{kpost
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.kpostID), { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
 

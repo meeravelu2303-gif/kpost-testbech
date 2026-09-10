@@ -2,6 +2,7 @@ import { test, expect, EXPIRED_TOKEN, FORGED_ALG_NONE_JWT, MALFORMED_TOKEN } fro
 import { KATCHUP_PATHS } from '../../src/api/clients/katchupV2.client';
 import { katchupMessageResponseSchema } from '../../src/api/schemas/katchupV2.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertStatus,
   assertNoInternalLeak,
   assertNoReflectedScript,
@@ -16,7 +17,10 @@ import {
   buildBulkMessagePayload,
   buildChangeCaptionPayload,
   buildExistingMessagePayload,
+  buildForwardSelectedAttachmentPayload,
   buildKatchupMessagePayload,
+  buildSaveGroupMessagesPayload,
+  buildSaveMessagesPayload,
   nonExistentMsgId,
   syntheticReceiver,
 } from '../../src/api/payloads/katchupV2.payload';
@@ -350,12 +354,11 @@ test.describe('POST /v2/katchup/sendMessage', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
 });
@@ -367,14 +370,14 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.sendMessageForForwardSelectedAttachment,
-    repro: `await katchupClient.sendMessageForForwardSelectedAttachment(buildKatchupMessagePayload(), { token });`,
+    repro: `await katchupClient.sendMessageForForwardSelectedAttachment(buildForwardSelectedAttachmentPayload(), { token });`,
   };
 
   test('[1] happy path: an attachment forward satisfies the Zod contract', async ({
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload();
+    const payload = buildForwardSelectedAttachmentPayload();
     const response = await katchupClient.sendMessageForForwardSelectedAttachment(payload, {
       token: staticToken,
     });
@@ -392,7 +395,7 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
     staticToken,
     authSession,
   }) => {
-    const payload = buildKatchupMessagePayload({ sender: VICTIM_KPOST_ID });
+    const payload = buildForwardSelectedAttachmentPayload({ sender: VICTIM_KPOST_ID });
     const response = await katchupClient.sendMessageForForwardSelectedAttachment(payload, {
       token: staticToken,
     });
@@ -414,7 +417,7 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
     const self = authSession.kpostID;
     test.skip(!self, 'no authenticated identity to compare against');
 
-    const payload = buildKatchupMessagePayload();
+    const payload = buildForwardSelectedAttachmentPayload();
     const response = await katchupClient.sendMessageForForwardSelectedAttachment(payload, {
       token: staticToken,
     });
@@ -436,7 +439,7 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload();
+    const payload = buildForwardSelectedAttachmentPayload();
     delete (payload as Record<string, unknown>).receiver;
 
     const response = await katchupClient.sendMessageForForwardSelectedAttachment(payload, {
@@ -454,7 +457,7 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload({ receiver: null });
+    const payload = buildForwardSelectedAttachmentPayload({ receiver: null });
     const response = await katchupClient.sendMessageForForwardSelectedAttachment(payload, {
       token: staticToken,
     });
@@ -470,7 +473,7 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload({ receiver: 12345 });
+    const payload = buildForwardSelectedAttachmentPayload({ receiver: 12345 });
     const response = await katchupClient.sendMessageForForwardSelectedAttachment(payload, {
       token: staticToken,
     });
@@ -486,7 +489,7 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
     staticToken,
     authSession,
   }) => {
-    const payload = buildKatchupMessagePayload({
+    const payload = buildForwardSelectedAttachmentPayload({
       msgID: nonExistentMsgId(),
       sender: VICTIM_KPOST_ID,
     });
@@ -507,7 +510,7 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload({ actualMessage: XSS_PAYLOAD });
+    const payload = buildForwardSelectedAttachmentPayload({ actualMessage: XSS_PAYLOAD });
     const response = await katchupClient.sendMessageForForwardSelectedAttachment(payload, {
       token: staticToken,
     });
@@ -519,7 +522,7 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload({ actualMessage: SQLI_PAYLOAD });
+    const payload = buildForwardSelectedAttachmentPayload({ actualMessage: SQLI_PAYLOAD });
     const response = await katchupClient.sendMessageForForwardSelectedAttachment(payload, {
       token: staticToken,
     });
@@ -528,7 +531,7 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
   });
 
   test('[8] auth: no Authorization header must be 401/403', async ({ katchupClient }) => {
-    const payload = buildKatchupMessagePayload();
+    const payload = buildForwardSelectedAttachmentPayload();
     const response = await katchupClient.sendMessageForForwardSelectedAttachment(payload, {
       token: null,
     });
@@ -537,7 +540,7 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
   });
 
   test('[8b] auth: an expired token must not forward an attachment', async ({ katchupClient }) => {
-    const payload = buildKatchupMessagePayload();
+    const payload = buildForwardSelectedAttachmentPayload();
     const response = await katchupClient.sendMessageForForwardSelectedAttachment(payload, {
       token: EXPIRED_TOKEN,
     });
@@ -549,7 +552,7 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload();
+    const payload = buildForwardSelectedAttachmentPayload();
     const response = await katchupClient.sendMessageForForwardSelectedAttachment(payload, {
       token: staticToken,
     });
@@ -583,12 +586,11 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
 });
@@ -794,12 +796,11 @@ test.describe('POST /v2/katchup/sendBulkKatchupMsg', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
 });
@@ -811,14 +812,21 @@ test.describe('POST /v2/katchup/saveKatchupMessages', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.saveKatchupMessages,
-    repro: `await katchupClient.saveKatchupMessages(buildKatchupMessagePayload(), { token });`,
+    repro: `await katchupClient.saveKatchupMessages(buildSaveMessagesPayload(), { token });`,
   };
 
-  test('[1] happy path: saving a message satisfies the Zod contract', async ({
+  /*
+   * This route ARCHIVES existing messages — Excel row 38 takes `{ receiver | groupKpostID,
+   * msgIDs, groupFlag }`, not a compose body. The whole describe used to send
+   * `buildKatchupMessagePayload`, so every case fuzzed fields (`actualMessage`, `sender`,
+   * `subject`) that this endpoint does not read.
+   */
+
+  test('[1] happy path: archiving messages satisfies the Zod contract', async ({
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload();
+    const payload = buildSaveMessagesPayload();
     const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
 
     await expectValidContract(
@@ -829,16 +837,33 @@ test.describe('POST /v2/katchup/saveKatchupMessages', () => {
     );
   });
 
-  test('[2] boundary: a 50,000-character message must be handled explicitly', async ({
+  test('[1b] happy path: the group form keys on groupKpostID instead of receiver', async ({
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload({ actualMessage: MAX_LENGTH_STRING });
+    const payload = buildSaveGroupMessagesPayload();
+    const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
+
+    await expectValidContract(
+      response,
+      katchupMessageResponseSchema,
+      { ...META, body: payload },
+      [200, 201, 400, 401, 403]
+    );
+  });
+
+  test('[2] boundary: a 1,000-id archive batch must be handled explicitly', async ({
+    katchupClient,
+    staticToken,
+  }) => {
+    const payload = buildSaveMessagesPayload({
+      msgIDs: Array.from({ length: 1000 }, () => nonExistentMsgId()),
+    });
     const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
 
     expect(
       response.status(),
-      `a 50,000-character message produced HTTP ${response.status()}.`
+      `a 1,000-id archive batch produced HTTP ${response.status()}. The batch size is client-supplied, so an unbounded list is a cheap way to hold a database transaction open.`
     ).toBeLessThan(500);
   });
 
@@ -846,59 +871,75 @@ test.describe('POST /v2/katchup/saveKatchupMessages', () => {
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload();
+    const payload = buildSaveMessagesPayload();
     delete (payload as Record<string, unknown>).receiver;
 
     const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
 
     await assertRejectsInvalidInput(
       response,
-      { ...META, body: payload, scenario: 'saved message with no counterpart' },
+      { ...META, body: payload, scenario: 'archive request with no counterpart' },
       [400, 401, 403, 422]
     );
   });
 
-  test('[4] null fuzzing: a null message body must be refused', async ({
+  test('[4] null fuzzing: a null msgIDs list must be refused', async ({
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload({ actualMessage: null });
+    const payload = buildSaveMessagesPayload({ msgIDs: null });
     const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
 
     await assertRejectsInvalidInput(
       response,
-      { ...META, body: payload, scenario: 'field "actualMessage" set to null' },
+      { ...META, body: payload, scenario: 'field "msgIDs" set to null' },
       [400, 401, 403, 422]
     );
   });
 
-  test('[5] type mismatch: an object message body must be refused', async ({
+  test('[4b] empty fuzzing: an empty msgIDs list must not archive everything', async ({
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload({ actualMessage: { text: 'hi' } });
+    const payload = buildSaveMessagesPayload({ msgIDs: [] });
+    const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
+
+    await assertRejectsInvalidInput(
+      response,
+      { ...META, body: payload, scenario: 'field "msgIDs" set to an empty list' },
+      [400, 401, 403, 422]
+    );
+  });
+
+  test('[5] type mismatch: a scalar where msgIDs expects a list must be refused', async ({
+    katchupClient,
+    staticToken,
+  }) => {
+    const payload = buildSaveMessagesPayload({ msgIDs: nonExistentMsgId() });
     const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
 
     expect(
       response.status(),
-      `actualMessage was sent as an object and produced HTTP ${response.status()}.`
+      `msgIDs was sent as a bare number where a list is documented and produced HTTP ${response.status()}.`
     ).toBeLessThan(500);
   });
 
-  test('[6] spoofing: a body-supplied sender must not override the token', async ({
+  test('[6] spoofing: archiving against a foreign counterpart must not reach their thread', async ({
     katchupClient,
     staticToken,
     authSession,
   }) => {
-    const payload = buildKatchupMessagePayload({ sender: VICTIM_KPOST_ID });
+    // `receiver` names the conversation whose messages are archived, so it is the identity field
+    // on this route — the compose route's `sender` is not read here at all.
+    const payload = buildSaveMessagesPayload({ receiver: VICTIM_KPOST_ID });
     const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
     const { json, text } = await readBody(response);
 
-    test.skip(json === null || json.statusCode !== 200, 'save did not succeed');
+    test.skip(json === null || json.statusCode !== 200, 'archive did not succeed');
 
     expect(
       text.includes(`"sender":"${VICTIM_KPOST_ID}"`),
-      `the saved message was attributed to "${VICTIM_KPOST_ID}" while the caller was ${authSession.kpostID ?? 'a different identity'}. This route calls setSender from the token, so a body value must be discarded. Body: ${text.slice(0, 300)}`
+      `the archive acknowledged messages belonging to "${VICTIM_KPOST_ID}" while the caller was ${authSession.kpostID ?? 'a different identity'}. The conversation must be resolved against the token's own threads, not taken from the body. Body: ${text.slice(0, 300)}`
     ).toBe(false);
   });
 
@@ -906,7 +947,7 @@ test.describe('POST /v2/katchup/saveKatchupMessages', () => {
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload({ actualMessage: XSS_PAYLOAD });
+    const payload = buildSaveMessagesPayload({ receiver: XSS_PAYLOAD });
     const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
 
     await assertNoReflectedScript(response, { ...META, body: payload }, XSS_PAYLOAD);
@@ -916,21 +957,21 @@ test.describe('POST /v2/katchup/saveKatchupMessages', () => {
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload({ actualMessage: SQLI_PAYLOAD });
+    const payload = buildSaveMessagesPayload({ receiver: SQLI_PAYLOAD });
     const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
 
     await assertNoInternalLeak(response, { ...META, body: payload }, SQLI_PAYLOAD);
   });
 
   test('[8] auth: no Authorization header must be 401/403', async ({ katchupClient }) => {
-    const payload = buildKatchupMessagePayload();
+    const payload = buildSaveMessagesPayload();
     const response = await katchupClient.saveKatchupMessages(payload, { token: null });
 
     await assertUnauthorized(response, { ...META, body: payload });
   });
 
-  test('[8b] auth: a malformed token must not save a message', async ({ katchupClient }) => {
-    const payload = buildKatchupMessagePayload();
+  test('[8b] auth: a malformed token must not archive messages', async ({ katchupClient }) => {
+    const payload = buildSaveMessagesPayload();
     const response = await katchupClient.saveKatchupMessages(payload, { token: MALFORMED_TOKEN });
 
     await assertUnauthorized(response, { ...META, body: payload });
@@ -940,7 +981,7 @@ test.describe('POST /v2/katchup/saveKatchupMessages', () => {
     katchupClient,
     staticToken,
   }) => {
-    const payload = buildKatchupMessagePayload();
+    const payload = buildSaveMessagesPayload();
     const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
 
     await assertStatusCodeParity(response, { ...META, body: payload });
@@ -951,7 +992,7 @@ test.describe('POST /v2/katchup/saveKatchupMessages', () => {
 
     await assertRejectsInvalidInput(
       response,
-      { ...META, body: {}, scenario: 'empty body on a message save' },
+      { ...META, body: {}, scenario: 'empty body on a message archive' },
       [400, 401, 403, 422]
     );
   });
@@ -969,12 +1010,11 @@ test.describe('POST /v2/katchup/saveKatchupMessages', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
 });
@@ -1128,12 +1168,11 @@ test.describe('POST /v2/katchup/patchWorkForGroup', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
 });
@@ -1318,12 +1357,11 @@ test.describe('POST /v2/katchup/changeCaption', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({

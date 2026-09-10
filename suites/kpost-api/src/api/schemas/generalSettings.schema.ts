@@ -52,12 +52,26 @@ export const changeThemeResponseSchema = generalSettingAckSchema.extend({
   changeTheme: z.union([z.record(z.string(), z.unknown()), z.null()]).optional(),
 });
 
-/** The personalisation block: theme plus font preferences. */
+/**
+ * The personalisation block: theme plus font preferences.
+ *
+ * Theme keys mirror the `changeTheme` request (Excel row 223) — the two routes share one
+ * settings row, so the read-back names must be the names the write persists. `theme` /
+ * `backGroundTheme` were listed here previously; neither exists in the contract.
+ */
 export const personalizeSettingsSchema = z
   .object({
     kpostID: z.string().nullish(),
-    theme: z.string().nullish(),
-    backGroundTheme: z.string().nullish(),
+    colourPalette: z.string().nullish(),
+    nightModeEnable: z.union([z.string(), z.number(), z.boolean()]).nullish(),
+    syncwithDeviceSetting: z.union([z.string(), z.number(), z.boolean()]).nullish(),
+    scheduleTiming: z.string().nullish(),
+    kpostLayoutTheme: z.string().nullish(),
+    katchupChatStyle: z.string().nullish(),
+    katchupChatTheme: z.string().nullish(),
+    katchupChatBackgroundThemeWallpaper: z
+      .union([z.string(), z.record(z.string(), z.unknown()), z.null()])
+      .optional(),
     fontSize: z.union([z.string(), z.number()]).nullish(),
     fontStyle: z.string().nullish(),
   })

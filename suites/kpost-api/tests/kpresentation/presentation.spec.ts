@@ -17,6 +17,7 @@ import {
   savePresentationResponseSchema,
 } from '../../src/api/schemas/kpresentation.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertStatus,
   assertNoInternalLeak,
   assertNoReflectedScript,
@@ -370,12 +371,11 @@ test.describe('POST /kpresentation/create', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { documentID: FOREIGN.documentID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.documentID)),
-      `the response acknowledged documentID "${FOREIGN.documentID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'documentID',
+      foreignValue: FOREIGN.documentID,
+    });
   });
 
 });
@@ -638,12 +638,11 @@ test.describe('POST /kpresentation/savePresentation', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { documentID: FOREIGN.documentID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.documentID)),
-      `the response acknowledged documentID "${FOREIGN.documentID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'documentID',
+      foreignValue: FOREIGN.documentID,
+    });
   });
 
 
@@ -895,12 +894,11 @@ test.describe('GET /kpresentation/presentations', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('GET', META.path, { documentID: FOREIGN.documentID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.documentID)),
-      `the response acknowledged documentID "${FOREIGN.documentID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'documentID',
+      foreignValue: FOREIGN.documentID,
+    });
   });
 
 });
@@ -1169,12 +1167,11 @@ test.describe('GET /kpresentation/presentations/{presentationId}', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.uuid)),
-      `the response acknowledged pathVariable "${FOREIGN.uuid}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'pathVariable',
+      foreignValue: FOREIGN.uuid,
+    });
   });
 
 
@@ -1493,12 +1490,11 @@ test.describe('GET /kpresentation/delete', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('GET', META.path, { documentID: FOREIGN.documentID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.documentID)),
-      `the response acknowledged documentID "${FOREIGN.documentID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'documentID',
+      foreignValue: FOREIGN.documentID,
+    });
   });
 
 });

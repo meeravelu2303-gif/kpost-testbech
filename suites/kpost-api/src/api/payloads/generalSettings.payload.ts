@@ -5,10 +5,11 @@ import { qaIdentifier, safeTestEmail, safeTestMobile } from '../../utils/safeTes
  * Request builders for the General Settings controller.
  *
  * swagger.json declares each request body as a free-form map
- * (`{type: object, additionalProperties: {type: object}}`), so the field names below come
- * from the operation descriptions rather than a declared schema: the notification routes
- * store "the master on/off toggle plus sound, vibration and preview options", `fontSetting`
- * stores "font size / font style", and `changeTheme` stores a named or light/dark theme.
+ * (`{type: object, additionalProperties: {type: object}}`), so it names no fields at all.
+ * `changeTheme`, `fontSetting` and the notification routes therefore take their shapes from
+ * the Excel workbook (rows 221–226), which is authoritative for request payloads. Field names
+ * inferred from swagger operation *descriptions* are what produced the phantom `changeTheme`
+ * body this file used to send — do not reintroduce that source.
  *
  * Overrides are `Record<string, unknown>` rather than `Partial<T>` on purpose: the fuzzing
  * suites deliberately submit wrong-typed values to prove the API validates them, and a
@@ -71,9 +72,33 @@ export function buildFontSettingPayload(
   } as FontSettingRequest;
 }
 
+/** The nested wallpaper block on `changeTheme` — Excel: `{ default, color, image }`. */
+export interface ChatWallpaperRequest {
+  default: boolean;
+  color: string | null;
+  image: string | null;
+  [key: string]: unknown;
+}
+
+/**
+ * Excel row 223 (`/generalSetting/changeTheme`). Nine fields, one of them a nested object.
+ *
+ * This replaces an earlier `{ theme, backGroundTheme }` guess taken from the swagger operation
+ * description — neither name exists in the contract, so every fuzz vector aimed at them mutated
+ * a field the server ignores, the request stayed valid, and `assertRejectsInvalidInput` filed a
+ * fabricated "invalid input accepted" defect. Keep the field names byte-exact, including the
+ * `&` in `useLocalSunset&Sunrise`.
+ */
 export interface ChangeThemeRequest {
-  theme: string;
-  backGroundTheme: string;
+  colourPalette: string;
+  nightModeEnable: number;
+  'useLocalSunset&Sunrise': number;
+  syncwithDeviceSetting: number;
+  scheduleTiming: string;
+  kpostLayoutTheme: string;
+  katchupChatStyle: string;
+  katchupChatTheme: string;
+  katchupChatBackgroundThemeWallpaper: ChatWallpaperRequest;
   [key: string]: unknown;
 }
 
@@ -81,8 +106,17 @@ export function buildChangeThemePayload(
   overrides: Record<string, unknown> = {}
 ): ChangeThemeRequest {
   return {
-    theme: 'DARK',
-    backGroundTheme: 'DARK',
+    colourPalette: '#0001',
+    nightModeEnable: 1,
+    'useLocalSunset&Sunrise': 0,
+    syncwithDeviceSetting: 0,
+    // Excel carries the literal mask "HH ::RR :: MM"; a concrete window is sent so the happy
+    // path can reach a 200. The exact accepted format is unverified against the live API.
+    scheduleTiming: '22:00 :: 06:00',
+    kpostLayoutTheme: 'purple',
+    katchupChatStyle: 'bubble',
+    katchupChatTheme: 'sunset',
+    katchupChatBackgroundThemeWallpaper: { default: true, color: null, image: null },
     ...overrides,
   } as ChangeThemeRequest;
 }

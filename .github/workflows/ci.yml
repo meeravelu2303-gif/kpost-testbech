@@ -45,3 +45,26 @@ jobs:
 
       - name: Lint — KPost UI
         run: npm run lint:ui
+
+      # Every suite must still COLLECT. A type-clean spec can still fail to load (a bad import,
+      # a duplicate project name, a config that throws), and that is invisible to tsc.
+      - name: Collect — every suite
+        run: npm run collect
+
+      # The false-finding gate: refuses the build when an endpoint has lost a mandatory
+      # security vector. Offline, so it belongs here rather than in the live run.
+      - name: Vector gate — KPost API
+        run: npm run audit:vectors -w kpost-api
+
+      # Offline unit tests for the bench's own reporting code (Bugzilla payloads, dedup).
+      - name: Unit tests — reporter internals
+        run: npm run test:unit -w kpost-api
+
+      # Fails on a requirement tag that names nothing in docs/requirements.json — a silent
+      # typo there makes a test look traced while counting toward nothing.
+      - name: Requirement traceability
+        run: npm run trace
+
+      # NOTE: `npm run format:check` is deliberately NOT a gate. 367 pre-existing files predate
+      # the root prettier config, and reformatting them under divergent per-suite settings would
+      # churn every working file for no behavioural gain. Run `npm run format` on files you touch.

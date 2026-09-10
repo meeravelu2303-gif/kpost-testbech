@@ -12,6 +12,7 @@ import {
   getPersonalizeResponseSchema,
 } from '../../src/api/schemas/generalSettings.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertNoInternalLeak,
   assertNoReflectedScript,
   assertNot200OKOnError,
@@ -341,12 +342,11 @@ test.describe('POST /generalSetting/fontSetting', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
 });
@@ -395,99 +395,116 @@ test.describe('POST /generalSetting/changeTheme', () => {
     ).toBeDefined();
   });
 
-  test('[2] boundary: a 5000-character theme name must be refused', async ({
+  test('[2] boundary: a 5000-character layout theme must be refused', async ({
     generalSettingsClient,
     staticToken,
   }) => {
-    const payload = buildChangeThemePayload({ theme: MAX_LENGTH_STRING });
+    const payload = buildChangeThemePayload({ kpostLayoutTheme: MAX_LENGTH_STRING });
     const response = await generalSettingsClient.changeTheme(payload, { token: staticToken });
 
     expect(
       response.status(),
-      `a 5000-character theme name produced HTTP ${response.status()}.`
+      `a 5000-character kpostLayoutTheme produced HTTP ${response.status()}.`
     ).toBeLessThan(500);
   });
 
-  test('[2b] boundary: a UTF-8 theme name is handled without a server fault', async ({
+  test('[2b] boundary: a UTF-8 layout theme is handled without a server fault', async ({
     generalSettingsClient,
     staticToken,
   }) => {
-    const payload = buildChangeThemePayload({ theme: UTF8_STRING });
+    const payload = buildChangeThemePayload({ kpostLayoutTheme: UTF8_STRING });
     const response = await generalSettingsClient.changeTheme(payload, { token: staticToken });
 
     expect(
       response.status(),
-      `a multi-byte UTF-8 theme name produced HTTP ${response.status()}.`
+      `a multi-byte UTF-8 kpostLayoutTheme produced HTTP ${response.status()}.`
     ).toBeLessThan(500);
   });
 
-  test('[3] missing required parameter: "theme" omitted must be refused', async ({
+  test('[3] missing required parameter: "colourPalette" omitted must be refused', async ({
     generalSettingsClient,
     staticToken,
   }) => {
     const payload = buildChangeThemePayload();
-    delete (payload as Record<string, unknown>).theme;
+    delete (payload as Record<string, unknown>).colourPalette;
 
     const response = await generalSettingsClient.changeTheme(payload, { token: staticToken });
 
     await assertRejectsInvalidInput(
       response,
-      { ...META, body: payload, scenario: 'required field "theme" omitted' },
+      { ...META, body: payload, scenario: 'required field "colourPalette" omitted' },
       [400, 401, 403, 422]
     );
   });
 
-  test('[4] null fuzzing: "theme" set to null must be refused', async ({
+  test('[4] null fuzzing: "colourPalette" set to null must be refused', async ({
     generalSettingsClient,
     staticToken,
   }) => {
-    const payload = buildChangeThemePayload({ theme: null });
+    const payload = buildChangeThemePayload({ colourPalette: null });
     const response = await generalSettingsClient.changeTheme(payload, { token: staticToken });
 
     await assertRejectsInvalidInput(
       response,
-      { ...META, body: payload, scenario: 'field "theme" set to null' },
+      { ...META, body: payload, scenario: 'field "colourPalette" set to null' },
       [400, 401, 403, 422]
     );
   });
 
-  test('[4b] empty fuzzing: an empty theme name must not be persisted', async ({
+  test('[4b] empty fuzzing: an empty colour palette must not be persisted', async ({
     generalSettingsClient,
     staticToken,
   }) => {
-    const payload = buildChangeThemePayload({ theme: '' });
+    const payload = buildChangeThemePayload({ colourPalette: '' });
     const response = await generalSettingsClient.changeTheme(payload, { token: staticToken });
 
     await assertRejectsInvalidInput(
       response,
-      { ...META, body: payload, scenario: 'field "theme" set to an empty string' },
+      { ...META, body: payload, scenario: 'field "colourPalette" set to an empty string' },
       [400, 401, 403, 422]
     );
   });
 
-  test('[5] type mismatch: a numeric theme where a name string is expected', async ({
+  test('[5] type mismatch: a numeric layout theme where a name string is expected', async ({
     generalSettingsClient,
     staticToken,
   }) => {
-    const payload = buildChangeThemePayload({ theme: 1 });
+    const payload = buildChangeThemePayload({ kpostLayoutTheme: 1 });
     const response = await generalSettingsClient.changeTheme(payload, { token: staticToken });
 
     expect(
       response.status(),
-      `theme was sent as a number and produced HTTP ${response.status()}.`
+      `kpostLayoutTheme was sent as a number and produced HTTP ${response.status()}.`
     ).toBeLessThan(500);
   });
 
-  test('[5b] type mismatch: an array where a background theme is expected', async ({
+  test('[5b] type mismatch: an array where the wallpaper object is expected', async ({
     generalSettingsClient,
     staticToken,
   }) => {
-    const payload = buildChangeThemePayload({ backGroundTheme: ['DARK'] });
+    // The only nested object in this contract, so the one place a shape mismatch (array for
+    // object) can reach the deserialiser rather than a plain string setter.
+    const payload = buildChangeThemePayload({
+      katchupChatBackgroundThemeWallpaper: ['default'],
+    });
     const response = await generalSettingsClient.changeTheme(payload, { token: staticToken });
 
     expect(
       response.status(),
-      `backGroundTheme was sent as an array and produced HTTP ${response.status()}.`
+      `katchupChatBackgroundThemeWallpaper was sent as an array where an object is documented and produced HTTP ${response.status()}.`
+    ).toBeLessThan(500);
+  });
+
+  test('[5c] type mismatch: a string night-mode flag where an integer is expected', async ({
+    generalSettingsClient,
+    staticToken,
+  }) => {
+    const payload = buildChangeThemePayload({ nightModeEnable: 'yes' });
+    const response = await generalSettingsClient.changeTheme(payload, { token: staticToken });
+
+    expect(
+      response.status(),
+      `nightModeEnable was sent as a string where the contract documents 0|1 and produced HTTP ${response.status()}.`
     ).toBeLessThan(500);
   });
 
@@ -495,7 +512,7 @@ test.describe('POST /generalSetting/changeTheme', () => {
     generalSettingsClient,
     staticToken,
   }) => {
-    const payload = buildChangeThemePayload({ theme: XSS_PAYLOAD });
+    const payload = buildChangeThemePayload({ kpostLayoutTheme: XSS_PAYLOAD });
     const response = await generalSettingsClient.changeTheme(payload, { token: staticToken });
 
     await assertNoReflectedScript(
@@ -503,7 +520,7 @@ test.describe('POST /generalSetting/changeTheme', () => {
       {
         ...META,
         body: payload,
-        repro: `await generalSettingsClient.changeTheme(buildChangeThemePayload({ theme: ${JSON.stringify(XSS_PAYLOAD)} }), { token });`,
+        repro: `await generalSettingsClient.changeTheme(buildChangeThemePayload({ kpostLayoutTheme: ${JSON.stringify(XSS_PAYLOAD)} }), { token });`,
       },
       XSS_PAYLOAD
     );
@@ -513,7 +530,7 @@ test.describe('POST /generalSetting/changeTheme', () => {
     generalSettingsClient,
     staticToken,
   }) => {
-    const payload = buildChangeThemePayload({ theme: SQLI_PAYLOAD });
+    const payload = buildChangeThemePayload({ kpostLayoutTheme: SQLI_PAYLOAD });
     const response = await generalSettingsClient.changeTheme(payload, { token: staticToken });
 
     await assertNoInternalLeak(response, { ...META, body: payload }, SQLI_PAYLOAD);
@@ -639,12 +656,11 @@ test.describe('POST /generalSetting/changeTheme', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
 });
@@ -847,17 +863,28 @@ test.describe('GET /generalSetting/getPersonalize', () => {
     requireAuthToken,
   }) => {
     const token = requireAuthToken();
-    const payload = buildChangeThemePayload({ theme: 'LIGHT', backGroundTheme: 'LIGHT' });
+    // Excel value, not an invented one — 'LIGHT' was written into the phantom `theme` field and
+    // could never surface, so this case failed as a persistence defect that was ours, not the API's.
+    const payload = buildChangeThemePayload({ kpostLayoutTheme: 'purple' });
 
-    await generalSettingsClient.changeTheme(payload, { token });
+    const write = await generalSettingsClient.changeTheme(payload, { token });
+    const { json: writeJson } = await readBody(write);
+
+    // Only a write the API accepted can be held to a read-back. Otherwise a rejected payload
+    // would be reported as a persistence failure.
+    test.skip(
+      writeJson === null || writeJson.statusCode !== 200,
+      'the theme write did not succeed, so there is nothing to read back'
+    );
+
     const { text, json } = await readBody(
       await generalSettingsClient.getPersonalize({ token })
     );
 
     expect(
-      text.toUpperCase(),
-      `a theme saved through changeTheme was not visible in the getPersonalize read. The two routes share one settings row, so a write that does not surface in the canonical read means the update did not persist. Read body: ${JSON.stringify(json).slice(0, 200)}`
-    ).toContain('LIGHT');
+      text.toLowerCase(),
+      `a kpostLayoutTheme saved through changeTheme was not visible in the getPersonalize read. The two routes share one settings row, so a write the API acknowledged that does not surface in the canonical read means the update did not persist. Read body: ${JSON.stringify(json).slice(0, 200)}`
+    ).toContain('purple');
   });
 
   test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
@@ -873,12 +900,11 @@ test.describe('GET /generalSetting/getPersonalize', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('GET', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
 });

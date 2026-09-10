@@ -10,6 +10,7 @@ import { AUTH_PATHS } from '../../src/api/clients/auth.client';
 import { validateSchema } from '../../src/utils/schemaValidator';
 import { looseEnvelopeSchema, dataEnvelopeSchema } from '../../src/api/schemas/envelope.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertStatus,
   assertNoInternalLeak,
   assertNoReflectedScript,
@@ -49,7 +50,7 @@ test.describe('Auth - POST /v2/signupLogin/signup', () => {
     repro: `await authClient.signup(buildSignupPayload(), { token: null });`,
   };
 
-  test('[public] signup must stay reachable without a token — a new user has none', async ({
+  test('[FR-S01][public] signup must stay reachable without a token — a new user has none', async ({
     authClient,
   }) => {
     // security: [] in swagger. A first-time user holds no bearer, so a token gate here makes
@@ -232,12 +233,11 @@ test.describe('Auth - POST /v2/signupLogin/signup', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
 
@@ -450,12 +450,11 @@ test.describe('Auth - POST /v2/signupLogin/setAccessCode', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
 
@@ -652,7 +651,7 @@ test.describe('Auth - POST /v2/signupLogin/kpostIdExist', () => {
     ]);
   });
 
-  test('[business rule] a registered kpostID must be reported as unavailable (BR-S02)', async ({
+  test('[FR-S03][BR-S02][business rule] a registered kpostID must be reported as unavailable', async ({
     authClient,
     authSession,
   }) => {
@@ -1064,12 +1063,11 @@ test.describe('Auth - POST /v2/signupLogin/adminRegistration', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kpostID)),
-      `the response acknowledged kpostID "${FOREIGN.kpostID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kpostID',
+      foreignValue: FOREIGN.kpostID,
+    });
   });
 
 

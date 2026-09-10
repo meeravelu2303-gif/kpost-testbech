@@ -28,8 +28,7 @@ import { KNewsPage } from '../pages/KNewsPage';
 import { KPayPage } from '../pages/KPayPage';
 import { STANDARD_STORAGE_STATE } from '../config/global-setup';
 import { env, type Credentials } from '../config/env';
-import { apiLogin, apiCreatePost, apiDeletePost, type AuthResult } from '../utils/api-helpers';
-import type { Post } from '../types';
+import { apiLogin, type AuthResult } from '../utils/api-helpers';
 import { looksLikeLostSession, repairStandardSession } from '../utils/session-repair';
 
 /** Test-scoped fixtures — recreated per test. */
@@ -66,17 +65,6 @@ interface KPostFixtures {
    * Pair with the `storageState` those specs select.
    */
   directoryUser: Credentials;
-  /**
-   * Seed a post via the API and get its id back. Every post seeded through this
-   * fixture is automatically deleted in teardown, so tests stay atomic and
-   * leave no residue in a shared backend.
-   *
-   * LEGACY: no current spec uses this — it targets the blog-style `/posts` API
-   * that the removed scaffold specs assumed. Kept as the worked example of the
-   * arrange-via-API / assert-via-UI pattern to copy when a real KPost module
-   * API is wired up.
-   */
-  seedPost: (post: Post) => Promise<string>;
 }
 
 /** Worker-scoped fixtures — created once per worker and reused across its tests. */
@@ -200,20 +188,6 @@ export const test = base.extend<KPostFixtures, KPostWorkerFixtures>({
     { scope: 'worker' },
   ],
 
-  // Test-scoped: seed posts via the API and clean them up afterwards.
-  seedPost: async ({ apiAuth }, use) => {
-    const createdIds: string[] = [];
-    const seed = async (post: Post): Promise<string> => {
-      const id = await apiCreatePost(apiAuth, post);
-      createdIds.push(id);
-      return id;
-    };
-    await use(seed);
-    // Teardown: best-effort delete so seeded data never leaks between tests.
-    for (const id of createdIds) {
-      await apiDeletePost(apiAuth, id).catch(() => undefined);
-    }
-  },
 });
 
 export { expect };

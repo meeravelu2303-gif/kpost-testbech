@@ -127,6 +127,9 @@ export function buildForwardPayload(
     forwardList: [syntheticRecipient()],
     forwardNote: qaLabel('forward-note'),
     revealSource: false,
+    // Excel row 43 carries this alongside the other forward-only fields; empty = forward the
+    // body without re-attaching the original's files.
+    forwardAttachmentLists: [],
     mailFlag: 'forward',
     ...overrides,
   });

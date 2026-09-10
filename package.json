@@ -15,15 +15,22 @@
     "test:kmail": "npm run test:kmail -w kpost-api",
     "test:admin": "npm run test:adminmodule -w kpost-api",
     "test:ui": "npm test -w kpost-ui",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run typecheck:api && npm run typecheck:kmail && npm run typecheck:admin && npm run typecheck:ui",
     "typecheck:api": "npm run typecheck -w kpost-api",
     "typecheck:kmail": "npm run typecheck:kmail -w kpost-api",
     "typecheck:admin": "npm run typecheck:adminmodule -w kpost-api",
     "typecheck:ui": "npm run typecheck -w kpost-ui",
     "lint:ui": "npm run lint -w kpost-ui",
+    "collect": "npm run collect:api && npm run collect:kmail && npm run collect:admin && npm run collect:ui",
+    "collect:api": "npm test -w kpost-api -- --list --reporter=line",
+    "collect:kmail": "npm run test:kmail:list -w kpost-api",
+    "collect:admin": "npm run test:adminmodule:list -w kpost-api",
+    "collect:ui": "npm test -w kpost-ui -- --list --reporter=line",
     "format": "prettier --write \"**/*.{ts,js,cjs,mjs,json,md,yml,yaml}\" --ignore-path .gitignore --log-level warn",
     "format:check": "prettier --check \"**/*.{ts,js,cjs,mjs,json,md,yml,yaml}\" --ignore-path .gitignore --log-level warn",
-    "clean": "npm run clean -w kpost-api --if-present && npm run clean -w kpost-ui --if-present"
+    "clean": "npm run clean -w kpost-api --if-present && npm run clean -w kpost-ui --if-present",
+    "trace": "node scripts/traceability.js",
+    "trace:md": "node scripts/traceability.js --markdown"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

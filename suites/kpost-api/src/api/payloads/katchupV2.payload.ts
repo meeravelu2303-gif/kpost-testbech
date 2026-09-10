@@ -72,6 +72,51 @@ export function buildKatchupMessagePayload(
   };
 }
 
+/**
+ * `saveKatchupMessages` (Excel row 38) — an **archive** action over existing message IDs, not a
+ * compose. The whole describe used to drive `buildKatchupMessagePayload`, so it fuzzed a compose
+ * body at a route that reads `{ receiver | groupKpostID, msgIDs, groupFlag }`.
+ *
+ * `groupFlag` is a STRING here ("true"/"false") in the Excel, unlike the boolean the send routes
+ * take — kept as written rather than normalised.
+ */
+export function buildSaveMessagesPayload(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return {
+    receiver: syntheticReceiver(),
+    msgIDs: [nonExistentMsgId(), nonExistentMsgId()],
+    groupFlag: 'false',
+    ...overrides,
+  };
+}
+
+/** The group form of the same archive action: keyed by `groupKpostID` instead of `receiver`. */
+export function buildSaveGroupMessagesPayload(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return {
+    groupKpostID: syntheticReceiver(),
+    msgIDs: [nonExistentMsgId(), nonExistentMsgId()],
+    groupFlag: 'true',
+    ...overrides,
+  };
+}
+
+/**
+ * `getSharedMessageInfo` / `getBulkMessageInfo` (Excel rows 31 and 100) — both key on a single
+ * `sharedMessageId`, an epoch-millis broadcast id, not a msgID and not a message body.
+ */
+export function buildSharedMessageInfoPayload(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return {
+    // Far enough past any real broadcast timestamp that it cannot resolve to a live one.
+    sharedMessageId: 1_999_000_000_000 + faker.number.int({ min: 1, max: 999_999 }),
+    ...overrides,
+  };
+}
+
 /** A message addressing an existing row. Defaults to a non-existent msgID. */
 export function buildExistingMessagePayload(
   overrides: Record<string, unknown> = {}
@@ -176,11 +221,155 @@ export function buildChangeCaptionPayload(
 }
 
 /** A forward of one or more messages to synthetic recipients. */
+/**
+ * The `messageType` values that select a forward mode (Excel rows 118 / 139 / 194 / 219).
+ *
+ * The type is not decoration — it decides which reference field the server reads. 15 carries
+ * `referenceMessage`, 20 carries the stringified `referenceMessageList`, and 24 carries
+ * `referenceMessageIDList`. Sending the wrong pairing produces a forward that references nothing.
+ */
+export const FORWARD_MESSAGE_TYPE = {
+  /** Single-message forward. */
+  single: 15,
+  /** Multi-thread forward — the "forward with full thread" action. */
+  multiThread: 20,
+  /** Forward of selected attachments only. */
+  selectedAttachment: 24,
+} as const;
+
+/**
+ * `referenceMessageList` travels as a JSON **string**, not an array:
+ * `"[{\"msgIDs1\":[...]},{\"msgIDs2\":[...]}]"` — one object per source thread, keys numbered
+ * from 1. Sending a real array is the mistake this helper exists to prevent.
+ */
+export function referenceMessageListJson(threads: number[][]): string {
+  return JSON.stringify(threads.map((ids, index) => ({ [`msgIDs${index + 1}`]: ids })));
+}
+
+/**
+ * The forward envelope shared by every forward route.
+ *
+ * `receiver` is deliberately EMPTY: on a forward the recipients travel in `forwardReceiverList`,
+ * and the Excel shows `""` for the direct receiver. `sharedMessageDetails`/`groupForwardList`
+ * default to null and `groupmemberList` to an empty list, exactly as the contract has them —
+ * these are the fields that carry the forwarded thread, so omitting them (as this bench did
+ * previously) means the route is only ever exercised as a plain send.
+ */
+export function buildForwardEnvelope(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return buildKatchupMessagePayload({
+    receiver: '',
+    messageType: FORWARD_MESSAGE_TYPE.single,
+    status: '0',
+    groupFlag: 'false',
+    forwardReceiverList: [syntheticReceiver()],
+    groupForwardList: null,
+    groupmemberList: [],
+    referenceMessage: null,
+    sharedMessageDetails: null,
+    sharedType: 0,
+    temporaryMsgID: 0,
+    attachmentCaption: null,
+    ...overrides,
+  });
+}
+
+/** Single-message forward (messageType 15) — Excel rows 118 / 139, first variant. */
 export function buildForwardPayload(
   overrides: Record<string, unknown> = {}
 ): Record<string, unknown> {
-  return buildExistingMessagePayload({
-    forwardReceiverList: [syntheticReceiver()],
+  return buildForwardEnvelope({
+    messageType: FORWARD_MESSAGE_TYPE.single,
+    referenceMessage: nonExistentMsgId(),
     ...overrides,
   });
+}
+
+/**
+ * Forward-with-thread (messageType 20) — the FRD's FR-K16 action. Two synthetic source threads,
+ * so the stringified `referenceMessageList` is exercised in its documented multi-group form.
+ */
+export function buildThreadForwardPayload(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return buildForwardEnvelope({
+    messageType: FORWARD_MESSAGE_TYPE.multiThread,
+    referenceMessageList: referenceMessageListJson([
+      [nonExistentMsgId(), nonExistentMsgId(), nonExistentMsgId()],
+      [nonExistentMsgId(), nonExistentMsgId()],
+    ]),
+    ...overrides,
+  });
+}
+
+/** `forwardKatchupMultipleMsgs` (Excel row 194) — a flat list of message ids, no message body. */
+export function buildMultipleMsgsForwardPayload(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return {
+    forwardReceiverList: [syntheticReceiver()],
+    groupForwardList: [],
+    forwardMessageIDList: [nonExistentMsgId(), nonExistentMsgId()],
+    attachmentCaption: '[]',
+    uuid: [],
+    messageType: FORWARD_MESSAGE_TYPE.single,
+    sessionID: `QA-${faker.string.alphanumeric(8)}`,
+    actualMessage: '[{"insert":"\\n"}]',
+    ...overrides,
+  };
+}
+
+/**
+ * `sendMessageForForwardSelectedAttachment` (Excel row 219, messageType 24).
+ *
+ * This is the route whose `setSender(...)` is commented out server-side, so `sender` is left
+ * unset here on purpose — the spoofing case supplies it explicitly.
+ */
+export function buildForwardSelectedAttachmentPayload(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  const uuids = [faker.string.uuid(), faker.string.uuid()];
+  return buildForwardEnvelope({
+    receiver: syntheticReceiver(),
+    messageType: FORWARD_MESSAGE_TYPE.selectedAttachment,
+    status: 0,
+    groupFlag: false,
+    forwardReceiverList: null,
+    selectedMembers: 'N',
+    secretMessageExpireTime: null,
+    referenceMessageIDList: null,
+    referenceMessageList: null,
+    isVoiceMessage: false,
+    uuid: uuids,
+    attachmentCaption: JSON.stringify(
+      uuids.map((uuid) => ({ fileName: `${uuid}.jpg`, caption: null, fileSize: '28687', uuid }))
+    ),
+    ...overrides,
+  });
+}
+
+/** `getMessagesByReferenceMessageList` (Excel row 119) — the thread-forward read-back. */
+export function buildReferenceMessageListPayload(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return {
+    referenceMessageList: referenceMessageListJson([
+      [nonExistentMsgId(), nonExistentMsgId(), nonExistentMsgId()],
+      [nonExistentMsgId(), nonExistentMsgId()],
+    ]),
+    messageType: FORWARD_MESSAGE_TYPE.multiThread,
+    ...overrides,
+  };
+}
+
+/** `getReferenceMessagesDetails` (Excel row 120) — ids plus the message they were forwarded from. */
+export function buildReferenceMessagesDetailsPayload(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return {
+    referenceMessageIDList: [nonExistentMsgId(), nonExistentMsgId(), nonExistentMsgId()],
+    sourceMsgID: nonExistentMsgId(),
+    ...overrides,
+  };
 }

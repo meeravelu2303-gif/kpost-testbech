@@ -8,6 +8,7 @@ import {
   reportMessageResponseSchema,
 } from '../../src/api/schemas/katchupV2.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertStatus,
   assertNoInternalLeak,
   assertNoReflectedScript,
@@ -268,12 +269,11 @@ test.describe('POST /v2/katchup/deleteKatchUpMessage', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -472,12 +472,11 @@ test.describe('POST /v2/katchup/recallMessage', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
 });
@@ -676,12 +675,11 @@ test.describe('POST /v2/katchup/markOrUnmarkImportantMessage', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
 });
@@ -906,12 +904,11 @@ test.describe('POST /v2/katchup/reportAbuse', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -1088,12 +1085,11 @@ test.describe('GET /v2/katchup/getAllReportMsg', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('GET', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
 });
@@ -1272,12 +1268,11 @@ test.describe('POST /v2/katchup/getReadStatusGroupMessage', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
 });
@@ -1448,12 +1443,11 @@ test.describe('GET /v2/katchup/getDeletedKatchupMsgIds/{lastMsgID}', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.uuid)),
-      `the response acknowledged pathVariable "${FOREIGN.uuid}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'pathVariable',
+      foreignValue: FOREIGN.uuid,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -1637,12 +1631,11 @@ test.describe('GET /v2/katchup/getUnopenedMessagesCount', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('GET', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
 });
@@ -1837,12 +1830,11 @@ test.describe('GET /v2/katchup/getUnopenedMessagesAndKmailsTotalCount', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('GET', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
 });

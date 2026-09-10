@@ -318,10 +318,16 @@ export function buildImageUploadPayload(overrides: Record<string, unknown> = {})
   };
 }
 
-/** A base64-to-image conversion request. */
+/**
+ * A base64-to-image conversion request.
+ *
+ * Excel row 214: the payload is `{ base64String, fileName }`. The field was `file` here, which
+ * the endpoint ignores — so the conversion never received its input and every case on this route
+ * was exercising an empty request.
+ */
 export function buildBase64ConversionPayload(overrides: Record<string, unknown> = {}) {
   return {
-    file: base64Png(),
+    base64String: base64Png(),
     fileName: `qa-automation-${faker.string.alphanumeric(6)}.png`,
     ...overrides,
   };

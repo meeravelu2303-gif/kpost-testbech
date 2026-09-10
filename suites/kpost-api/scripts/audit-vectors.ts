@@ -175,6 +175,30 @@ const EXEMPTIONS: Array<{ sig: string; vectors: Vector[]; reason: string }> = [
   // there is no attacker-controlled string that reaches a query or render sink to inject into.
   // They also dispatch a real OTP / mutate on each call, so firing injection payloads at them
   // would be both meaningless and harmful.
+  /*
+   * Public image reads (`permitAll` in SecurityConfiguration). An avatar is rendered beside a
+   * name in places no token exists, so "reject the anonymous caller" is the wrong requirement
+   * and asserting it would file a defect against deliberate design. The real risk on these
+   * routes is kpostID ENUMERATION — reading a stranger's image by guessing their id — and that
+   * is what `tests/profile/imageDownloads.spec.ts` case [8] asserts on each of them. Exempting
+   * the vector records the decision; it does not remove the coverage.
+   */
+  { sig: 'GET /v2/profile/downloadProfileImage/{kpostID}', vectors: ['auth'], reason: 'permitAll avatar read; the enumeration risk is asserted by imageDownloads.spec.ts [8].' },
+  { sig: 'GET /v2/profile/downloadFullProfileImage/{kpostID}', vectors: ['auth'], reason: 'permitAll avatar read; the enumeration risk is asserted by imageDownloads.spec.ts [8].' },
+  { sig: 'GET /v2/profile/downloadCoverImage/{kpostID}', vectors: ['auth'], reason: 'permitAll cover read; the enumeration risk is asserted by imageDownloads.spec.ts [8].' },
+
+  /*
+   * Covered, but not where the per-endpoint scan can see it. `downloadAttachment` has its
+   * token-less case in `attachments.spec.ts` (a shared describe covering several routes at
+   * once), and the three /v2/common writes below sit in the deliberately-public common tree —
+   * the user's standing decision is that every `/v2/common/**` route needs no token, and they
+   * are already exercised anonymously in `tests/common/platform.spec.ts`.
+   */
+  { sig: 'GET /v2/katchup/downloadAttachment/{uuid}', vectors: ['auth'], reason: 'Token-less case lives in attachments.spec.ts, in a shared describe the scan cannot attribute.' },
+  { sig: 'POST /v2/common/saveEnquiryDetails', vectors: ['auth'], reason: 'Public common tree; exercised anonymously in platform.spec.ts. The real risk (spam flooding) is filed there.' },
+  { sig: 'POST /v2/common/saveUnsubscriberDetails', vectors: ['auth', 'idor'], reason: 'Public unsubscribe endpoint — a recipient acting on a mail holds no token, and the record is keyed by the address in the request, not by an owner.' },
+  { sig: 'POST /v2/common/updateCompanyLogo', vectors: ['auth'], reason: 'Public common tree per the standing decision; exercised anonymously in platform.spec.ts.' },
+
   { sig: 'GET /v2/profile/removeCoverImage', vectors: ['injection'], reason: 'Bodyless GET, subject from token; no parameter to inject into.' },
   { sig: 'GET /v2/profile/sendAccountDeactivationOtp', vectors: ['injection'], reason: 'Bodyless GET, subject from token; no parameter to inject into (and dispatches a real OTP).' },
   { sig: 'GET /v2/profile/sendPrimaryDeviceOtp', vectors: ['injection'], reason: 'Bodyless GET, subject from token; no parameter to inject into (and dispatches a real OTP).' },

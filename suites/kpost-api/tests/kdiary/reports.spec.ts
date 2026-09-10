@@ -2,6 +2,7 @@ import { test, expect, EXPIRED_TOKEN, FORGED_ALG_NONE_JWT, MALFORMED_TOKEN } fro
 import { KDIARY_PATHS } from '../../src/api/clients/kdiary.client';
 import { kdiaryReportResponseSchema } from '../../src/api/schemas/kdiary.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertStatus,
   assertNoInternalLeak,
   assertNoReflectedScript,
@@ -338,12 +339,11 @@ test.describe('POST /dairySchedule/saveReport', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { scheduleID: FOREIGN.scheduleID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.scheduleID)),
-      `the response acknowledged scheduleID "${FOREIGN.scheduleID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'scheduleID',
+      foreignValue: FOREIGN.scheduleID,
+    });
   });
 
 });
@@ -580,12 +580,11 @@ test.describe('POST /dairySchedule/editReport', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { scheduleID: FOREIGN.scheduleID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.scheduleID)),
-      `the response acknowledged scheduleID "${FOREIGN.scheduleID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'scheduleID',
+      foreignValue: FOREIGN.scheduleID,
+    });
   });
 
 
@@ -842,12 +841,11 @@ test.describe('POST /dairySchedule/deleteReport', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { scheduleID: FOREIGN.scheduleID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.scheduleID)),
-      `the response acknowledged scheduleID "${FOREIGN.scheduleID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'scheduleID',
+      foreignValue: FOREIGN.scheduleID,
+    });
   });
 
 
@@ -1064,12 +1062,11 @@ test.describe('GET /dairySchedule/getTodayReport', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('GET', META.path, { scheduleID: FOREIGN.scheduleID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.scheduleID)),
-      `the response acknowledged scheduleID "${FOREIGN.scheduleID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'scheduleID',
+      foreignValue: FOREIGN.scheduleID,
+    });
   });
 
 });

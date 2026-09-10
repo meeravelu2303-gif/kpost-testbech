@@ -62,7 +62,7 @@ test.describe('POST /v2/sentMail/postMail', () => {
     repro: `await sentMailClient.postMail(buildComposePayload(), { token });`,
   };
 
-  test('[1] happy path: a composed mail satisfies the contract', async ({
+  test('[FR-M01][FR-M02][1] happy path: a composed mail satisfies the contract', async ({
     sentMailClient,
     token,
   }) => {
@@ -438,6 +438,13 @@ test.describe('POST /v2/sentMail/postMail', () => {
 
 /* =========================================================================================
  * POST /v2/sentMail/postMailMultiPart/
+ *
+ * Excel row 20 marks this route YELLOW — superseded, not in use by the client. Coverage is
+ * kept anyway, and deliberately: the route is still MAPPED and still accepts authenticated
+ * writes, so its auth, IDOR and injection surface is live whether or not a client calls it. A
+ * deprecated-but-reachable write is the kind of route a `/v2/**` prefix filter and a security
+ * review both miss. Do not extend this describe with functional/contract depth — the Excel
+ * says nobody is calling it — but do not delete the security cases either.
  * ====================================================================================== */
 test.describe('POST /v2/sentMail/postMailMultiPart/', () => {
   const META = {
@@ -446,7 +453,7 @@ test.describe('POST /v2/sentMail/postMailMultiPart/', () => {
     repro: `await sentMailClient.postMailMultiPart(JSON.stringify(buildComposePayload()), [textAttachment()], { token });`,
   };
 
-  test('[1] happy path: a mail with one attachment satisfies the contract', async ({
+  test('[FR-M03][1] happy path: a mail with one attachment satisfies the contract', async ({
     sentMailClient,
     token,
   }) => {

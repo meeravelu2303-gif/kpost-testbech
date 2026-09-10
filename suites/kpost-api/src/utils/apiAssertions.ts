@@ -943,6 +943,64 @@ export async function assertResponseHeaders(
   }
 }
 
+/**
+ * The generic ownership probe: a response must never acknowledge an identifier the caller
+ * does not own.
+ *
+ * ## Why this exists rather than a bare `expect`
+ *
+ * Every `[IDOR]` case in this suite asserts the same thing in the same way — send a foreign
+ * id, then check the answer does not carry it back. Written as a plain `expect`, a real breach
+ * fails the test but files under **`Assertion Failure`**, which `BUGZILLA_FILE_ASSERTION_FAILURES`
+ * excludes from the tracker by default. So the one class of finding that most deserves a
+ * Critical ticket was the class least likely to get one. Routing it through the ledger fixes
+ * that, and gives the ticket the request/response detail a safety-net entry can only infer.
+ *
+ * ## Why the verdict is "acknowledged", not the status code
+ *
+ * A correct implementation may answer 403, 404, **or** 200 with the caller's own data if it
+ * ignores the foreign key entirely. All three are safe, so demanding a refusal would file a
+ * defect against correct behaviour. What is never safe is the foreign value coming back — that
+ * means it reached the record lookup instead of being scoped to the token.
+ *
+ * A `status: FAILURE` envelope under an HTTP 200 is not an acknowledgement either: this
+ * platform routinely answers 200 over a failure body, and the id is often echoed in the error
+ * message.
+ */
+export async function assertNoForeignAcknowledgement(
+  response: APIResponse,
+  meta: EndpointMeta & { foreignValue: string | number; what: string }
+): Promise<void> {
+  recordEndpointExercised(meta.method, meta.path);
+  // Throttled: the response describes our request rate, not the endpoint's authorisation.
+  if (isRateLimited(response)) return;
+  const { text, json } = await readBody(response);
+
+  const failed =
+    json !== null &&
+    typeof json === 'object' &&
+    String((json as Record<string, unknown>).status ?? '').toUpperCase() === 'FAILURE';
+
+  const acknowledged = response.ok() && !failed && text.includes(String(meta.foreignValue));
+  if (!acknowledged) return;
+
+  file({
+    meta,
+    response,
+    title: meta.title ?? `Foreign ${meta.what} is acknowledged`,
+    severity: meta.severity ?? 'Critical',
+    classification: 'Security/Access Control',
+    description: `The response carried ${meta.what} "${meta.foreignValue}", an identifier the caller does not own. The value reached the record lookup instead of being scoped to the identity on the token, so authorisation on this route depends on the client choosing not to ask for someone else's data.`,
+    expected: `The ${meta.what} to be scoped to the caller — refused, or answered with the caller's own data`,
+    actual: `Response acknowledged "${meta.foreignValue}" — HTTP ${response.status()}, body: ${truncate(text)}`,
+  });
+
+  expect(
+    acknowledged,
+    `${meta.method} ${meta.path}: the response acknowledged ${meta.what} "${meta.foreignValue}", an identifier the caller does not own. Status ${response.status()}, body: ${truncate(text)}`
+  ).toBe(false);
+}
+
 /** Records a business-rule violation discovered by a hand-written assertion. */
 export async function reportBusinessLogicFlaw(
   response: APIResponse,

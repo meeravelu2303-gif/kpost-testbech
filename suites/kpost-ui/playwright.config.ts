@@ -27,7 +27,18 @@ export default defineConfig({
   },
 
   /* Run tests within a file in parallel — combined with per-worker isolation
-     this keeps the suite fast and independent. */
+     this keeps the suite fast and independent.
+
+     ── Why this is capped rather than free ──
+     KPost allows ONE ACTIVE SESSION PER ACCOUNT, and every project here loads the same
+     shared `storageState` minted for a single QA user in global setup. Two workers that
+     both authenticate on that account invalidate each other's session, and the loser fails
+     several layers from the cause (a silently signed-out page, not an auth error). The
+     `logout.spec.ts` header records the day this actually happened.
+
+     So parallelism is bounded by `workers` below until a test-account POOL exists — see
+     `src/fixtures/account-pool.ts`. Once accounts are provisioned and checked out per
+     worker, raise `TEST_WORKERS` and this constraint goes away. */
   fullyParallel: true,
 
   /* Fail the CI build if a `test.only` was committed by mistake. */
@@ -37,8 +48,11 @@ export default defineConfig({
      flakiness surfaces immediately during development. Overridable via RETRIES. */
   retries: env.retries ?? (env.isCI ? 2 : 0),
 
-  /* Cap workers on CI for stable, reproducible timing; use all cores locally. */
-  workers: env.workers ?? (env.isCI ? 2 : undefined),
+  /* One worker by default — the shared-account constraint above, enforced rather than hoped
+     for. `undefined` (all cores) was the local default and is exactly the setting that lets
+     two specs race for the same session. Raise deliberately with `TEST_WORKERS` once the
+     account pool is provisioned; the four browser projects still run their own workers. */
+  workers: env.workers ?? 1,
 
   /* Stop a CI run once it is obviously not going to tell us anything new.
      When the app fails to boot, all 236 tests fail one after another and the

@@ -1,0 +1,149 @@
+test.describe('POST /v2/katchup/saveKatchupMessages', () => {
+  const META = {
+    method: 'POST',
+    path: KATCHUP_PATHS.saveKatchupMessages,
+    repro: `await katchupClient.saveKatchupMessages(buildKatchupMessagePayload(), { token });`,
+  };
+
+  test('[1] happy path: saving a message satisfies the Zod contract', async ({
+    katchupClient,
+    staticToken,
+  }) => {
+    const payload = buildKatchupMessagePayload();
+    const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
+
+    await expectValidContract(
+      response,
+      katchupMessageResponseSchema,
+      { ...META, body: payload },
+      [200, 201, 400, 401, 403]
+    );
+  });
+
+  test('[2] boundary: a 50,000-character message must be handled explicitly', async ({
+    katchupClient,
+    staticToken,
+  }) => {
+    const payload = buildKatchupMessagePayload({ actualMessage: MAX_LENGTH_STRING });
+    const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
+
+    expect(
+      response.status(),
+      `a 50,000-character message produced HTTP ${response.status()}.`
+    ).toBeLessThan(500);
+  });
+
+  test('[3] missing required parameter: no receiver must be refused', async ({
+    katchupClient,
+    staticToken,
+  }) => {
+    const payload = buildKatchupMessagePayload();
+    delete (payload as Record<string, unknown>).receiver;
+
+    const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
+
+    await assertRejectsInvalidInput(
+      response,
+      { ...META, body: payload, scenario: 'saved message with no counterpart' },
+      [400, 401, 403, 422]
+    );
+  });
+
+  test('[4] null fuzzing: a null message body must be refused', async ({
+    katchupClient,
+    staticToken,
+  }) => {
+    const payload = buildKatchupMessagePayload({ actualMessage: null });
+    const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
+
+    await assertRejectsInvalidInput(
+      response,
+      { ...META, body: payload, scenario: 'field "actualMessage" set to null' },
+      [400, 401, 403, 422]
+    );
+  });
+
+  test('[5] type mismatch: an object message body must be refused', async ({
+    katchupClient,
+    staticToken,
+  }) => {
+    const payload = buildKatchupMessagePayload({ actualMessage: { text: 'hi' } });
+    const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
+
+    expect(
+      response.status(),
+      `actualMessage was sent as an object and produced HTTP ${response.status()}.`
+    ).toBeLessThan(500);
+  });
+
+  test('[6] spoofing: a body-supplied sender must not override the token', async ({
+    katchupClient,
+    staticToken,
+    authSession,
+  }) => {
+    const payload = buildKatchupMessagePayload({ sender: VICTIM_KPOST_ID });
+    const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
+    const { json, text } = await readBody(response);
+
+    test.skip(json === null || json.statusCode !== 200, 'save did not succeed');
+
+    expect(
+      text.includes(`"sender":"${VICTIM_KPOST_ID}"`),
+      `the saved message was attributed to "${VICTIM_KPOST_ID}" while the caller was ${authSession.kpostID ?? 'a different identity'}. This route calls setSender from the token, so a body value must be discarded. Body: ${text.slice(0, 300)}`
+    ).toBe(false);
+  });
+
+  test('[7] XSS: a script payload must not be persisted unescaped', async ({
+    katchupClient,
+    staticToken,
+  }) => {
+    const payload = buildKatchupMessagePayload({ actualMessage: XSS_PAYLOAD });
+    const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
+
+    await assertNoReflectedScript(response, { ...META, body: payload }, XSS_PAYLOAD);
+  });
+
+  test('[7b] SQL injection: a tautology must not leak database internals', async ({
+    katchupClient,
+    staticToken,
+  }) => {
+    const payload = buildKatchupMessagePayload({ actualMessage: SQLI_PAYLOAD });
+    const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
+
+    await assertNoInternalLeak(response, { ...META, body: payload }, SQLI_PAYLOAD);
+  });
+
+  test('[8] auth: no Authorization header must be 401/403', async ({ katchupClient }) => {
+    const payload = buildKatchupMessagePayload();
+    const response = await katchupClient.saveKatchupMessages(payload, { token: null });
+
+    await assertUnauthorized(response, { ...META, body: payload });
+  });
+
+  test('[8b] auth: a malformed token must not save a message', async ({ katchupClient }) => {
+    const payload = buildKatchupMessagePayload();
+    const response = await katchupClient.saveKatchupMessages(payload, { token: MALFORMED_TOKEN });
+
+    await assertUnauthorized(response, { ...META, body: payload });
+  });
+
+  test('[9] status misreporting: HTTP status must equal the envelope statusCode', async ({
+    katchupClient,
+    staticToken,
+  }) => {
+    const payload = buildKatchupMessagePayload();
+    const response = await katchupClient.saveKatchupMessages(payload, { token: staticToken });
+
+    await assertStatusCodeParity(response, { ...META, body: payload });
+  });
+
+  test('[10] structural: an empty body must be refused', async ({ katchupClient, staticToken }) => {
+    const response = await katchupClient.saveKatchupMessages({}, { token: staticToken });
+
+    await assertRejectsInvalidInput(
+      response,
+      { ...META, body: {}, scenario: 'empty body on a message save' },
+      [400, 401, 403, 422]
+    );
+  });
+

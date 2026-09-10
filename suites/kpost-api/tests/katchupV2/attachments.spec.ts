@@ -5,6 +5,7 @@ import {
   katchupMessageResponseSchema,
 } from '../../src/api/schemas/katchupV2.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertStatus,
   assertNoInternalLeak,
   assertNoReflectedScript,
@@ -357,12 +358,11 @@ test.describe('GET /v2/katchup/downloadAttachment/{uuid}', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.uuid)),
-      `the response acknowledged uuid "${FOREIGN.uuid}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'uuid',
+      foreignValue: FOREIGN.uuid,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -525,12 +525,11 @@ test.describe('GET /v2/katchup/downloadThumbnail/{uuid}', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.uuid)),
-      `the response acknowledged uuid "${FOREIGN.uuid}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'uuid',
+      foreignValue: FOREIGN.uuid,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -718,12 +717,11 @@ test.describe('GET /v2/katchup/download/{uuid}', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.uuid)),
-      `the response acknowledged uuid "${FOREIGN.uuid}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'uuid',
+      foreignValue: FOREIGN.uuid,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -898,12 +896,11 @@ test.describe('GET /v2/katchup/downloadFromS3/{uuid}', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.uuid)),
-      `the response acknowledged uuid "${FOREIGN.uuid}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'uuid',
+      foreignValue: FOREIGN.uuid,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -1090,12 +1087,11 @@ test.describe('GET /v2/katchup/oldDownload/{uuid}', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.uuid)),
-      `the response acknowledged uuid "${FOREIGN.uuid}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'uuid',
+      foreignValue: FOREIGN.uuid,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -1283,12 +1279,11 @@ test.describe('GET /v2/katchup/mediaStreaming/{uuid}', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.uuid)),
-      `the response acknowledged uuid "${FOREIGN.uuid}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'uuid',
+      foreignValue: FOREIGN.uuid,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -1478,12 +1473,11 @@ test.describe('POST /v2/katchup/uploadMultipartFiles/', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -1663,12 +1657,11 @@ test.describe('POST /v2/katchup/generateThumbnailUsingUUID', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
 });
@@ -1841,12 +1834,11 @@ test.describe('POST /v2/katchup/sendKatchupMsgMultiPart/', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({
@@ -2046,12 +2038,11 @@ test.describe('POST /v2/katchup/sendBulkKatchupMsgMultiPart/', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { messageID: FOREIGN.messageID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.messageID)),
-      `the response acknowledged messageID "${FOREIGN.messageID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'messageID',
+      foreignValue: FOREIGN.messageID,
+    });
   });
 
   test('[parity] HTTP status must agree with the envelope statusCode', async ({

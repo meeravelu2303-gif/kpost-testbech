@@ -1,5 +1,5 @@
 /**
- * API helpers — talk to the KPost API directly for fast auth and data seeding.
+ * API helpers — talk to the KPost API directly for fast authentication.
  *
  * Why: driving the UI for every precondition (log in, create the post a test
  * needs to edit) is slow and flaky. The API is the fast, deterministic path for
@@ -29,7 +29,6 @@
 import { type APIRequestContext, type Cookie, request as playwrightRequest } from '@playwright/test';
 import { env, type Credentials } from '../config/env';
 import { logger } from './logger';
-import type { Post } from '../types';
 
 export interface AuthResult {
   /** Bearer token, if the API is token-based (empty for pure-cookie auth). */
@@ -84,36 +83,6 @@ export async function apiLogin(credentials: Credentials): Promise<AuthResult> {
       cookieCount: cookies.length,
     });
     return { token, refreshToken, cookies };
-  } finally {
-    await context.dispose();
-  }
-}
-
-/**
- * Seed a post through the API so a test has something to view/edit/delete
- * without composing it via the UI first. Returns the created post's id.
- */
-export async function apiCreatePost(auth: AuthResult, post: Post): Promise<string> {
-  const context = await authedContext(auth);
-  try {
-    const response = await context.post('/posts', { data: post });
-    if (!response.ok()) {
-      throw new Error(`API create-post failed: ${response.status()} ${await response.text()}`);
-    }
-    const body = (await response.json()) as { id?: string; _id?: string };
-    const id = body.id ?? body._id;
-    if (!id) throw new Error('API create-post returned no id');
-    return id;
-  } finally {
-    await context.dispose();
-  }
-}
-
-/** Delete a seeded post in teardown so seeded data never leaks between runs. */
-export async function apiDeletePost(auth: AuthResult, id: string): Promise<void> {
-  const context = await authedContext(auth);
-  try {
-    await context.delete(`/posts/${id}`);
   } finally {
     await context.dispose();
   }

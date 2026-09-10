@@ -2,6 +2,7 @@ import { test, expect, EXPIRED_TOKEN, FORGED_ALG_NONE_JWT, MALFORMED_TOKEN } fro
 import { KALL_V2_PATHS } from '../../src/api/clients/kallV2.client';
 import { kallListResponseSchema, kallResponseSchema } from '../../src/api/schemas/kallV2.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertStatus,
   assertNoInternalLeak,
   assertNoReflectedScript,
@@ -61,7 +62,7 @@ test.describe('POST /v2/kall/scheduledKall', () => {
     repro: `await kallV2Client.scheduledKall(buildScheduledKallPayload(), { token });`,
   };
 
-  test('[1] happy path: booking a call satisfies the Zod contract', async ({
+  test('[FR-C01][FR-C02][1] happy path: booking a call satisfies the Zod contract', async ({
     kallV2Client,
     staticToken,
   }) => {
@@ -344,12 +345,11 @@ test.describe('POST /v2/kall/scheduledKall', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 });
@@ -364,7 +364,7 @@ test.describe('POST /v2/kall/reScheduleKall', () => {
     repro: `await kallV2Client.reScheduleKall(buildReScheduleKallPayload(), { token });`,
   };
 
-  test('[1] happy path: moving a booked call satisfies the Zod contract', async ({
+  test('[FR-C03][BR-C01][1] happy path: moving a booked call satisfies the Zod contract', async ({
     kallV2Client,
     staticToken,
   }) => {
@@ -573,12 +573,11 @@ test.describe('POST /v2/kall/reScheduleKall', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 
@@ -860,12 +859,11 @@ test.describe('POST /v2/kall/scheduledRepeatKall', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 });
@@ -1042,12 +1040,11 @@ test.describe('POST /v2/kall/fetchScheduledRepeatKall', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 
@@ -1264,12 +1261,11 @@ test.describe('POST /v2/kall/joinScheduleKall', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 
@@ -1479,12 +1475,11 @@ test.describe('GET /v2/kall/todayKoolKall', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('GET', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 });

@@ -1,0 +1,132 @@
+name: Nightly API run
+
+# Executes the KPost API suite against a live target and publishes the report.
+#
+# Separate from ci.yml on purpose: CI gates the code that DRIVES the suites and must stay fast
+# and hermetic, while this needs a reachable backend, real QA credentials and ~20 minutes. It is
+# the gate that catches a BACKEND regression rather than a bench regression.
+#
+# Filing is OFF by default (`BUGZILLA_DRY_RUN=true`). A scheduled run that files tickets
+# unattended turns one backend outage into a hundred Bugzilla entries overnight — the report is
+# uploaded as an artifact instead, and a human decides what to file. Set `file_bugs: true` on a
+# manual dispatch when that decision has been made.
+
+on:
+  schedule:
+    # 02:00 UTC — after the developers' working day, before the QA morning.
+    - cron: '0 2 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Which suite to run'
+        type: choice
+        options: [api, kmail, admin]
+        default: api
+      file_bugs:
+        description: 'File findings to Bugzilla (default: dry run)'
+        type: boolean
+        default: false
+
+concurrency:
+  # One live run at a time. The suites share QA accounts, and KPost allows one session per
+  # account — two concurrent runs would invalidate each other's tokens mid-flight.
+  group: live-run
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: kpost-qa
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install (workspaces)
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Write suite .env
+        working-directory: suites/kpost-api
+        env:
+          BASE_URL: ${{ vars.KPOST_BASE_URL }}
+          QA_KPOST_ID: ${{ secrets.QA_KPOST_ID }}
+          QA_PASSWORD: ${{ secrets.QA_PASSWORD }}
+          QA_ADMIN_KPOST_ID: ${{ secrets.QA_ADMIN_KPOST_ID }}
+          QA_ADMIN_PASSWORD: ${{ secrets.QA_ADMIN_PASSWORD }}
+          QA_VICTIM_KPOST_ID: ${{ secrets.QA_VICTIM_KPOST_ID }}
+          BUGZILLA_URL: ${{ vars.BUGZILLA_URL }}
+          BUGZILLA_API_KEY: ${{ secrets.BUGZILLA_API_KEY }}
+          BUGZILLA_PRODUCT: 'KPost API'
+          DASHBOARD_INGEST_URL: ${{ vars.DASHBOARD_INGEST_URL }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+          FILE_BUGS: ${{ inputs.file_bugs }}
+        run: |
+          # `file_bugs` is empty on a scheduled run, so the dry run is the default path.
+          if [ "$FILE_BUGS" = "true" ]; then DRY=false; else DRY=true; fi
+          {
+            echo "BASE_URL=$BASE_URL"
+            echo "QA_KPOST_ID=$QA_KPOST_ID"
+            echo "QA_PASSWORD=$QA_PASSWORD"
+            echo "QA_ADMIN_KPOST_ID=$QA_ADMIN_KPOST_ID"
+            echo "QA_ADMIN_PASSWORD=$QA_ADMIN_PASSWORD"
+            echo "QA_VICTIM_KPOST_ID=$QA_VICTIM_KPOST_ID"
+            echo "BUGZILLA_URL=$BUGZILLA_URL"
+            echo "BUGZILLA_API_KEY=$BUGZILLA_API_KEY"
+            echo "BUGZILLA_PRODUCT=$BUGZILLA_PRODUCT"
+            echo "BUGZILLA_DRY_RUN=$DRY"
+            echo "DASHBOARD_INGEST_URL=$DASHBOARD_INGEST_URL"
+            echo "DASHBOARD_API_KEY=$DASHBOARD_API_KEY"
+          } > .env
+          echo "Bugzilla dry run: $DRY"
+
+      # Fails fast and with a readable reason when the target is down or credentials are stale,
+      # rather than reporting several thousand "failures" that are all one login problem.
+      - name: Preflight — can we authenticate?
+        working-directory: suites/kpost-api
+        run: npm run auth:diagnose
+
+      - name: Run suite
+        working-directory: suites/kpost-api
+        run: npm run ${{ inputs.suite == 'kmail' && 'test:kmail' || inputs.suite == 'admin' && 'test:adminmodule' || 'test' }}
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kpost-${{ inputs.suite || 'api' }}-report-${{ github.run_number }}
+          path: |
+            suites/kpost-api/reports/
+            suites/kpost-api/BUG_REPORT.*
+            suites/kpost-api/DEV_DIGEST.*
+          retention-days: 30
+          if-no-files-found: warn
+
+      # A Critical is a crash, data loss or a total feature blockade — it should not wait for
+      # someone to open the artifact.
+      - name: Fail the run on any Critical finding
+        if: always()
+        working-directory: suites/kpost-api
+        run: |
+          if [ ! -f BUG_REPORT.json ]; then
+            echo "No BUG_REPORT.json produced — the run did not reach the reporter."
+            exit 1
+          fi
+          node -e "
+            const report = require('./BUG_REPORT.json');
+            const defects = report.defects ?? report.bugs ?? [];
+            const critical = defects.filter(d => String(d.severity).toLowerCase() === 'critical');
+            console.log(defects.length + ' defect(s), ' + critical.length + ' Critical');
+            for (const d of critical) console.log('  CRITICAL ' + (d.id ?? '') + ' ' + (d.title ?? ''));
+            process.exit(critical.length > 0 ? 1 : 0);
+          "
+
+      - name: Always clear the cached session
+        if: always()
+        working-directory: suites/kpost-api
+        run: npm run auth:reset

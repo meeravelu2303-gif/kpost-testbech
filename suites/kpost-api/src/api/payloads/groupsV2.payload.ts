@@ -28,6 +28,8 @@ export interface CreateGroupRequest {
   groupKpostName: string;
   isPrivateGroup: string;
   activeStatus: string;
+  groupCreateAccess: boolean;
+  groupPicturePath: string;
   memberDetails: Array<Record<string, unknown>>;
   [key: string]: unknown;
 }
@@ -39,8 +41,23 @@ export function buildCreateGroupPayload(
     groupKpostName: qaLabel('group'),
     isPrivateGroup: 'N',
     activeStatus: 'Y',
+    // Excel row 45: `groupCreateAccess` decides whether members may create sub-groups. It is a
+    // permission flag, so leaving it unsent let the server's default stand and no case could
+    // ever exercise the restricted setting.
+    groupCreateAccess: true,
+    groupPicturePath: '',
     // Excel/swagger: each member requires hasAdminAccess + privacyStatus (omitting them 500s the create).
-    memberDetails: [{ kpostID: qaIdentifier('member'), name: 'QA Member', hasAdminAccess: 'N', privacyStatus: 'N' }],
+    // `memberDesignation` and `remarks` complete the Excel member shape.
+    memberDetails: [
+      {
+        kpostID: qaIdentifier('member'),
+        name: 'QA Member',
+        memberDesignation: '',
+        hasAdminAccess: 'N',
+        privacyStatus: 'N',
+        remarks: 'QA automation member',
+      },
+    ],
     ...overrides,
   } as CreateGroupRequest;
 }
@@ -89,12 +106,24 @@ export function buildAddUserToGroupPayload(
   overrides: Record<string, unknown> = {}
 ): Record<string, unknown> {
   return {
+    // Excel row 46 keys the add by numeric `groupID` with `groupKpostID` alongside — same pair
+    // the other member actions use.
+    groupID: 999_000_000,
     groupKpostID: nonExistentGroupKpostId(),
     // Excel: each member requires name + hasAdminAccess + privacyStatus (omitting them 500s the
     // add, same as createUserGroup). Kept aligned so the happy path fails on the rule under test,
-    // not on a malformed member.
+    // not on a malformed member. `memberDesignation`/`remarks` complete the Excel shape; its
+    // `createdBy` is deliberately NOT sent — the server derives the actor from the token, and
+    // supplying one here would mask the spoofing cases.
     memberDetails: [
-      { kpostID: qaIdentifier('member'), name: 'QA Member', hasAdminAccess: 'N', privacyStatus: 'N' },
+      {
+        kpostID: qaIdentifier('member'),
+        name: 'QA Member',
+        memberDesignation: '',
+        hasAdminAccess: 'N',
+        privacyStatus: 'N',
+        remarks: 'QA automation member',
+      },
     ],
     ...overrides,
   };

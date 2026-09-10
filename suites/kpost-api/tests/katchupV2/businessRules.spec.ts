@@ -250,25 +250,25 @@ test.describe('POST /v2/katchup/sendMessage', () => {
     return katchupClient.sendMessage(payload, { token });
   }
 
-  test('[FR-K14] a Reply referencing an own message — messageType 1 — is handled cleanly', async ({ katchupClient, staticToken }) => {
+  test('[FR-K21] a Reply referencing an own message — messageType 1 — is handled cleanly', async ({ katchupClient, staticToken }) => {
     const response = await sendReferencingType(katchupClient, staticToken, 'REPLY', 1);
     const { json } = await readBody(response);
     expect(handledCleanly(response.status(), json), 'a Reply (type 1) must be handled cleanly — a 5xx crash or a 200 masking a FAILURE envelope is a defect').toBe(true);
   });
 
-  test('[FR-K15] a Share referencing an own message — messageType 2 — is handled cleanly', async ({ katchupClient, staticToken }) => {
+  test('[FR-K14] a Share/Transfer referencing an own message — messageType 2 — is handled cleanly', async ({ katchupClient, staticToken }) => {
     const response = await sendReferencingType(katchupClient, staticToken, 'SHARE', 2);
     const { json } = await readBody(response);
     expect(handledCleanly(response.status(), json), 'a Share (type 2) must be handled cleanly — a 5xx crash or a 200 masking a FAILURE envelope is a defect').toBe(true);
   });
 
-  test('[FR-K16] a Comment referencing an own message — messageType 8 — is handled cleanly', async ({ katchupClient, staticToken }) => {
+  test('[FR-K22] a Comment referencing an own message — messageType 8 — is handled cleanly', async ({ katchupClient, staticToken }) => {
     const response = await sendReferencingType(katchupClient, staticToken, 'COMMENT', 8);
     const { json } = await readBody(response);
     expect(handledCleanly(response.status(), json), 'a Comment (type 8) must be handled cleanly — a 5xx crash or a 200 masking a FAILURE envelope is a defect').toBe(true);
   });
 
-  test('[FR-K17] a Clarify referencing an own message — messageType 9 — is handled cleanly', async ({ katchupClient, staticToken }) => {
+  test('[FR-K23] a Clarify referencing an own message — messageType 9 — is handled cleanly', async ({ katchupClient, staticToken }) => {
     const response = await sendReferencingType(katchupClient, staticToken, 'CLARIFY', 9);
     const { json } = await readBody(response);
     expect(handledCleanly(response.status(), json), 'a Clarify (type 9) must be handled cleanly — a 5xx crash or a 200 masking a FAILURE envelope is a defect').toBe(true);

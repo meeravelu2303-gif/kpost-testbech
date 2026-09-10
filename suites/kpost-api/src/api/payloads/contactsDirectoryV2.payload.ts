@@ -158,12 +158,41 @@ export function buildGlobalSearchPayload(
   };
 }
 
-/** Search-suggestion lookup. No `@Valid`, so the payload is unvalidated server-side. */
+/**
+ * Geography lookup (Excel row 74). No `@Valid`, so the payload is unvalidated server-side.
+ *
+ * `requestType` selects a level of the country → province → state → city → area cascade, and each
+ * level requires the levels above it. The documented values are exactly these six; `COMPANY` was
+ * sent here previously and is not one of them, so the lookup never resolved a level.
+ */
+export const SEARCH_REQUEST_TYPE = {
+  country: 'country',
+  provienceName: 'provienceName',
+  state: 'state',
+  city: 'city',
+  areaName: 'areaName',
+  pinCode: 'pinCode',
+} as const;
+
 export function buildSearchDetailsPayload(
   overrides: Record<string, unknown> = {}
 ): Record<string, unknown> {
   return {
-    requestType: 'COMPANY',
+    requestType: SEARCH_REQUEST_TYPE.country,
+    ...overrides,
+  };
+}
+
+/** The deepest cascade level — every parent field populated, as Excel row 74 shows it. */
+export function buildAreaSearchDetailsPayload(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return {
+    requestType: SEARCH_REQUEST_TYPE.areaName,
+    country: 'INDIA',
+    provienceName: 'Southern Zone',
+    state: 'Tamil Nadu',
+    city: 'Chennai',
     ...overrides,
   };
 }

@@ -7,6 +7,7 @@ import {
   kallResponseSchema,
 } from '../../src/api/schemas/kallV2.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertStatus,
   assertNoInternalLeak,
   assertNoReflectedScript,
@@ -279,12 +280,11 @@ test.describe('POST /v2/kall/addMembersToKall', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 });
@@ -505,12 +505,11 @@ test.describe('POST /v2/kall/modifyKallMembers', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 });
@@ -700,12 +699,11 @@ test.describe('POST /v2/kall/kallInfo', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 
@@ -926,12 +924,11 @@ test.describe('POST /v2/kall/contactInfo', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 });
@@ -1136,12 +1133,11 @@ test.describe('POST /v2/kall/kallDashboard', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 });
@@ -1332,12 +1328,11 @@ test.describe('GET /v2/kall/frequentKallContacts', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('GET', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 });
@@ -1552,12 +1547,11 @@ test.describe('POST /v2/kall/clearKallBykallIds', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 });
@@ -1748,12 +1742,11 @@ test.describe('GET /v2/kall/clearKallHistory', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('GET', META.path, { kallID: FOREIGN.kallID }, { token: disposableToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.kallID)),
-      `the response acknowledged kallID "${FOREIGN.kallID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'kallID',
+      foreignValue: FOREIGN.kallID,
+    });
   });
 
 

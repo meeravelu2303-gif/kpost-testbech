@@ -15,6 +15,7 @@ import {
   userManagementResponseSchema,
 } from '../../src/api/schemas/companyAdministration.schema';
 import {
+  assertNoForeignAcknowledgement,
   assertNoInternalLeak,
   assertNoReflectedScript,
   assertNot200OKOnError,
@@ -366,12 +367,11 @@ test.describe('POST /admin/addingUserByAdmin', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { companyID: FOREIGN.companyID }, { token: adminToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.companyID)),
-      `the response acknowledged companyID "${FOREIGN.companyID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'companyID',
+      foreignValue: FOREIGN.companyID,
+    });
   });
 
 
@@ -693,12 +693,11 @@ test.describe('POST /admin/addingUserForReallocateByAdmin', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { companyID: FOREIGN.companyID }, { token: adminToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.companyID)),
-      `the response acknowledged companyID "${FOREIGN.companyID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'companyID',
+      foreignValue: FOREIGN.companyID,
+    });
   });
 
 });
@@ -934,12 +933,11 @@ test.describe('GET /admin/userManagementDetails/{companyID}', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.companyID), { token: adminToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.companyID)),
-      `the response acknowledged companyID "${FOREIGN.companyID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'companyID',
+      foreignValue: FOREIGN.companyID,
+    });
   });
 
 
@@ -1239,12 +1237,11 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { companyID: FOREIGN.companyID }, { token: adminToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.companyID)),
-      `the response acknowledged companyID "${FOREIGN.companyID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'companyID',
+      foreignValue: FOREIGN.companyID,
+    });
   });
 
 });
@@ -1503,12 +1500,11 @@ test.describe('POST /admin/displayNameSuggestion', () => {
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
     const response = await genericClient.send('POST', META.path, { companyID: FOREIGN.companyID }, { token: adminToken });
-    const { text } = await readBody(response);
-
-    expect(
-      response.ok() && text.includes(String(FOREIGN.companyID)),
-      `the response acknowledged companyID "${FOREIGN.companyID}", an identifier the caller does not own — the value reached the record lookup instead of being scoped to the token. Status ${response.status()}, body: ${text.slice(0, 200)}`
-    ).toBe(false);
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'companyID',
+      foreignValue: FOREIGN.companyID,
+    });
   });
 
 });
