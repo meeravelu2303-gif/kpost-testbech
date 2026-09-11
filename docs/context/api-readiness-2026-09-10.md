@@ -343,3 +343,10 @@ fixed on 2026-09-10 — nine names collide between KPost and KMail.
 `npm run audit:excel` → **100.00%**, 0 documented fields absent, threshold 100. **10/10 CI gates
 green.** Preflight passes and the auth suite is unchanged (the same 20 backend faults, one fewer
 skip).
+
+---
+
+> **Retracted 2026-09-11.** The "Confidential Copy leaks to the primary recipient" item above was built
+> on `messageType 18`, which is a Secret message, not Confidential Copy. See the retraction section in
+> `critical-verification-2026-09-10.md`. On the correct shape (`messageType 14` +
+> `hiddenContactList`) QA does not leak; a production capture does.

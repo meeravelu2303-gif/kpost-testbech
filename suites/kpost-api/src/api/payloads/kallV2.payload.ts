@@ -1,5 +1,6 @@
 import { faker } from '../../utils/dataGen';
 import { qaLabel } from '../../utils/safeTestData';
+import { KALL_MODE, KALL_REPEAT_TYPE, KALL_STATUS, KALL_TYPE } from '../enums/kpostTypes';
 
 /**
  * Request builders for Kall (Voice/Video) V2 — `/v2/kall/**`.
@@ -62,16 +63,20 @@ export function kallDate(offsetMinutes: number): string {
  * `int status = kallDetails.getKallStatus()`, an unboxing of an `Integer` that throws NPE
  * when the field is absent — the missing-parameter cases below target that deliberately.
  */
-export function buildKallROPayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+export function buildKallROPayload(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
   return {
     receiver: syntheticReceiver(),
     // Excel initiateKall: `{ receiver, kalltype: 'voice', kallSessionID, kallSessionName,
     // callingToPrimaryDevice }`. KallROV3 is a superset DTO, so the status/info routes read the
     // subset they need (kallStatus, kallID, id, kallSession…) and ignore the rest.
     kalltype: 'voice',
-    kallType: 1,
-    kallMode: 0,
-    kallStatus: 2,
+    // Types tab: kallType 0 = normal (a direct call), 1 = kool/scheduled. This superset DTO backs
+    // initiateKall, which places a DIRECT call — it sent 1 until 2026-09-11.
+    kallType: KALL_TYPE.normal,
+    kallMode: KALL_MODE.audio,
+    kallStatus: KALL_STATUS.cancelled,
     subject: qaLabel('kall'),
     kallSession: faker.string.uuid(),
     kallSessionID: faker.string.numeric(7),
@@ -90,7 +95,7 @@ export function buildKallROPayload(overrides: Record<string, unknown> = {}): Rec
 
 /** A KallROV3 addressing an existing call. Defaults to a non-existent kallID. */
 export function buildExistingKallPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   // `id` is the per-RECEIVER row id (kallID is shared across the whole call). joinScheduleKall
   // (Excel row 85) keys on it, so the existing-call shape carries both.
@@ -104,11 +109,11 @@ export function buildExistingKallPayload(
  * kallStatus is numeric on the v2 routes.
  */
 export function buildUpdateKallStatusPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     id: nonExistentKallId(),
-    kallStatus: 2,
+    kallStatus: KALL_STATUS.cancelled,
     kallID: nonExistentKallId(),
     ...overrides,
   };
@@ -116,14 +121,15 @@ export function buildUpdateKallStatusPayload(
 
 /**
  * updateSenderAndReceiverKallStatus — SENDER variant, Excel: `{ sender, kallStatus, kallID }`.
- * kallStatus is restricted to 2, 3 or 9 on this route.
+ * The Excel row states it plainly: "To update kallStatus - 2,3,9 only" — i.e. 2 (cancelled),
+ * 3 (noresponse), 9 (removed), names per the Types tab. Any other value is out of the accepted set.
  */
 export function buildSenderKallStatusPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     sender: syntheticReceiver(),
-    kallStatus: 2,
+    kallStatus: KALL_STATUS.cancelled,
     kallID: nonExistentKallId(),
     ...overrides,
   };
@@ -132,14 +138,14 @@ export function buildSenderKallStatusPayload(
 /**
  * updateSenderAndReceiverKallStatus — RECEIVER variant, Excel:
  * `{ id, kallStatus, receiver, kallID }`. `id` is the receiver's per-call unique id; `kallID` is
- * the shared call id. kallStatus is restricted to 2, 3 or 9.
+ * the shared call id. kallStatus is restricted to 2 (cancelled), 3 (noresponse) or 9 (removed).
  */
 export function buildReceiverKallStatusPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     id: nonExistentKallId(),
-    kallStatus: 2,
+    kallStatus: KALL_STATUS.cancelled,
     receiver: syntheticReceiver(),
     kallID: nonExistentKallId(),
     ...overrides,
@@ -148,14 +154,14 @@ export function buildReceiverKallStatusPayload(
 
 /** The clear-by-ids payload — a list of calls to remove from the caller's history. */
 export function buildClearKallPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return buildKallROPayload({ kallIds: [nonExistentKallId(), nonExistentKallId()], ...overrides });
 }
 
 /** The dashboard/history filter. */
 export function buildKallDashboardPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return buildKallROPayload({
     selectedDate: kallTimestamp(0).slice(0, 10),
@@ -172,19 +178,19 @@ export function buildKallDashboardPayload(
  * `KallROV3` routes next door.
  */
 export function buildScheduledKallPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   // Excel scheduledKall: { kallSession, kallMode, subject, scheduledStartTime (epoch ms),
   // scheduledEndTime (epoch ms), meetingLink, repeatType, repeatedDate (stringified
   // {start_date,end_date}), kallDetails: [{ receiver }] }.
   return {
     kallSession: faker.string.numeric(6),
-    kallMode: 0,
+    kallMode: KALL_MODE.audio,
     subject: qaLabel('scheduled-kall'),
     scheduledStartTime: kallEpoch(120),
     scheduledEndTime: kallEpoch(180),
     meetingLink: `https://meet.jit.si/qa-${faker.string.alphanumeric(8)}`,
-    repeatType: 0,
+    repeatType: KALL_REPEAT_TYPE.none,
     repeatedDate: JSON.stringify({ start_date: kallDate(120), end_date: kallDate(180) }),
     kallDetails: [{ receiver: syntheticReceiver() }],
     ...overrides,
@@ -193,7 +199,7 @@ export function buildScheduledKallPayload(
 
 /** A reschedule addressing an existing call. Defaults to a non-existent kallID. */
 export function buildReScheduleKallPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   // Excel reScheduleKall: `{ start_date, end_date }` — included alongside the camelCase KallMaster
   // fields so the reschedule works whichever the deployed build reads.
@@ -209,20 +215,18 @@ export function buildReScheduleKallPayload(
 
 /** Adding members to an existing call. */
 export function buildAddMembersPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return buildScheduledKallPayload({
     kallID: nonExistentKallId(),
-    kallDetails: [
-      { receiver: syntheticReceiver(), receiverName: 'QA Added Member' },
-    ],
+    kallDetails: [{ receiver: syntheticReceiver(), receiverName: 'QA Added Member' }],
     ...overrides,
   });
 }
 
 /** The `KallModificationRequest` DTO — modifyKallMembers. */
 export function buildModifyMembersPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     kallID: nonExistentKallId(),
@@ -240,12 +244,12 @@ export function buildModifyMembersPayload(
  * the tests probe what happens when it is not.
  */
 export function buildRepeatKallPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     subject: qaLabel('repeat-kall'),
-    kallType: 1,
-    kallMode: 0,
+    kallType: KALL_TYPE.koolScheduled,
+    kallMode: KALL_MODE.audio,
     kallSession: faker.string.numeric(6),
     scheduledStartTime: kallEpoch(1440),
     scheduledEndTime: kallEpoch(1500),
@@ -269,7 +273,11 @@ export function buildRepeatKallPayload(
     // Excel rows 83/136: the series carries its recipients as kallDetails[{receiver}] (the same
     // shape scheduledKall uses) and a snoozeDetails reminder window.
     kallDetails: [{ receiver: syntheticReceiver() }],
-    snoozeDetails: JSON.stringify({ remainderBefore: 5, remainderType: 'Minutes', isSnoozeOn: true }),
+    snoozeDetails: JSON.stringify({
+      remainderBefore: 5,
+      remainderType: 'Minutes',
+      isSnoozeOn: true,
+    }),
     ...overrides,
   };
 }

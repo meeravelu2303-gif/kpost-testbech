@@ -37,7 +37,8 @@
     "contract:parse": "npm run contract:parse -w kpost-api --",
     "test:gate": "npm run test:gate -w kpost-api",
     "audit:gate": "npm run audit:gate -w kpost-api",
-    "audit:filing": "npm run audit:filing --workspace kpost-api --"
+    "audit:filing": "npm run audit:filing --workspace kpost-api --",
+    "contract:types": "npm run contract:types --workspace kpost-api --"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

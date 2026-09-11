@@ -1,4 +1,10 @@
-import { test, expect, EXPIRED_TOKEN, FORGED_ALG_NONE_JWT, MALFORMED_TOKEN } from '../../src/fixtures/api.fixture';
+import {
+  test,
+  expect,
+  EXPIRED_TOKEN,
+  FORGED_ALG_NONE_JWT,
+  MALFORMED_TOKEN,
+} from '../../src/fixtures/api.fixture';
 import { KALL_V2_PATHS } from '../../src/api/clients/kallV2.client';
 import { kallResponseSchema } from '../../src/api/schemas/kallV2.schema';
 import {
@@ -76,7 +82,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 201, 400, 401, 403]
+      [200, 201, 400, 401, 403],
     );
   });
 
@@ -94,7 +100,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
     const record = Array.isArray(data) ? data[0] : data;
     expect(
       (record as Record<string, unknown> | undefined)?.kallID,
-      `the call was placed but no kallID came back. Every later route — status, end, join — addresses a call by that id, so the caller cannot hang up what it just started. Body: ${text.slice(0, 200)}`
+      `the call was placed but no kallID came back. Every later route — status, end, join — addresses a call by that id, so the caller cannot hang up what it just started. Body: ${text.slice(0, 200)}`,
     ).toBeDefined();
   });
 
@@ -107,7 +113,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
 
     expect(
       response.status(),
-      `a 5000-character subject produced HTTP ${response.status()}.`
+      `a 5000-character subject produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -120,7 +126,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
 
     expect(
       response.status(),
-      `a multi-byte UTF-8 subject produced HTTP ${response.status()}.`
+      `a multi-byte UTF-8 subject produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -134,7 +140,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'kallType 9999 is outside the known set' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -150,7 +156,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'no receiver — the call has nobody to ring' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -164,7 +170,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "receiver" set to null' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -178,7 +184,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "receiver" set to an empty string' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -191,7 +197,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
 
     expect(
       response.status(),
-      `receiver was sent as an array and produced HTTP ${response.status()}.`
+      `receiver was sent as an array and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -209,7 +215,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'caller sets themselves as the receiver' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -225,7 +231,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
 
     expect(
       json?.statusCode === 200 && String(json?.status).toUpperCase() === 'SUCCESS',
-      `placing a call to a kpostID that does not exist reported success. The caller sees a ringing screen for a call that can never connect. Body: ${text.slice(0, 200)}`
+      `placing a call to a kpostID that does not exist reported success. The caller sees a ringing screen for a call that can never connect. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -289,7 +295,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
     const record = Array.isArray(data) ? data[0] : data;
     expect(
       (record as Record<string, unknown> | undefined)?.sender,
-      `the call was placed as "${VICTIM_KPOST_ID}" while the caller was ${authSession.kpostID ?? 'a different identity'}. The controller overwrites sender from the token precisely so a call cannot be spoofed — the receiver's screen shows whoever the sender says they are. Body: ${text.slice(0, 200)}`
+      `the call was placed as "${VICTIM_KPOST_ID}" while the caller was ${authSession.kpostID ?? 'a different identity'}. The controller overwrites sender from the token precisely so a call cannot be spoofed — the receiver's screen shows whoever the sender says they are. Body: ${text.slice(0, 200)}`,
     ).not.toBe(VICTIM_KPOST_ID);
   });
 
@@ -319,7 +325,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: {}, scenario: 'empty body on call initiation' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -351,11 +357,11 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
 
     expect(
       [first.status(), second.status()].every((status) => status < 500),
-      `concurrent identical initiations returned ${first.status()} and ${second.status()}. A double-tapped call button must not fault, and must not place two calls to the same person.`
+      `concurrent identical initiations returned ${first.status()} and ${second.status()}. A double-tapped call button must not fault, and must not place two calls to the same person.`,
     ).toBe(true);
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -367,14 +373,18 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -398,7 +408,7 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -411,7 +421,7 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
 
     expect(
       response.status(),
-      `kallID ${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}. An id that wraps could move a different call's status.`
+      `kallID ${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}. An id that wraps could move a different call's status.`,
     ).toBeLessThan(500);
   });
 
@@ -425,7 +435,7 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'kallStatus 9999 is outside the handled set' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -441,7 +451,7 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'no kallID — the status change addresses nothing' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -457,7 +467,7 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'required field "kallStatus" omitted' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -471,7 +481,7 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "kallStatus" set to null' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -484,7 +494,7 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
 
     expect(
       response.status(),
-      `kallStatus was sent as the string "answered" and produced HTTP ${response.status()}.`
+      `kallStatus was sent as the string "answered" and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -501,7 +511,7 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
 
     expect(
       json?.statusCode === 200 && String(json?.status).toUpperCase() === 'SUCCESS',
-      `moving the status of call ${kallID}, which does not exist, reported success. Body: ${text.slice(0, 200)}`
+      `moving the status of call ${kallID}, which does not exist, reported success. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -534,14 +544,14 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
     await assertUnauthorized(response, { ...META, body: payload });
   });
 
-  test('[8b] auth: an expired token must not move a call\'s status', async ({ kallV2Client }) => {
+  test("[8b] auth: an expired token must not move a call's status", async ({ kallV2Client }) => {
     const payload = buildUpdateKallStatusPayload();
     const response = await kallV2Client.updateKallStatus(payload, { token: EXPIRED_TOKEN });
 
     await assertUnauthorized(response, { ...META, body: payload });
   });
 
-  test('[8c] IDOR: a body sender must not move another user\'s call', async ({
+  test("[8c] IDOR: a body sender must not move another user's call", async ({
     kallV2Client,
     staticToken,
     authSession,
@@ -557,7 +567,7 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
 
     expect(
       text.includes(`"sender":"${VICTIM_KPOST_ID}"`),
-      `the status change was applied as "${VICTIM_KPOST_ID}" while the caller was ${authSession.kpostID ?? 'a different identity'}. This route overwrites both sender and receiver from the token, so the body must be inert — otherwise anyone can hang up or answer someone else's call. Body: ${text.slice(0, 300)}`
+      `the status change was applied as "${VICTIM_KPOST_ID}" while the caller was ${authSession.kpostID ?? 'a different identity'}. This route overwrites both sender and receiver from the token, so the body must be inert — otherwise anyone can hang up or answer someone else's call. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -577,7 +587,7 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: {}, scenario: 'empty body on a status change' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -597,7 +607,7 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
     });
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -609,14 +619,18 @@ test.describe('POST /v2/kall/updateKallStatus @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -643,7 +657,7 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -662,7 +676,7 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -677,7 +691,7 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
 
     expect(
       response.status(),
-      `kallID ${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}.`
+      `kallID ${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -685,7 +699,8 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
     kallV2Client,
     staticToken,
   }) => {
-    // The controller only acts on 2, 3, 4, 9 and 10; anything else falls through silently.
+    // The Excel row for this route states "To update kallStatus - 2,3,9 only". 7 (ReScheduled) is a
+    // valid kallStatus but outside that accepted set, so this route must not silently accept it.
     const payload = buildSenderKallStatusPayload({ kallStatus: 7 });
     const response = await kallV2Client.updateSenderAndReceiverKallStatus(payload, {
       token: staticToken,
@@ -696,7 +711,7 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
 
     expect(
       json?.statusCode === 200 && String(json?.status).toUpperCase() === 'SUCCESS',
-      `kallStatus 7 is outside the set the controller acts on (2, 3, 4, 9, 10), so nothing was updated — yet the response reported success. The caller believes the call state changed when it did not. Body: ${text.slice(0, 200)}`
+      `kallStatus 7 is outside this route's accepted set (Excel: 2, 3, 9 only), so nothing was updated — yet the response reported success. The caller believes the call state changed when it did not. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -719,7 +734,7 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
         scenario:
           'kallStatus omitted — the controller unboxes it with `int status = getKallStatus()` before any validation',
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -737,7 +752,7 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'no kallID supplied' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -753,7 +768,7 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "kallStatus" explicitly null' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -768,11 +783,11 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
 
     expect(
       response.status(),
-      `kallStatus was sent as a string and produced HTTP ${response.status()}.`
+      `kallStatus was sent as a string and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
-  test('[6] IDOR: a body receiver must not move another user\'s call state', async ({
+  test("[6] IDOR: a body receiver must not move another user's call state", async ({
     kallV2Client,
     staticToken,
     authSession,
@@ -791,7 +806,7 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
 
     expect(
       text.includes(VICTIM_KPOST_ID),
-      `the call state of "${VICTIM_KPOST_ID}" was changed while the caller was ${authSession.kpostID ?? 'a different identity'}. This route is the only write on the controller that never overwrites sender/receiver from the token — it passes the client's DTO straight to the service and then reads getReceiver() back out of it. Anyone with a valid token could end or answer another user's call. Body: ${text.slice(0, 300)}`
+      `the call state of "${VICTIM_KPOST_ID}" was changed while the caller was ${authSession.kpostID ?? 'a different identity'}. This route is the only write on the controller that never overwrites sender/receiver from the token — it passes the client's DTO straight to the service and then reads getReceiver() back out of it. Anyone with a valid token could end or answer another user's call. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -855,7 +870,7 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
 
     expect(
       json?.urlPath,
-      `updateSenderAndReceiverKallStatus records its audit entry and its urlPath as "updateKallStatus". The one write on this controller with no identity check is also the one that logs itself as a different route, so an audit review cannot tell the two apart. Body: ${text.slice(0, 200)}`
+      `updateSenderAndReceiverKallStatus records its audit entry and its urlPath as "updateKallStatus". The one write on this controller with no identity check is also the one that logs itself as a different route, so an audit review cannot tell the two apart. Body: ${text.slice(0, 200)}`,
     ).not.toBe('updateKallStatus');
   });
 
@@ -874,17 +889,17 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
   test('[10] structural: an empty body must be refused', async ({ kallV2Client, staticToken }) => {
     const response = await kallV2Client.updateSenderAndReceiverKallStatus(
       {},
-      { token: staticToken }
+      { token: staticToken },
     );
 
     await assertRejectsInvalidInput(
       response,
       { ...META, body: {}, scenario: 'empty body — kallStatus is unboxed immediately' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -896,14 +911,18 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -929,7 +948,6 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });
 
 /* =========================================================================================
@@ -953,7 +971,7 @@ test.describe('POST /v2/kall/getKallStatus @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -984,21 +1002,18 @@ test.describe('POST /v2/kall/getKallStatus @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'no kallID supplied on a status read' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
-  test('[4] null fuzzing: a null kallID must be refused', async ({
-    kallV2Client,
-    staticToken,
-  }) => {
+  test('[4] null fuzzing: a null kallID must be refused', async ({ kallV2Client, staticToken }) => {
     const payload = buildExistingKallPayload({ kallID: null });
     const response = await kallV2Client.getKallStatus(payload, { token: staticToken });
 
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "kallID" set to null' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1011,11 +1026,11 @@ test.describe('POST /v2/kall/getKallStatus @audit', () => {
 
     expect(
       response.status(),
-      `kallID was sent as the string "latest" and produced HTTP ${response.status()}.`
+      `kallID was sent as the string "latest" and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
-  test('[6] IDOR: a body sender must not select another user\'s call', async ({
+  test("[6] IDOR: a body sender must not select another user's call", async ({
     kallV2Client,
     staticToken,
     authSession,
@@ -1028,7 +1043,7 @@ test.describe('POST /v2/kall/getKallStatus @audit', () => {
 
     expect(
       text.includes(`"sender":"${VICTIM_KPOST_ID}"`),
-      `naming sender "${VICTIM_KPOST_ID}" returned that user's call while the caller was ${authSession.kpostID ?? 'a different identity'}. The line that would scope this route is present but commented out — "// KallMaster.setSender((String) request.getAttribute(\\"kpostID\\"));" — so the sender is whatever the body says. Its sibling getKallStatusUsingKallID does apply the token identity. Body: ${text.slice(0, 300)}`
+      `naming sender "${VICTIM_KPOST_ID}" returned that user's call while the caller was ${authSession.kpostID ?? 'a different identity'}. The line that would scope this route is present but commented out — "// KallMaster.setSender((String) request.getAttribute(\\"kpostID\\"));" — so the sender is whatever the body says. Its sibling getKallStatusUsingKallID does apply the token identity. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1044,7 +1059,7 @@ test.describe('POST /v2/kall/getKallStatus @audit', () => {
 
     expect(
       /"rtcToken"\s*:\s*"[^"]+"/.test(text),
-      `a status read for another user's call returned a populated rtcToken. That is a live media-server credential: whoever holds it can join the call and listen. Body: ${text.slice(0, 300)}`
+      `a status read for another user's call returned a populated rtcToken. That is a live media-server credential: whoever holds it can join the call and listen. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1100,11 +1115,11 @@ test.describe('POST /v2/kall/getKallStatus @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: {}, scenario: 'empty body on a status read' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1116,14 +1131,18 @@ test.describe('POST /v2/kall/getKallStatus @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -1149,7 +1168,6 @@ test.describe('POST /v2/kall/getKallStatus @audit', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1173,7 +1191,7 @@ test.describe('POST /v2/kall/getKallStatusUsingKallID @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -1204,21 +1222,18 @@ test.describe('POST /v2/kall/getKallStatusUsingKallID @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'no kallID on a by-id lookup' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
-  test('[4] null fuzzing: a null kallID must be refused', async ({
-    kallV2Client,
-    staticToken,
-  }) => {
+  test('[4] null fuzzing: a null kallID must be refused', async ({ kallV2Client, staticToken }) => {
     const payload = buildExistingKallPayload({ kallID: null });
     const response = await kallV2Client.getKallStatusUsingKallID(payload, { token: staticToken });
 
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "kallID" set to null' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1231,7 +1246,7 @@ test.describe('POST /v2/kall/getKallStatusUsingKallID @audit', () => {
 
     expect(
       response.status(),
-      `kallID was sent as an object and produced HTTP ${response.status()}.`
+      `kallID was sent as an object and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1248,7 +1263,7 @@ test.describe('POST /v2/kall/getKallStatusUsingKallID @audit', () => {
 
     expect(
       text.includes(`"kpostID":"${VICTIM_KPOST_ID}"`),
-      `naming kpostID "${VICTIM_KPOST_ID}" returned that user's call while the caller was ${authSession.kpostID ?? 'a different identity'}. This route does call setKpostID from the token, so the body value must be overwritten before the service sees it. Body: ${text.slice(0, 300)}`
+      `naming kpostID "${VICTIM_KPOST_ID}" returned that user's call while the caller was ${authSession.kpostID ?? 'a different identity'}. This route does call setKpostID from the token, so the body value must be overwritten before the service sees it. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1312,7 +1327,7 @@ test.describe('POST /v2/kall/getKallStatusUsingKallID @audit', () => {
 
     expect(
       first.status(),
-      `two identical reads returned ${first.status()} and ${second.status()}. A read must be stable.`
+      `two identical reads returned ${first.status()} and ${second.status()}. A read must be stable.`,
     ).toBe(second.status());
   });
 
@@ -1322,11 +1337,11 @@ test.describe('POST /v2/kall/getKallStatusUsingKallID @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: {}, scenario: 'empty body on a by-id lookup' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1338,14 +1353,18 @@ test.describe('POST /v2/kall/getKallStatusUsingKallID @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1377,12 +1396,12 @@ test.describe('POST /v2/kall/endKall @audit', () => {
   const skipIfUndeployed = (status: number): void => {
     test.skip(
       status === 404,
-      '/v2/kall/endKall is not deployed on this environment (404 with a valid token) — see the [deployment] case'
+      '/v2/kall/endKall is not deployed on this environment (404 with a valid token) — see the [deployment] case',
     );
     // 429 stands down too: a throttled response describes our request rate, not the endpoint.
     test.skip(
       status === 429,
-      '/v2/kall/endKall: throttled (HTTP 429) — the response describes our request rate, not the endpoint'
+      '/v2/kall/endKall: throttled (HTTP 429) — the response describes our request rate, not the endpoint',
     );
   };
 
@@ -1420,16 +1439,16 @@ test.describe('POST /v2/kall/endKall @audit', () => {
      */
     test.skip(
       response.status() === 429,
-      'throttled (HTTP 429) — a rate limit cannot be told apart from a missing route'
+      'throttled (HTTP 429) — a rate limit cannot be told apart from a missing route',
     );
     test.skip(
       [401, 403].includes(response.status()),
-      'our token was not accepted (HTTP 401/403) — this API authenticates before routing, so the response says nothing about whether the route exists'
+      'our token was not accepted (HTTP 401/403) — this API authenticates before routing, so the response says nothing about whether the route exists',
     );
 
     expect(
       REACHABLE_STATUSES.includes(response.status()),
-      `/v2/kall/endKall is documented as mandatory in the API workbook (Excel row 88) but answers HTTP ${response.status()} to a valid token, while its siblings endKoolKall and endIndividualKall are deployed. Either it was never deployed here or the workbook is stale.`
+      `/v2/kall/endKall is documented as mandatory in the API workbook (Excel row 88) but answers HTTP ${response.status()} to a valid token, while its siblings endKoolKall and endIndividualKall are deployed. Either it was never deployed here or the workbook is stale.`,
     ).toBe(true);
   });
 
@@ -1445,7 +1464,7 @@ test.describe('POST /v2/kall/endKall @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403, 404]
+      [200, 400, 401, 403, 404],
     );
   });
 
@@ -1459,7 +1478,7 @@ test.describe('POST /v2/kall/endKall @audit', () => {
 
     expect(
       response.status(),
-      `a kallID of 2147483648 exceeds int32 and produced HTTP ${response.status()}. An id that cannot be represented must be refused, never wrapped into a different call.`
+      `a kallID of 2147483648 exceeds int32 and produced HTTP ${response.status()}. An id that cannot be represented must be refused, never wrapped into a different call.`,
     ).toBeLessThan(500);
   });
 
@@ -1476,7 +1495,7 @@ test.describe('POST /v2/kall/endKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'no kallID supplied — the request ends nothing' },
-      [400, 401, 403, 404, 422]
+      [400, 401, 403, 404, 422],
     );
   });
 
@@ -1488,7 +1507,7 @@ test.describe('POST /v2/kall/endKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "kallID" set to null' },
-      [400, 401, 403, 404, 422]
+      [400, 401, 403, 404, 422],
     );
   });
 
@@ -1502,7 +1521,7 @@ test.describe('POST /v2/kall/endKall @audit', () => {
 
     expect(
       response.status(),
-      `kallID sent as an array produced HTTP ${response.status()}. A type mismatch is a 400, not a fault.`
+      `kallID sent as an array produced HTTP ${response.status()}. A type mismatch is a 400, not a fault.`,
     ).toBeLessThan(500);
   });
 
@@ -1613,7 +1632,7 @@ test.describe('POST /v2/kall/endKoolKall @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -1626,7 +1645,7 @@ test.describe('POST /v2/kall/endKoolKall @audit', () => {
 
     expect(
       response.status(),
-      `kallID ${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}. On a route that terminates a live call, a wrapping id could cut off an unrelated meeting.`
+      `kallID ${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}. On a route that terminates a live call, a wrapping id could cut off an unrelated meeting.`,
     ).toBeLessThan(500);
   });
 
@@ -1642,7 +1661,7 @@ test.describe('POST /v2/kall/endKoolKall @audit', () => {
 
     expect(
       json?.statusCode === 200 && String(json?.status).toUpperCase() === 'SUCCESS',
-      `ending kallID 0 reported success. A sentinel id must match nothing — a default value that terminates calls would drop every meeting in progress. Body: ${text.slice(0, 200)}`
+      `ending kallID 0 reported success. A sentinel id must match nothing — a default value that terminates calls would drop every meeting in progress. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -1658,7 +1677,7 @@ test.describe('POST /v2/kall/endKoolKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'destructive call-termination with no kallID' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1672,7 +1691,7 @@ test.describe('POST /v2/kall/endKoolKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "kallID" null on a termination route' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1685,7 +1704,7 @@ test.describe('POST /v2/kall/endKoolKall @audit', () => {
 
     expect(
       response.status(),
-      `kallID was sent as the string "all" and produced HTTP ${response.status()}.`
+      `kallID was sent as the string "all" and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1705,7 +1724,7 @@ test.describe('POST /v2/kall/endKoolKall @audit', () => {
 
     expect(
       text.includes(`"sender":"${VICTIM_KPOST_ID}"`),
-      `a call belonging to "${VICTIM_KPOST_ID}" was ended while the caller was ${authSession.kpostID ?? 'a different identity'}. Being able to terminate a call you are not on is a denial of service against a live conversation. Body: ${text.slice(0, 300)}`
+      `a call belonging to "${VICTIM_KPOST_ID}" was ended while the caller was ${authSession.kpostID ?? 'a different identity'}. Being able to terminate a call you are not on is a denial of service against a live conversation. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1767,24 +1786,21 @@ test.describe('POST /v2/kall/endKoolKall @audit', () => {
 
     expect(
       first.status(),
-      `ending the same call twice returned ${first.status()} then ${second.status()}. Hanging up twice must not change the outcome.`
+      `ending the same call twice returned ${first.status()} then ${second.status()}. Hanging up twice must not change the outcome.`,
     ).toBe(second.status());
   });
 
-  test('[10b] structural: an empty body must be refused', async ({
-    kallV2Client,
-    staticToken,
-  }) => {
+  test('[10b] structural: an empty body must be refused', async ({ kallV2Client, staticToken }) => {
     const response = await kallV2Client.endKoolKall({}, { token: staticToken });
 
     await assertRejectsInvalidInput(
       response,
       { ...META, body: {}, scenario: 'empty body on a termination route' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1796,14 +1812,18 @@ test.describe('POST /v2/kall/endKoolKall @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -1829,7 +1849,6 @@ test.describe('POST /v2/kall/endKoolKall @audit', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1853,7 +1872,7 @@ test.describe('POST /v2/kall/endIndividualKall @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -1866,7 +1885,7 @@ test.describe('POST /v2/kall/endIndividualKall @audit', () => {
 
     expect(
       response.status(),
-      `kallID ${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}.`
+      `kallID ${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1882,7 +1901,7 @@ test.describe('POST /v2/kall/endIndividualKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'no kallID on a participant-drop route' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1897,8 +1916,12 @@ test.describe('POST /v2/kall/endIndividualKall @audit', () => {
 
     await assertRejectsInvalidInput(
       response,
-      { ...META, body: payload, scenario: 'no receiver — which leg should be dropped is unspecified' },
-      [400, 401, 403, 422]
+      {
+        ...META,
+        body: payload,
+        scenario: 'no receiver — which leg should be dropped is unspecified',
+      },
+      [400, 401, 403, 422],
     );
   });
 
@@ -1912,7 +1935,7 @@ test.describe('POST /v2/kall/endIndividualKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "receiver" null on a participant-drop route' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1925,7 +1948,7 @@ test.describe('POST /v2/kall/endIndividualKall @audit', () => {
 
     expect(
       response.status(),
-      `receiver was sent as an array and produced HTTP ${response.status()}.`
+      `receiver was sent as an array and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1942,7 +1965,7 @@ test.describe('POST /v2/kall/endIndividualKall @audit', () => {
 
     expect(
       text.includes(`"receiver":"${VICTIM_KPOST_ID}"`),
-      `"${VICTIM_KPOST_ID}" was dropped from a call while the caller was ${authSession.kpostID ?? 'a different identity'}. Ejecting someone from a call you do not own is a denial of service. Body: ${text.slice(0, 300)}`
+      `"${VICTIM_KPOST_ID}" was dropped from a call while the caller was ${authSession.kpostID ?? 'a different identity'}. Ejecting someone from a call you do not own is a denial of service. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -2016,7 +2039,7 @@ test.describe('POST /v2/kall/endIndividualKall @audit', () => {
     });
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -2028,12 +2051,16 @@ test.describe('POST /v2/kall/endIndividualKall @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 });

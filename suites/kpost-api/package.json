@@ -60,7 +60,8 @@
     "contract:parse": "node scripts/parse-excel-contract.js",
     "test:gate": "playwright test --project=gate --reporter=list",
     "audit:gate": "node scripts/audit-gate.js",
-    "audit:filing": "node scripts/audit-filing.js"
+    "audit:filing": "node scripts/audit-filing.js",
+    "contract:types": "node scripts/parse-types-tab.js"
   },
   "keywords": [],
   "author": "",

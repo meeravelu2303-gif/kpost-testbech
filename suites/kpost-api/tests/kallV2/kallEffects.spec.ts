@@ -1,10 +1,15 @@
 import { test, expect } from '../../src/fixtures/api.fixture';
 import { readBody } from '../../src/utils/apiAssertions';
-import { buildScheduledKallPayload, kallEpoch } from '../../src/api/payloads/kallV2.payload';
+import {
+  buildReScheduleKallPayload,
+  buildScheduledKallPayload,
+  kallEpoch,
+} from '../../src/api/payloads/kallV2.payload';
 import { buildKallROPayload } from '../../src/api/payloads/kallV2.payload';
 import { FOREIGN } from '../../src/api/clients/generic.client';
 import type { APIResponse } from '@playwright/test';
 import type { KallV2Client } from '../../src/api/clients/kallV2.client';
+import { KALL_STATUS } from '../../src/api/enums/kpostTypes';
 
 /**
  * Kall — **effects**, not response shapes.
@@ -235,5 +240,56 @@ test.describe('POST /v2/kall/initiateKall — FR-C05 a placed call is recorded @
       logged,
       `FR-C05: kallID ${kallID} was placed but does not appear in the caller's own call list. A call that leaves no record cannot be returned to, reported on, or billed.`,
     ).toBeDefined();
+  });
+});
+
+test.describe('POST /v2/kall/reScheduleKall — BR-C01 a rescheduled Kall is marked ReScheduled @audit', () => {
+  test('[BR-C01] after a reschedule the meeting carries the ReScheduled status', async ({
+    kallV2Client,
+    staticToken,
+  }) => {
+    /*
+     * Per the Excel Types tab, kallStatus 6 = Scheduled and 7 = ReScheduled. BR-C01 asks for a clear
+     * Scheduled -> ReScheduled distinction.
+     *
+     * Measured 2026-09-11: a reschedule answers with a NEW kallID at the new time (the FR-C04
+     * identity defect, BUG-API-46C312) and re-marks the ORIGINAL entry 7. So the distinction BR-C01
+     * wants does exist. Asserted as "some entry of this meeting carries ReScheduled", so it keeps
+     * holding if the reschedule is later fixed to update the call in place.
+     */
+    const { kallID, subject } = await bookKall(kallV2Client, staticToken);
+    expect(
+      kallID,
+      'BR-C01: no Kall could be booked, so there is none to reschedule.',
+    ).not.toBeNull();
+
+    const response = await kallV2Client.reScheduleKall(
+      buildReScheduleKallPayload({
+        kallID,
+        subject,
+        scheduledStartTime: kallEpoch(300),
+        scheduledEndTime: kallEpoch(330),
+        kallDetails: [{ receiver: VICTIM }],
+      }),
+      { token: staticToken },
+    );
+    const { json, text } = await readBody(response);
+    expect(
+      accepted(response.status(), json),
+      `BR-C01: rescheduling kallID ${kallID} was refused (HTTP ${response.status()}). Body: ${text.slice(0, 200)}`,
+    ).toBe(true);
+
+    const entries = (await dashboardKalls(kallV2Client, staticToken)).filter(
+      (row) => String(row.subject ?? '') === subject,
+    );
+    expect(
+      entries.length,
+      `BR-C01: no entry for this meeting appears in the call list after the reschedule.`,
+    ).toBeGreaterThan(0);
+
+    expect(
+      entries.some((row) => Number(row.senderKallStatus) === KALL_STATUS.rescheduled),
+      `BR-C01: after rescheduling, no entry for this meeting carries kallStatus ${KALL_STATUS.rescheduled} (ReScheduled). Entries: ${JSON.stringify(entries.map((r) => ({ kallID: r.kallID, status: r.senderKallStatus })))}`,
+    ).toBe(true);
   });
 });

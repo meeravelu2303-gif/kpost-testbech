@@ -1,4 +1,10 @@
-import { test, expect, EXPIRED_TOKEN, FORGED_ALG_NONE_JWT, MALFORMED_TOKEN } from '../../src/fixtures/api.fixture';
+import {
+  test,
+  expect,
+  EXPIRED_TOKEN,
+  FORGED_ALG_NONE_JWT,
+  MALFORMED_TOKEN,
+} from '../../src/fixtures/api.fixture';
 import { KALL_V2_PATHS } from '../../src/api/clients/kallV2.client';
 import { kallListResponseSchema, kallResponseSchema } from '../../src/api/schemas/kallV2.schema';
 import {
@@ -74,7 +80,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 201, 400, 401, 403]
+      [200, 201, 400, 401, 403],
     );
   });
 
@@ -92,7 +98,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
     const record = Array.isArray(data) ? data[0] : data;
     expect(
       (record as Record<string, unknown> | undefined)?.kallID,
-      `the call was booked but no kallID came back, so it cannot be rescheduled or cancelled. Body: ${text.slice(0, 200)}`
+      `the call was booked but no kallID came back, so it cannot be rescheduled or cancelled. Body: ${text.slice(0, 200)}`,
     ).toBeDefined();
   });
 
@@ -105,7 +111,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
 
     expect(
       response.status(),
-      `a 5000-character subject produced HTTP ${response.status()}. This route is @Valid, so an over-long value should be a clean 400.`
+      `a 5000-character subject produced HTTP ${response.status()}. This route is @Valid, so an over-long value should be a clean 400.`,
     ).toBeLessThan(500);
   });
 
@@ -118,7 +124,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
 
     expect(
       response.status(),
-      `a multi-byte UTF-8 subject produced HTTP ${response.status()}.`
+      `a multi-byte UTF-8 subject produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -135,7 +141,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
 
     expect(
       response.status(),
-      `booking a call with 500 participants produced HTTP ${response.status()}. A conference-size limit must be enforced explicitly.`
+      `booking a call with 500 participants produced HTTP ${response.status()}. A conference-size limit must be enforced explicitly.`,
     ).toBeLessThan(500);
   });
 
@@ -151,7 +157,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'required field "scheduledStartTime" omitted' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -165,7 +171,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'a booked call with nobody invited' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -179,7 +185,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "scheduledStartTime" set to null' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -194,7 +200,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
 
     expect(
       response.status(),
-      `scheduledStartTime was sent as a string where the contract expects epoch millis, producing HTTP ${response.status()}.`
+      `scheduledStartTime was sent as a string where the contract expects epoch millis, producing HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -211,7 +217,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'scheduled call ends three hours before it starts' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -228,7 +234,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'call scheduled two days in the past' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -283,7 +289,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
     const record = Array.isArray(data) ? data[0] : data;
     expect(
       (record as Record<string, unknown> | undefined)?.sender,
-      `the meeting was booked with "${VICTIM_KPOST_ID}" as organiser while the caller was ${authSession.kpostID ?? 'a different identity'}. Invitees would receive a meeting apparently convened by someone who never scheduled it. Body: ${text.slice(0, 200)}`
+      `the meeting was booked with "${VICTIM_KPOST_ID}" as organiser while the caller was ${authSession.kpostID ?? 'a different identity'}. Invitees would receive a meeting apparently convened by someone who never scheduled it. Body: ${text.slice(0, 200)}`,
     ).not.toBe(VICTIM_KPOST_ID);
   });
 
@@ -313,7 +319,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: {}, scenario: 'empty body on an @Valid booking route' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -333,7 +339,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
     });
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -345,14 +351,18 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -365,7 +375,7 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
     repro: `await kallV2Client.reScheduleKall(buildReScheduleKallPayload(), { token });`,
   };
 
-  test('[FR-C03][BR-C01][1] happy path: moving a booked call satisfies the Zod contract', async ({
+  test('[FR-C03][1] happy path: moving a booked call satisfies the Zod contract', async ({
     kallV2Client,
     staticToken,
   }) => {
@@ -376,11 +386,11 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
-  test('[FR-C04][BR-C01] a rescheduled call keeps its identity and moves to the new time', async ({
+  test('[FR-C04] a rescheduled call keeps its identity and moves to the new time', async ({
     kallV2Client,
     staticToken,
   }) => {
@@ -403,7 +413,10 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
       : ((bookedBody.json as { data?: Record<string, unknown> })?.data ?? undefined);
     const kallID = bookedRow && typeof bookedRow.kallID === 'number' ? bookedRow.kallID : null;
 
-    test.skip(kallID === null, 'no call could be booked on this environment, so there is none to reschedule');
+    test.skip(
+      kallID === null,
+      'no call could be booked on this environment, so there is none to reschedule',
+    );
 
     const movedTo = Date.now() + 7_200_000;
     const payload = buildReScheduleKallPayload({
@@ -415,8 +428,9 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
     const { json, text } = await readBody(response);
 
     test.skip(
-      response.status() !== 200 || String((json as { status?: unknown })?.status).toUpperCase() === 'FAILURE',
-      'the reschedule was not accepted on this environment'
+      response.status() !== 200 ||
+        String((json as { status?: unknown })?.status).toUpperCase() === 'FAILURE',
+      'the reschedule was not accepted on this environment',
     );
 
     // Identity retained: the answer must still be about the call we booked, not a new one.
@@ -430,19 +444,19 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
           body: payload,
           title: 'Rescheduling a Kall does not retain the original call identity',
           scenario:
-            `Call ${kallID} was rescheduled and the response carries no reference back to it. FR-C04 requires ` +
-            "the original entry's identity to be retained on the dashboard so participants see one moved " +
-            'meeting rather than a second competing invitation, and BR-C01 requires a clear Scheduled -> ' +
-            `Rescheduled status distinction against that same entry. Body: ${text.slice(0, 200)}`,
+            `Call ${kallID} was rescheduled and the answer is a NEW call id with nothing referring back to ${kallID}. ` +
+            'The original entry stays on the dashboard at the old time, re-marked kallStatus 7 (ReScheduled per ' +
+            'the Excel Types tab), so participants see two unrelated entries for one meeting. FR-C04 requires the ' +
+            `rescheduled entry to retain the original's identity. Body: ${text.slice(0, 200)}`,
         },
         'Business Logic Flaw',
-        'Major'
+        'Major',
       );
     }
 
     expect(
       keptIdentity,
-      `the rescheduled call must still refer to kallID ${kallID} — FR-C04 requires the original entry's identity to be retained`
+      `the rescheduled call must still refer to kallID ${kallID} — FR-C04 requires the original entry's identity to be retained`,
     ).toBe(true);
   });
 
@@ -455,7 +469,7 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
 
     expect(
       response.status(),
-      `kallID ${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}.`
+      `kallID ${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -471,7 +485,7 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'no kallID — the reschedule addresses no meeting' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -487,21 +501,18 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'reschedule with no new start time' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
-  test('[4] null fuzzing: a null kallID must be refused', async ({
-    kallV2Client,
-    staticToken,
-  }) => {
+  test('[4] null fuzzing: a null kallID must be refused', async ({ kallV2Client, staticToken }) => {
     const payload = buildReScheduleKallPayload({ kallID: null });
     const response = await kallV2Client.reScheduleKall(payload, { token: staticToken });
 
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "kallID" set to null' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -514,7 +525,7 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
 
     expect(
       response.status(),
-      `kallID was sent as the string "next" and produced HTTP ${response.status()}.`
+      `kallID was sent as the string "next" and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -531,7 +542,7 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'meeting moved to yesterday' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -548,7 +559,7 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
 
     expect(
       json?.statusCode === 200 && String(json?.status).toUpperCase() === 'SUCCESS',
-      `rescheduling call ${kallID}, which does not exist, reported success. The organiser is told the meeting moved when no invitee was notified. Body: ${text.slice(0, 200)}`
+      `rescheduling call ${kallID}, which does not exist, reported success. The organiser is told the meeting moved when no invitee was notified. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -588,7 +599,7 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
     await assertUnauthorized(response, { ...META, body: payload });
   });
 
-  test('[8c] IDOR: a non-organiser must not move someone else\'s meeting', async ({
+  test("[8c] IDOR: a non-organiser must not move someone else's meeting", async ({
     kallV2Client,
     staticToken,
     authSession,
@@ -603,7 +614,7 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
     const record = Array.isArray(data) ? data[0] : data;
     expect(
       (record as Record<string, unknown> | undefined)?.sender,
-      `a meeting organised by "${VICTIM_KPOST_ID}" was moved while the caller was ${authSession.kpostID ?? 'a different identity'}. Rescheduling someone else's meeting re-notifies every invitee in the organiser's name. Body: ${text.slice(0, 200)}`
+      `a meeting organised by "${VICTIM_KPOST_ID}" was moved while the caller was ${authSession.kpostID ?? 'a different identity'}. Rescheduling someone else's meeting re-notifies every invitee in the organiser's name. Body: ${text.slice(0, 200)}`,
     ).not.toBe(VICTIM_KPOST_ID);
   });
 
@@ -623,11 +634,11 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: {}, scenario: 'empty body on an @Valid reschedule route' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -639,14 +650,18 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -672,7 +687,6 @@ test.describe('POST /v2/kall/reScheduleKall @audit', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });
 
 /* =========================================================================================
@@ -696,7 +710,7 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 201, 400, 401, 403]
+      [200, 201, 400, 401, 403],
     );
   });
 
@@ -711,7 +725,7 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
 
     expect(
       response.status(),
-      `a daily series running for ten years produced HTTP ${response.status()}. If occurrences are materialised eagerly this is thousands of rows and thousands of future notifications from one request; the horizon must be capped explicitly.`
+      `a daily series running for ten years produced HTTP ${response.status()}. If occurrences are materialised eagerly this is thousands of rows and thousands of future notifications from one request; the horizon must be capped explicitly.`,
     ).toBeLessThan(500);
   });
 
@@ -724,7 +738,7 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
 
     expect(
       response.status(),
-      `a 5000-character subject produced HTTP ${response.status()}.`
+      `a 5000-character subject produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -744,7 +758,7 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
         body: payload,
         scenario: 'recurring series with no seriesEndDate — an unbounded series',
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -758,7 +772,7 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'a recurring call series with nobody invited' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -772,7 +786,7 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "seriesEndDate" set to null' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -785,7 +799,7 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
 
     expect(
       response.status(),
-      `preferredDays was sent as a string and produced HTTP ${response.status()}.`
+      `preferredDays was sent as a string and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -802,7 +816,7 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'seriesEndDate precedes the first occurrence' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -816,7 +830,7 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'repeatType 9999 is outside the known set' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -873,7 +887,7 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
 
     expect(
       text.includes(`"sender":"${VICTIM_KPOST_ID}"`),
-      `the series was created under "${VICTIM_KPOST_ID}" while the caller was ${authSession.kpostID ?? 'a different identity'}. A spoofed recurring series keeps ringing invitees in the victim's name indefinitely. Body: ${text.slice(0, 300)}`
+      `the series was created under "${VICTIM_KPOST_ID}" while the caller was ${authSession.kpostID ?? 'a different identity'}. A spoofed recurring series keeps ringing invitees in the victim's name indefinitely. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -893,7 +907,7 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: {}, scenario: 'empty body on an @Valid series route' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -909,11 +923,11 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
 
     expect(
       [first.status(), second.status()].every((status) => status < 500),
-      `concurrent identical series creations returned ${first.status()} and ${second.status()}. A double submission here duplicates every future occurrence, so invitees get two of each.`
+      `concurrent identical series creations returned ${first.status()} and ${second.status()}. A double submission here duplicates every future occurrence, so invitees get two of each.`,
     ).toBe(true);
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -925,14 +939,18 @@ test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -956,7 +974,7 @@ test.describe('POST /v2/kall/fetchScheduledRepeatKall @audit', () => {
       response,
       kallListResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -983,7 +1001,7 @@ test.describe('POST /v2/kall/fetchScheduledRepeatKall @audit', () => {
 
     expect(
       response.status(),
-      `an empty body on a series read produced HTTP ${response.status()}. The route scopes by the token's sender, so an empty filter is either a valid "everything" query or a clean 400 — not a fault.`
+      `an empty body on a series read produced HTTP ${response.status()}. The route scopes by the token's sender, so an empty filter is either a valid "everything" query or a clean 400 — not a fault.`,
     ).toBeLessThan(500);
   });
 
@@ -994,10 +1012,7 @@ test.describe('POST /v2/kall/fetchScheduledRepeatKall @audit', () => {
     const payload = buildRepeatKallPayload({ eventID: null });
     const response = await kallV2Client.fetchScheduledRepeatKall(payload, { token: staticToken });
 
-    expect(
-      response.status(),
-      `eventID null produced HTTP ${response.status()}.`
-    ).toBeLessThan(500);
+    expect(response.status(), `eventID null produced HTTP ${response.status()}.`).toBeLessThan(500);
   });
 
   test('[5] type mismatch: a string eventID must be refused', async ({
@@ -1009,11 +1024,11 @@ test.describe('POST /v2/kall/fetchScheduledRepeatKall @audit', () => {
 
     expect(
       response.status(),
-      `eventID was sent as a string and produced HTTP ${response.status()}.`
+      `eventID was sent as a string and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
-  test('[6] IDOR: a body sender must not read another user\'s series', async ({
+  test("[6] IDOR: a body sender must not read another user's series", async ({
     kallV2Client,
     staticToken,
     authSession,
@@ -1026,7 +1041,7 @@ test.describe('POST /v2/kall/fetchScheduledRepeatKall @audit', () => {
 
     expect(
       text.includes(`"sender":"${VICTIM_KPOST_ID}"`),
-      `naming sender "${VICTIM_KPOST_ID}" returned that user's recurring meetings while the caller was ${authSession.kpostID ?? 'a different identity'}. The controller overwrites sender from the token, so a body value must be inert — a recurring-meeting list is a map of someone's working week. Body: ${text.slice(0, 300)}`
+      `naming sender "${VICTIM_KPOST_ID}" returned that user's recurring meetings while the caller was ${authSession.kpostID ?? 'a different identity'}. The controller overwrites sender from the token, so a body value must be inert — a recurring-meeting list is a map of someone's working week. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1090,11 +1105,11 @@ test.describe('POST /v2/kall/fetchScheduledRepeatKall @audit', () => {
 
     expect(
       first.status(),
-      `two identical series reads returned ${first.status()} and ${second.status()}. A read must be stable — and must not have created anything.`
+      `two identical series reads returned ${first.status()} and ${second.status()}. A read must be stable — and must not have created anything.`,
     ).toBe(second.status());
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1106,14 +1121,18 @@ test.describe('POST /v2/kall/fetchScheduledRepeatKall @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -1139,7 +1158,6 @@ test.describe('POST /v2/kall/fetchScheduledRepeatKall @audit', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1163,7 +1181,7 @@ test.describe('POST /v2/kall/joinScheduleKall @audit', () => {
       response,
       kallResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -1176,7 +1194,7 @@ test.describe('POST /v2/kall/joinScheduleKall @audit', () => {
 
     expect(
       response.status(),
-      `kallID ${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}. An id that wraps on this route drops the caller into a meeting they were never invited to.`
+      `kallID ${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}. An id that wraps on this route drops the caller into a meeting they were never invited to.`,
     ).toBeLessThan(500);
   });
 
@@ -1192,21 +1210,18 @@ test.describe('POST /v2/kall/joinScheduleKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'no kallID — which call is being joined is unspecified' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
-  test('[4] null fuzzing: a null kallID must be refused', async ({
-    kallV2Client,
-    staticToken,
-  }) => {
+  test('[4] null fuzzing: a null kallID must be refused', async ({ kallV2Client, staticToken }) => {
     const payload = buildExistingKallPayload({ kallID: null });
     const response = await kallV2Client.joinScheduleKall(payload, { token: staticToken });
 
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "kallID" set to null' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1219,7 +1234,7 @@ test.describe('POST /v2/kall/joinScheduleKall @audit', () => {
 
     expect(
       response.status(),
-      `kallID was sent as the string "any" and produced HTTP ${response.status()}.`
+      `kallID was sent as the string "any" and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1236,7 +1251,7 @@ test.describe('POST /v2/kall/joinScheduleKall @audit', () => {
 
     expect(
       json?.statusCode === 200 && String(json?.status).toUpperCase() === 'SUCCESS',
-      `joining call ${kallID}, organised by "${VICTIM_KPOST_ID}" and with no invitation for the caller, reported success. Body: ${text.slice(0, 200)}`
+      `joining call ${kallID}, organised by "${VICTIM_KPOST_ID}" and with no invitation for the caller, reported success. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -1253,7 +1268,7 @@ test.describe('POST /v2/kall/joinScheduleKall @audit', () => {
 
     expect(
       /"rtcToken"\s*:\s*"[^"]+"/.test(text),
-      `a join attempt on a call the caller has no part in returned a populated rtcToken. That is a live media-server credential — holding it means being able to join and listen, whatever the envelope's status said. Body: ${text.slice(0, 300)}`
+      `a join attempt on a call the caller has no part in returned a populated rtcToken. That is a live media-server credential — holding it means being able to join and listen, whatever the envelope's status said. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1311,11 +1326,11 @@ test.describe('POST /v2/kall/joinScheduleKall @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: {}, scenario: 'empty body on a join route' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1327,14 +1342,18 @@ test.describe('POST /v2/kall/joinScheduleKall @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -1360,7 +1379,6 @@ test.describe('POST /v2/kall/joinScheduleKall @audit', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1373,7 +1391,7 @@ test.describe('GET /v2/kall/todayKoolKall @audit', () => {
     repro: `await kallV2Client.todayKoolKall({ token });`,
   };
 
-  test('[1] happy path: today\'s calls satisfy the Zod contract', async ({
+  test("[1] happy path: today's calls satisfy the Zod contract", async ({
     kallV2Client,
     staticToken,
   }) => {
@@ -1438,7 +1456,7 @@ test.describe('GET /v2/kall/todayKoolKall @audit', () => {
 
     expect(
       text.includes(`"sender":"${VICTIM_KPOST_ID}"`),
-      `passing ?kpostID=${VICTIM_KPOST_ID} returned that user's calls while the caller was ${authSession.kpostID ?? 'a different identity'}. The route reads its identity from the auth-filter attribute, so a query parameter must be inert. Body: ${text.slice(0, 300)}`
+      `passing ?kpostID=${VICTIM_KPOST_ID} returned that user's calls while the caller was ${authSession.kpostID ?? 'a different identity'}. The route reads its identity from the auth-filter attribute, so a query parameter must be inert. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1453,7 +1471,7 @@ test.describe('GET /v2/kall/todayKoolKall @audit', () => {
 
     expect(
       /"rtcToken"\s*:\s*"[^"]+"/.test(text),
-      `the day's call list carried populated rtcToken values. Join credentials belong in the join response, not in a listing — a cached or logged listing then contains keys to live calls. Body: ${text.slice(0, 300)}`
+      `the day's call list carried populated rtcToken values. Join credentials belong in the join response, not in a listing — a cached or logged listing then contains keys to live calls. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1510,7 +1528,7 @@ test.describe('GET /v2/kall/todayKoolKall @audit', () => {
 
     expect(
       first.status(),
-      `two identical reads returned ${first.status()} and ${second.status()}. A safe GET must be stable.`
+      `two identical reads returned ${first.status()} and ${second.status()}. A safe GET must be stable.`,
     ).toBe(second.status());
   });
 
@@ -1525,11 +1543,11 @@ test.describe('GET /v2/kall/todayKoolKall @audit', () => {
 
     expect(
       response.status(),
-      `an unrecognised query parameter produced HTTP ${response.status()}.`
+      `an unrecognised query parameter produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
-  test('[IDOR] a foreign kallID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kallID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1541,12 +1559,16 @@ test.describe('GET /v2/kall/todayKoolKall @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('GET', META.path, { kallID: FOREIGN.kallID }, { token: staticToken });
+    const response = await genericClient.send(
+      'GET',
+      META.path,
+      { kallID: FOREIGN.kallID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kallID',
       foreignValue: FOREIGN.kallID,
     });
   });
-
 });

@@ -19,6 +19,6 @@
     "resolveJsonModule": true,
     "types": ["node", "@playwright/test"]
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "reporters/**/*.ts", "playwright.config.ts"],
+  "include": ["src/**/*.ts", "tests/**/*.ts", "gate/**/*.ts", "reporters/**/*.ts", "scripts/**/*.ts", "playwright.config.ts"],
   "exclude": ["node_modules", "dist", "reports", "test-results"]
 }

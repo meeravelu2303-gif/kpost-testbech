@@ -171,6 +171,13 @@ default behaviour:
 - **The Excel workbook is authoritative for request payloads, not swagger.** When they disagree,
   match the Excel. Re-parse with `npm run contract:parse -- "<path to .xlsx>"`; the parser carries
   an explicit per-tab column map because the three tabs do not share a shape.
+- **The Excel `Types(Katchup,Kall&KDiary)` tab is authoritative for every type code** — Katchup
+  `messageType`/`status`/`sharedType`, Kall `kallStatus`/`kallType`/`kallMode`/`repeatType`, KMail
+  `kmailType`/receiver type/priority/`module`, Kdiary `remarks`, business user tiers. The bench's
+  copy is `src/api/enums/kpostTypes.ts`; never hand-type a code's meaning in a comment. After a
+  workbook update run `npm run contract:types -- "<path to .xlsx>"`; `npm run test:unit` fails if
+  the module and the tab disagree. (The bench once labelled messageType 18 "Confidential" — it is
+  Secret — and filed an invalid Critical on it.)
 - **Never test with real OTP.** Builders are pinned to `TEST_MOBILE`/`TEST_EMAIL`. **Mock OTP
   `123456` (+ `000000` fallback) is an intentional dev bypass — accept it, never file it, never
   fail on it.** Only a genuinely un-issued *non-mock* OTP being accepted is a finding.
@@ -257,28 +264,29 @@ automatable requirements : 68
 traced to a tagged test  : 51  (75.0%)
 untraced                 : 12
 blocked (never ran)      : 5
-tolerant assertion       : 14 requirement(s)
+tolerant assertion       : 13 requirement(s)
 High-priority, 1-2 tests : 28 of 41  (target 3+)
 collect: api 4795 · kmail 936 · ui 332 tests
 ```
 
 75.0% is the honest number after removing six wrongly-tagged requirements and separating out the
-blocked ones. It went **down** from 88.2% as the measurement got stricter. That is the intended
+blocked ones. FR-K05 was briefly blocked on a bench error — copies are delivered via
+`forwardReceiverList`, which the bench had not been sending — and is traced again. It went **down** from 88.2% as the measurement got stricter. That is the intended
 direction.
 
-### 1. Tolerant assertions — 14 requirements (Step 6)
+### 1. Tolerant assertions — 13 requirements (Step 6)
 
 The tag is right; the assertion cannot fail for it. `handledCleanly()` passes on a 400, and a
 status set containing both a 2xx and a 4xx means success and refusal both pass — so "a recipient
 can Reply" was satisfied by the server *rejecting* the reply. **These need the assertion replaced,
 not more tests added.** `npm run trace` prints the list with a reason per entry.
 
-`BR-C01 · FR-C03 · FR-K03 · FR-K14 · FR-K15 · FR-K16 · FR-K18 · FR-K22 · FR-K23 · FR-K24 ·
+`FR-C03 · FR-K03 · FR-K14 · FR-K15 · FR-K16 · FR-K18 · FR-K22 · FR-K23 · FR-K24 ·
 FR-M01 · FR-M02 · FR-M03 · FR-M06`
 
 The fix is the same move every time: stop asserting the response was well-formed, assert the
 effect is observable on a subsequent read — and give each one its own seeded fixture (trap #6).
-Five were done this way already (FR-K21, FR-C01, FR-C02, FR-C05, and NFR-SEC02's second variant);
+Seven were done this way already (FR-K21, FR-C01, FR-C02, FR-C05, FR-K04, BR-C01 and NFR-SEC02);
 each took roughly one read-back call and each found something.
 
 ### 2. Blocked — 5 requirements, all external
@@ -318,14 +326,15 @@ so the server's type branches are untested.
 
 | module | field | exercised | missing |
 | --- | --- | --- | --- |
-| Katchup | `messageType` | 0, 1, 2, 3, 5, 6, 7, 8, 9, 14, 15, 16, 18, 20 | **19, 24** (both appear in the contract) |
+| Katchup | `messageType` | 0, 1, 2, 3, 5, 6, 7, 8, 9, 14 (Cc and Confidential Copy), 15, 16, 18 (Secret), 20 | **4, 10, 11, 17, 19, 21, 22, 23, 24, 25, 26** — per the product enum (see the `businessRules.spec.ts` header) |
 | KMail | `fetchMailType` | all three (Y / N / A) | — |
 | KMail | `kmailStatusFlag` | all three | — |
-| Kall | `kallType` | `1` (builder default) + `9999` fuzz | contract shows `0`; no real variant ever sent |
-| Kall | `kallMode` | `0` (builder default) | never varied |
-| Kall | `kallStatus` | 2 (default), 4, 7 | the route's own comment says 2/3/9 are valid — **3 and 9 never sent** |
+| Kall | `kallType` (0 normal, 1 kool/scheduled) | `0` for a direct call (`buildKallROPayload`; it sent 1 until 2026-09-11), `1` for repeat series, `9999` fuzz | — |
+| Kall | `kallMode` (0 Audio … 5 Primary Video) | `0` Audio | **1–5** never sent |
+| Kall | `kallStatus` (0 new … 11 Not Joined) | 2 cancelled (default), 4 declined, 7 ReScheduled | **0, 1, 3, 5, 6, 8, 9, 10, 11** never sent |
 | Kdiary | `userType` | `PERSONAL` | **`BUSINESS_S`, `BUSINESS`** are in the contract |
 | Kdiary | `repeatType` | `9999` fuzz only | contract shows `1` |
+| Kdiary | `remarks` (0 None … 6 Delete) | `1` Completed | **0, 2–6** never sent |
 
 **Worth doing alongside the tolerant work, not after it.** It is the same failure shape — coverage
 that looks present because the endpoint is called, but only ever down one branch. Kall business
@@ -370,6 +379,25 @@ journey. `BR-X01` is the requirement this blocks.
   ownership check is the fix for the current P0, but non-sequential ids would remove the
   enumeration surface entirely. See `docs/handover/katchup-message-ownership.md`.
 
+- **Confidential Copy leaks in PRODUCTION, not on QA.** Per the product enum, Confidential Copy is
+  `messageType 14` with the party in `sharedMessageDetails.hiddenContactList`. QA strips that list
+  from the primary's copy (verified from the primary, a Cc recipient and each hidden recipient; the gate test is green). A production capture shows it populated
+  on the recipient's own row. Likely a build difference — raise with the production capture as
+  evidence.
+- **`BUG-API-6EEBB3` was INVALID and should be closed.** It was built on `messageType 18`, which is a
+  Secret message, not Confidential Copy; `selectedMembers` there makes nobody a recipient. The bench
+  had mislabelled 18 as "Secret / Conf." in its own comments. Retraction recorded in
+  `docs/context/critical-verification-2026-09-10.md`.
+- **Recall answers `status: 5`**, which the status enum (0 Sent · 1 Unread · 2 Read · 3 Not sent ·
+  4 Group) does not list. Ask what 5 means before any receipt assertion depends on it.
+
+- **`sharedType 14` is not in the Types tab's SHARE TYPE list**, yet the live web client sends it on
+  every Copies / Confidential Copy message. The bench follows the client
+  (`KATCHUP_OBSERVED.copiesSharedType`); the workbook should list it.
+
+- **The `module` list stops at 17 in the workbook on disk** (`KPOST API (5).xlsx`); the sheet
+  shared on 2026-09-11 shows 18–20. Re-run `npm run contract:types` against the newer copy.
+
 ### 9. Findings awaiting a developer fix
 
 The gate suite is deliberately red for these — each will go green when the fix lands. See
@@ -380,8 +408,8 @@ The gate suite is deliberately red for these — each will go green when the fix
 | `sendMessage` honours an undocumented `msgID` and overwrites any message, any type, no ownership check — then recall/delete follow because `sender` was rewritten | `gate/security/messageOwnership.spec.ts` |
 | Stored XSS — Kdiary `createEvent`, Katchup `sendMessage` | `gate/security/storedContent.spec.ts` |
 | Hibernate internals leaked on `createSchedule` | `gate/security/internalsLeak.spec.ts` |
-| Confidential Copy recipient disclosed (messageType 18) | `gate/security/confidentialCopy.spec.ts` |
 | Wallet notification to a caller-supplied mobile | `gate/security/tokenIdentity.spec.ts` |
+| A Note/Reply on a Confidential Copy leaks the hidden list via its `referenceMessage` snapshot | `gate/security/confidentialCopy.spec.ts` |
 | A reply is not linked to the message it replies to | `tests/katchupV2/businessRules.spec.ts` |
 | `addMembersToKall` 500s on a duplicate member | `tests/kallV2/kallEffects.spec.ts` |
 

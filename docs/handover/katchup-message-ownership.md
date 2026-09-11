@@ -213,3 +213,35 @@ build after that.
 
 Raised by QA automation, 2026-09-11. Request and response captures for every step above are
 available on request.
+
+---
+
+## Related P1 — a Note/Reply leaks the Confidential Copy list through its snapshot
+
+Confirmed live 2026-09-11, and likely the same root cause as the production Confidential Copy leak.
+
+A Confidential Copy (`messageType 14`, people in `sharedMessageDetails.hiddenContactList`) is
+delivered correctly: the server strips `hiddenContactList` from every recipient's copy but the
+sender's. But when someone adds a **Note** (`sharedType 5`), **Reminder** (3) or **Reply** to that
+message, the web client embeds a `referenceMessage` **snapshot** of the original — built from the
+sender's view, which holds the full hidden list — and the server serves that snapshot to every
+recipient **unchanged**.
+
+Result, measured from each recipient's own inbox on a message hidden-copied to two people:
+
+| reads the note as | top-level hiddenContactList | the note's referenceMessage snapshot |
+| --- | --- | --- |
+| primary (not hidden) | `[]` (correct) | **both hidden recipients** |
+| hidden recipient A | just themselves | A **and** B |
+| hidden recipient B | just themselves | A **and** B |
+
+So the confidentiality holds on the message itself and is defeated the moment anyone annotates it.
+
+**Fix (server-side, durable):** whenever a `referenceMessage` snapshot is served to a caller who is
+not the message's sender, strip `hiddenContactList` from it — the same per-recipient rule already
+applied to the top-level field. The client should also stop embedding the list, but the client
+cannot be trusted (other clients exist), so the server strip is the real fix.
+
+**Note:** if a note is sent with only `temporaryMsgID` and no client-built snapshot, the server
+attaches nothing and there is no leak — so the server is not building the snapshot, only passing the
+client's through. Both ends contribute; fix the server.

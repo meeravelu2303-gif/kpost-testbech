@@ -16,7 +16,7 @@ export class GenericClient extends BaseClient {
     method: string,
     path: string,
     body?: Record<string, unknown>,
-    options: RequestOptions = {}
+    options: RequestOptions = {},
   ): Promise<APIResponse> {
     const verb = method.toUpperCase();
 
@@ -39,7 +39,12 @@ export class GenericClient extends BaseClient {
    * JSON endpoint must reject syntactically-invalid JSON with 400/415, whereas a wrong-typed field
    * is ambiguous (an endpoint that ignores it and succeeds is correct) and would manufacture false findings.
    */
-  sendRaw(method: string, path: string, rawBody: string, options: RequestOptions = {}): Promise<APIResponse> {
+  sendRaw(
+    method: string,
+    path: string,
+    rawBody: string,
+    options: RequestOptions = {},
+  ): Promise<APIResponse> {
     const verb = method.toUpperCase();
     if (verb === 'GET' || verb === 'HEAD' || verb === 'DELETE') {
       // No body to malform on a bodyless verb; a wrong-typed query value is the analogue.
@@ -53,7 +58,7 @@ export class GenericClient extends BaseClient {
     method: string,
     basePath: string,
     segment: string,
-    options: RequestOptions = {}
+    options: RequestOptions = {},
   ): Promise<APIResponse> {
     return this.send(method, `${basePath}/${encodeURIComponent(segment)}`, undefined, options);
   }
@@ -70,6 +75,9 @@ export const FOREIGN = {
   // A REAL second account (owning data the caller must not see) — an unknown id proves nothing, since
   // the API ignores it and serves the caller's own data. Override with QA_VICTIM_KPOST_ID.
   victimKpostID: process.env.QA_VICTIM_KPOST_ID || 'qabenchnwvfb@kpostindia.com',
+  // A THIRD real personal account — a Cc / Confidential Copy recipient beside the victim, so
+  // visibility can be judged from more than one recipient's copy. Override with QA_THIRD_KPOST_ID.
+  thirdKpostID: process.env.QA_THIRD_KPOST_ID || 'meera962@kpostindia.com',
   // A REAL second BUSINESS account — the receiver so a business sender has a business counterparty.
   // Not yet KMail-provisioned, so business KMail sends target a personal receiver. Override with QA_BUSINESS_RECEIVER_KPOST_ID.
   businessReceiverKpostID: process.env.QA_BUSINESS_RECEIVER_KPOST_ID || 'md@qaadmv29531.kpost.in',

@@ -1,5 +1,6 @@
 import { faker } from '../../utils/dataGen';
 import { qaLabel } from '../../utils/safeTestData';
+import { KATCHUP_MESSAGE_TYPE, KATCHUP_OBSERVED } from '../enums/kpostTypes';
 
 /**
  * Request builders for Katchup Messaging V2 (`/v2/katchup/**`).
@@ -51,7 +52,7 @@ export function messageTime(offsetMinutes = 0): number {
  * cases that probe it pass `sender` explicitly.
  */
 export function buildKatchupMessagePayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   const now = messageTime();
   return {
@@ -94,6 +95,110 @@ export function buildKatchupMessagePayload(
 }
 
 /**
+ * A Copies message — `messageType 14`, which per the Excel Types tab carries BOTH Copies (Cc) and
+ * Confidential Copy. They differ only by which list in `sharedMessageDetails` names the person:
+ * `copies` -> `revealContactList` (visible to every recipient), `confidential` ->
+ * `hiddenContactList` (must be stripped from every copy but the sender's).
+ *
+ * Mirrors the live web client's payload field for field (captured 2026-09-11):
+ *   - delivery is driven by `forwardReceiverList`, which lists EVERY recipient — the Cc /
+ *     Confidential people and the primary. An earlier revision used `sharedDetailReceiverList`,
+ *     which the client never sends, and no copy was ever delivered.
+ *   - `sharedType` is 14, which the Types tab's SHARE TYPE list does NOT include (see
+ *     `KATCHUP_OBSERVED.copiesSharedType`). The client sends it, so this does too.
+ *   - `isCopyMessage` is not sent; the server sets it on the stored row.
+ *   - `sharedDetailReceiverList` IS sent, though the live client omits it: the Excel contract
+ *     (KatchupAPI row 37) lists it for sendMessage. Verified 2026-09-11 to change nothing — delivery
+ *     and Cc / Confidential visibility are identical with and without it.
+ */
+export function buildCopyMessagePayload(
+  parties: { receiver: string; receiverName?: string; copies?: string[]; confidential?: string[] },
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
+  const copies = parties.copies ?? [];
+  const confidential = parties.confidential ?? [];
+  return buildKatchupMessagePayload({
+    receiver: parties.receiver,
+    messageType: KATCHUP_MESSAGE_TYPE.copies,
+    sharedType: KATCHUP_OBSERVED.copiesSharedType,
+    attachmentCaption: null,
+    forwardReceiverList: [...copies, ...confidential, parties.receiver],
+    sharedDetailReceiverList: [...copies, ...confidential],
+    groupForwardList: null,
+    groupmemberList: [],
+    selectedMembers: 'N',
+    sharedMessageDetails: JSON.stringify({
+      revealContactList: copies,
+      hiddenContactList: confidential,
+      receiver: parties.receiver,
+      receiverName: parties.receiverName ?? 'QA Primary',
+    }),
+    ...overrides,
+  });
+}
+
+/**
+ * A referencing action — Note, Reminder, Reply, Comment, Clarify — on an EXISTING message.
+ *
+ * Built from the live web client's own payload (captured 2026-09-11). The action goes in
+ * `sharedType`, NOT in a fresh `messageType`, and it references the original through
+ * `temporaryMsgID` plus a `referenceMessage` snapshot of the original row. It deliberately does
+ * NOT send `msgID`: `msgID` is the ownership-takeover vector (see gate/security/messageOwnership),
+ * so a note built with it silently OVERWRITES the message it claims to annotate. FR-K12 and FR-K13
+ * did exactly that and passed while proving nothing.
+ *
+ * The snapshot is copied from the base row verbatim — including its `sharedMessageDetails`. That
+ * faithfulness is the point: on a Confidential Copy the base's `hiddenContactList` rides along in
+ * the snapshot, which is how the real client leaks it (NFR-SEC02). A builder that quietly dropped
+ * the field would hide the very defect the client produces.
+ */
+/**
+ * The `referenceMessage` snapshot the live web client embeds when it references a message — copied
+ * from the base row verbatim, INCLUDING `sharedMessageDetails`. On a Confidential Copy that carries
+ * the base's `hiddenContactList`, which is how a Note/Reply leaks it (NFR-SEC02); a helper that
+ * dropped the field would hide the defect the real client produces.
+ */
+export function katchupSnapshotOf(base: Record<string, unknown>): string {
+  return JSON.stringify({
+    receiver: base.receiver,
+    sender: base.sender,
+    senderName: base.senderName ?? null,
+    receiverName: base.receiverName ?? null,
+    msgID: base.msgID,
+    actualMessage: base.actualMessage,
+    attachmentCaption: null,
+    messageTime: base.messageTime,
+    readTime: null,
+    referenceMessage: null,
+    selectedMembers: base.selectedMembers ?? 'N',
+    serverTime: base.serverTime,
+    messageType: base.messageType,
+    sharedMessageDetails: base.sharedMessageDetails ?? null,
+    sharedType: base.sharedType ?? 0,
+    isVoiceMessage: false,
+  });
+}
+
+export function buildReferenceActionPayload(
+  base: Record<string, unknown>,
+  sharedType: number,
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
+  const snapshot = katchupSnapshotOf(base);
+  return buildKatchupMessagePayload({
+    receiver: base.receiver,
+    // The action rides on the thread's own messageType (copies note = 14; plain note = 5), with the
+    // action itself in sharedType — matching the live client.
+    messageType: base.messageType,
+    sharedType,
+    temporaryMsgID: base.msgID,
+    referenceMsgID: base.msgID,
+    referenceMessage: snapshot,
+    ...overrides,
+  });
+}
+
+/**
  * `saveKatchupMessages` (Excel row 38) — an **archive** action over existing message IDs, not a
  * compose. The whole describe used to drive `buildKatchupMessagePayload`, so it fuzzed a compose
  * body at a route that reads `{ receiver | groupKpostID, msgIDs, groupFlag }`.
@@ -102,7 +207,7 @@ export function buildKatchupMessagePayload(
  * take — kept as written rather than normalised.
  */
 export function buildSaveMessagesPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     receiver: syntheticReceiver(),
@@ -114,7 +219,7 @@ export function buildSaveMessagesPayload(
 
 /** The group form of the same archive action: keyed by `groupKpostID` instead of `receiver`. */
 export function buildSaveGroupMessagesPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     groupKpostID: syntheticReceiver(),
@@ -129,7 +234,7 @@ export function buildSaveGroupMessagesPayload(
  * `sharedMessageId`, an epoch-millis broadcast id, not a msgID and not a message body.
  */
 export function buildSharedMessageInfoPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     // Far enough past any real broadcast timestamp that it cannot resolve to a live one.
@@ -140,7 +245,7 @@ export function buildSharedMessageInfoPayload(
 
 /** A message addressing an existing row. Defaults to a non-existent msgID. */
 export function buildExistingMessagePayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return buildKatchupMessagePayload({ msgID: nonExistentMsgId(), ...overrides });
 }
@@ -152,7 +257,7 @@ export function buildExistingMessagePayload(
  * API and each recipient receives a push notification.
  */
 export function buildBulkMessagePayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return buildKatchupMessagePayload({
     receiverList: [syntheticReceiver(), syntheticReceiver()],
@@ -170,7 +275,7 @@ export function buildBulkMessagePayload(
  * the body value is ignored.
  */
 export function buildFetchKatchupPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     selectedContact: syntheticReceiver(),
@@ -187,7 +292,7 @@ export function buildFetchKatchupPayload(
 
 /** A fetch addressing a specific message. Defaults to a non-existent msgID. */
 export function buildMessageIdPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return buildFetchKatchupPayload({
     msgID: nonExistentMsgId(),
@@ -197,7 +302,9 @@ export function buildMessageIdPayload(
 }
 
 /** A search over message bodies. */
-export function buildSearchPayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+export function buildSearchPayload(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
   return buildFetchKatchupPayload({
     searchMessage: 'QA-AUTOMATION',
     ...overrides,
@@ -206,7 +313,7 @@ export function buildSearchPayload(overrides: Record<string, unknown> = {}): Rec
 
 /** The `KatchupFilterRO` DTO — katchupSearch and filterKatchUpMessage. */
 export function buildKatchupFilterPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   const today = new Date();
   const iso = (d: Date): string => d.toISOString().slice(0, 10);
@@ -226,7 +333,7 @@ export function buildKatchupFilterPayload(
 
 /** The `ReportDetailsRO` DTO — reportAbuse. */
 export function buildReportAbusePayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     kpostID: syntheticReceiver(),
@@ -239,7 +346,7 @@ export function buildReportAbusePayload(
 
 /** A caption edit against an existing attachment. */
 export function buildChangeCaptionPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return buildExistingMessagePayload({
     attachmentCaption: JSON.stringify([{ fileName: 'qa.png', caption: qaLabel('caption') }]),
@@ -283,7 +390,7 @@ export function referenceMessageListJson(threads: number[][]): string {
  * previously) means the route is only ever exercised as a plain send.
  */
 export function buildForwardEnvelope(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return buildKatchupMessagePayload({
     receiver: '',
@@ -304,7 +411,7 @@ export function buildForwardEnvelope(
 
 /** Single-message forward (messageType 15) — Excel rows 118 / 139, first variant. */
 export function buildForwardPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return buildForwardEnvelope({
     messageType: FORWARD_MESSAGE_TYPE.single,
@@ -318,7 +425,7 @@ export function buildForwardPayload(
  * so the stringified `referenceMessageList` is exercised in its documented multi-group form.
  */
 export function buildThreadForwardPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return buildForwardEnvelope({
     messageType: FORWARD_MESSAGE_TYPE.multiThread,
@@ -332,7 +439,7 @@ export function buildThreadForwardPayload(
 
 /** `forwardKatchupMultipleMsgs` (Excel row 194) — a flat list of message ids, no message body. */
 export function buildMultipleMsgsForwardPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     forwardReceiverList: [syntheticReceiver()],
@@ -354,7 +461,7 @@ export function buildMultipleMsgsForwardPayload(
  * unset here on purpose — the spoofing case supplies it explicitly.
  */
 export function buildForwardSelectedAttachmentPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   const uuids = [faker.string.uuid(), faker.string.uuid()];
   return buildForwardEnvelope({
@@ -370,7 +477,7 @@ export function buildForwardSelectedAttachmentPayload(
     isVoiceMessage: false,
     uuid: uuids,
     attachmentCaption: JSON.stringify(
-      uuids.map((uuid) => ({ fileName: `${uuid}.jpg`, caption: null, fileSize: '28687', uuid }))
+      uuids.map((uuid) => ({ fileName: `${uuid}.jpg`, caption: null, fileSize: '28687', uuid })),
     ),
     ...overrides,
   });
@@ -378,7 +485,7 @@ export function buildForwardSelectedAttachmentPayload(
 
 /** `getMessagesByReferenceMessageList` (Excel row 119) — the thread-forward read-back. */
 export function buildReferenceMessageListPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     referenceMessageList: referenceMessageListJson([
@@ -392,7 +499,7 @@ export function buildReferenceMessageListPayload(
 
 /** `getReferenceMessagesDetails` (Excel row 120) — ids plus the message they were forwarded from. */
 export function buildReferenceMessagesDetailsPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return {
     referenceMessageIDList: [nonExistentMsgId(), nonExistentMsgId(), nonExistentMsgId()],

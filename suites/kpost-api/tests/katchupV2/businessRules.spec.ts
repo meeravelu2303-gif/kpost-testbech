@@ -1,11 +1,22 @@
 import { test, expect } from '../../src/fixtures/api.fixture';
 import { KATCHUP_PATHS, type KatchupV2Client } from '../../src/api/clients/katchupV2.client';
 import { reportBusinessLogicFlaw, readBody } from '../../src/utils/apiAssertions';
-import { buildKatchupMessagePayload } from '../../src/api/payloads/katchupV2.payload';
+import {
+  buildCopyMessagePayload,
+  buildKatchupMessagePayload,
+  buildReferenceActionPayload,
+  katchupSnapshotOf,
+} from '../../src/api/payloads/katchupV2.payload';
 import { FOREIGN } from '../../src/api/clients/generic.client';
-import { buildLoginPayload } from '../../src/api/payloads/auth.payload';
 import type { AuthClient } from '../../src/api/clients/auth.client';
 import { env } from '../../src/config/env.config';
+import { KATCHUP_MESSAGE_TYPE, KATCHUP_SHARE_TYPE } from '../../src/api/enums/kpostTypes';
+import {
+  contactListsOf,
+  conversationRows,
+  loginAs,
+  recipientCopy,
+} from '../../src/utils/katchupRecipients';
 
 /**
  * Katchup V2 — **business-rule / does-the-feature-work layer.**
@@ -19,16 +30,32 @@ import { env } from '../../src/config/env.config';
  *
  * Katchup encodes message semantics in the `messageType` field, **not** in separate Cc/BCC
  * fields — verified against the DTO (`isCopyMessage`, `secretMessageExpireTime`, `sharedType`)
- * and the KPOST API reference sheet. So "Copy (Cc)" and "Confidential Copy" are message *types*,
- * exercised here with their real payloads rather than a non-existent `cc` field:
+ * and the product team's type enum (supplied 2026-09-11):
  *
- * | type | meaning        | FR        | type | meaning        | FR        |
- * | ---- | -------------- | --------- | ---- | -------------- | --------- |
- * | 0    | Normal         | FR-K01    | 7    | Recall         | FR-K10    |
- * | 6    | Edit           | FR-K08    | 14   | Copies (Cc)    | FR-K04    |
- * |      |                |           | 18   | Secret / Conf. | FR-K05    |
+ * | type | meaning                    | type  | meaning                                   |
+ * | ---- | -------------------------- | ----- | ----------------------------------------- |
+ * | 0    | Normal                     | 11    | Group notification                        |
+ * | 1    | Reply                      | 14    | **Copies** — Cc and Confidential, see below |
+ * | 2    | Share                      | 15    | Forward (Reveal)                          |
+ * | 3    | Reminder                   | 16    | Forward (Hidden)                          |
+ * | 4    | SMS                        | 17    | Schedule call                             |
+ * | 5    | Note                       | 18    | **Secret** message                        |
+ * | 6    | Edit                       | 19    | Bulk message                              |
+ * | 7    | Recall                     | 20/21 | Forward multiple thread (Reveal / Hidden) |
+ * | 8    | Comment                    | 22    | Share digital card                        |
+ * | 9    | Clarify                    | 23    | Share location                            |
+ * | 10   | Notification mail / msgs   | 24    | Forward selected attachment               |
+ * |      |                            | 25/26 | Broadcast (reply enabled / no reply)      |
  *
- * `status` carries the read-receipt state: 0 Sent · 1 Unread · 2 Read (with `readTime`).
+ * **Copy (Cc) and Confidential Copy are BOTH `messageType 14`.** They differ only by which list
+ * inside `sharedMessageDetails` (a JSON string) carries the person: `revealContactList` = Copies
+ * (Cc), visible to the other recipients; `hiddenContactList` = Confidential Copy, stripped from
+ * every copy but the sender's. `messageType 18` is a **Secret** message and has nothing to do with
+ * Confidential Copy. An earlier revision labelled 18 "Secret / Conf.", which produced an invalid
+ * Critical (BUG-API-6EEBB3).
+ *
+ * `status`: 0 Sent · 1 Unread · 2 Read (with `readTime`) · 3 Not sent · 4 Group. A recalled
+ * message answers `status: 5`, which the enum does not list — an open question for the developers.
  * `getReadStatusGroupMessage` is **group-only** (an individual message answers 400 "Not
  * Applicable"), so an individual read receipt is verified from the message's own `status` field.
  *
@@ -222,274 +249,317 @@ test.describe('POST /v2/katchup/sendMessage @audit', () => {
     ).toBe(true);
   });
 
-  test('[FR-K04] a Copies (Cc) message — messageType 14 — is delivered', async ({
+  /*
+   * Copies (Cc) and Confidential Copy — BOTH `messageType 14` per the Excel Types tab.
+   *
+   * The shape below is the one the live web client sends (captured 2026-09-11), built by
+   * `buildCopyMessagePayload`: the people travel in `sharedMessageDetails` — `revealContactList` for
+   * Cc, `hiddenContactList` for Confidential — and delivery is driven by `forwardReceiverList`, which
+   * lists every recipient including the primary. Earlier revisions used `sharedDetailReceiverList`,
+   * which the client never sends; no copy was ever delivered and FR-K05 was wrongly declared blocked.
+   *
+   * Every verdict is read from each recipient's OWN copy (trap #5), one seeded message per test
+   * (trap #6). Three real accounts: the primary, a personal account and a business account.
+   */
+  const COPY_PRIMARY = VICTIM_KPOST_ID;
+  const COPY_SECOND = FOREIGN.thirdKpostID;
+  const COPY_BUSINESS = FOREIGN.businessReceiverKpostID;
+
+  test('[FR-K04] a Copies (Cc) message reaches every Cc recipient, and each sees the Cc list', async ({
     katchupClient,
+    authClient,
+    authSession,
     staticToken,
   }) => {
-    // Cc is a message TYPE (14 = Copies), not a `cc` field. The copies flow needs its own shape.
-    const body = buildKatchupMessagePayload({
-      subject: `QA-CC-${Date.now()}`,
-      receiver: VICTIM_KPOST_ID,
-      messageType: 14,
-      isCopyMessage: true,
-      sharedType: 2,
-      sharedDetailReceiverList: [VICTIM_KPOST_ID],
-    });
-    const response = await katchupClient.sendMessage(body, { token: staticToken });
-    const { json } = await readBody(response);
+    const sender = authSession.kpostID ?? env.qaKpostId;
+    const copies = [COPY_SECOND, COPY_BUSINESS];
+    const subject = `QA-CC-${Date.now()}`;
+    const response = await katchupClient.sendMessage(
+      buildCopyMessagePayload({ receiver: COPY_PRIMARY, copies }, { subject }),
+      { token: staticToken },
+    );
+    const { json, text } = await readBody(response);
     expect(
       wasAccepted(response.status(), json),
-      'a well-formed Copies (Cc) message must be accepted',
+      `FR-K04: the Copies send was refused (HTTP ${response.status()}). Body: ${text.slice(0, 200)}`,
     ).toBe(true);
+
+    for (const recipient of [COPY_PRIMARY, ...copies]) {
+      const token = await loginAs(authClient, recipient);
+      test.skip(
+        token === null,
+        `"${recipient}" could not authenticate, so their copy cannot be read`,
+      );
+
+      const { row } = await recipientCopy(katchupClient, token as string, sender, subject);
+      expect(
+        row,
+        `FR-K04: "${recipient}" never received the Copies message. Every Cc recipient and the primary must get their copy.`,
+      ).toBeDefined();
+
+      // Cc is visible by design: every recipient's copy lists every Cc recipient.
+      const { reveal } = contactListsOf(row as Record<string, unknown>);
+      expect(
+        copies.every((c) => reveal.includes(c)),
+        `FR-K04: "${recipient}"'s copy shows revealContactList ${JSON.stringify(reveal)}; a Cc list is visible by design and must name every Cc recipient.`,
+      ).toBe(true);
+    }
   });
 
-  test('[FR-K05] a Secret / Confidential message — messageType 18 — is delivered', async ({
+  test('[FR-K05] a Confidential Copy reaches the primary and every hidden recipient', async ({
+    katchupClient,
+    authClient,
+    authSession,
+    staticToken,
+  }) => {
+    const sender = authSession.kpostID ?? env.qaKpostId;
+    const confidential = [COPY_SECOND, COPY_BUSINESS];
+    const subject = `QA-CONF-DELIVERY-${Date.now()}`;
+    const response = await katchupClient.sendMessage(
+      buildCopyMessagePayload({ receiver: COPY_PRIMARY, confidential }, { subject }),
+      { token: staticToken },
+    );
+    const { json, text } = await readBody(response);
+    expect(
+      wasAccepted(response.status(), json),
+      `FR-K05: the Confidential Copy send was refused (HTTP ${response.status()}). Body: ${text.slice(0, 200)}`,
+    ).toBe(true);
+
+    for (const recipient of [COPY_PRIMARY, ...confidential]) {
+      const token = await loginAs(authClient, recipient);
+      test.skip(
+        token === null,
+        `"${recipient}" could not authenticate, so their copy cannot be read`,
+      );
+
+      const { row } = await recipientCopy(katchupClient, token as string, sender, subject);
+      expect(
+        row,
+        `FR-K05: "${recipient}" never received the Confidential Copy message. Adding someone as a Confidential Copy recipient must deliver them a copy.`,
+      ).toBeDefined();
+    }
+  });
+
+  test('a Secret message — messageType 18 — is delivered', async ({
     katchupClient,
     staticToken,
   }) => {
+    // No requirement id: Secret messages are not in the requirements list. This carried FR-K05
+    // (Confidential Copy) by mistake — 18 is Secret; Confidential Copy is 14 + hiddenContactList.
     const body = buildKatchupMessagePayload({
       subject: `QA-SECRET-${Date.now()}`,
       receiver: VICTIM_KPOST_ID,
-      messageType: 18,
+      messageType: KATCHUP_MESSAGE_TYPE.secret,
       secretMessageExpireTime: Date.now() + 3_600_000,
     });
     const response = await katchupClient.sendMessage(body, { token: staticToken });
     const { json } = await readBody(response);
     expect(
       wasAccepted(response.status(), json),
-      'a well-formed Secret (Confidential) message must be accepted',
+      'a well-formed Secret message must be accepted',
     ).toBe(true);
   });
 
   /*
-   * NFR-SEC02 — "Confidential Copy recipients shall not be visible to other recipients."
+   * NFR-SEC02 — "Confidential Copy recipients are not visible to other recipients."
    *
-   * TWO SHAPES carry a confidential party, and they are serialised by different code:
+   * "Other recipients" means everyone except the hidden person themselves: the primary, every Cc
+   * recipient, and every OTHER hidden recipient. Verified live 2026-09-11 on the QA host — the
+   * primary and a Cc recipient see `hiddenContactList: []`, and each hidden recipient sees only
+   * themselves. Both tests below pass there.
    *
-   *   A. messageType 18                 — the party sits in `selectedMembers`.
-   *   B. messageType 14 / sharedType 14 — the party sits in
-   *      `sharedMessageDetails.hiddenContactList`, a JSON *string* field.
+   * They exist because a capture from PRODUCTION shows the leak on exactly this shape: a
+   * recipient's own row carried `"hiddenContactList": ["aashavelu@kpostindia.com"]`. Production is
+   * likely on a build without the strip.
    *
-   * Only A was covered. A live capture from the production API shows the leak on B: the
-   * recipient's own row came back carrying `"hiddenContactList": ["aashavelu@kpostindia.com"]`.
-   * In the SAME response the reference-snapshot copy of that message — embedded in another row's
-   * `referenceMessage` — had `hiddenContactList` empty. So a stripping step exists on the
-   * snapshot path and not on the direct read: two serialisers, one rule, one of them applying it.
-   *
-   * Written as data plus two literal tests rather than a loop. Each variant must report its own
-   * verdict — "one of them leaks" is not an actionable ticket — and a loop collapses to a single
-   * `test(` line, which the traceability depth count and the gate auditor both read as one test.
+   * A variant built on messageType 18 was removed. 18 is Secret; its `selectedMembers` field makes
+   * nobody a recipient. It filed BUG-API-6EEBB3 as a Critical — invalid.
    */
-  type ConfidentialVariant = {
-    readonly label: string;
-    readonly build: (args: {
-      subject: string;
-      primary: string;
-      confidential: string;
-    }) => Record<string, unknown>;
-  };
-
-  const CONFIDENTIAL_VARIANTS = {
-    typeEighteen: {
-      label: 'messageType 18, party in selectedMembers',
-      build: ({ subject, primary, confidential }) =>
-        buildKatchupMessagePayload({
-          subject,
-          receiver: primary,
-          messageType: 18,
-          selectedMembers: confidential,
-          secretMessageExpireTime: Date.now() + 3_600_000,
-        }),
-    },
-    sharedFourteen: {
-      label: 'messageType 14 / sharedType 14, party in sharedMessageDetails.hiddenContactList',
-      build: ({ subject, primary, confidential }) =>
-        buildKatchupMessagePayload({
-          subject,
-          receiver: primary,
-          messageType: 14,
-          sharedType: 14,
-          isCopyMessage: true,
-          sharedDetailReceiverList: [primary],
-          // A JSON *string* — that is how the API both accepts and returns this field.
-          sharedMessageDetails: JSON.stringify({
-            receiver: primary,
-            receiverName: 'QA Primary',
-            hiddenContactList: [confidential],
-            revealContactList: [],
-          }),
-        }),
-    },
-  } satisfies Record<string, ConfidentialVariant>;
-
-  /** Every hiddenContactList on a row, whether the field arrives as a JSON string or an object. */
-  function hiddenContactsOf(row: Record<string, unknown>): string[] {
-    const out: string[] = [];
-    const visit = (value: unknown): void => {
-      if (value == null) return;
-      if (typeof value === 'string') {
-        if (!value.includes('hiddenContactList')) return;
-        try {
-          visit(JSON.parse(value) as unknown);
-        } catch {
-          // Not JSON. The whole-row substring assertion still covers it.
-        }
-        return;
-      }
-      if (Array.isArray(value)) {
-        for (const item of value) visit(item);
-        return;
-      }
-      if (typeof value === 'object') {
-        for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
-          if (key === 'hiddenContactList' && Array.isArray(item)) out.push(...item.map(String));
-          else visit(item);
-        }
-      }
-    };
-    visit(row);
-    return out;
-  }
-
-  /**
-   * Sends one variant and judges it from the RECIPIENT's own fetch.
-   *
-   * Delivery is AWAITED with `expect.poll`, not skipped past. A Critical that quietly skips
-   * because the message had not landed yet is a Critical nobody ever sees; if it never arrives
-   * inside the window that is a failure, because the rule cannot be verified either way.
-   */
-  async function assertConfidentialPartyHidden(
-    variant: ConfidentialVariant,
+  async function assertHiddenRecipientsStayHidden(
     ctx: {
       katchupClient: KatchupV2Client;
       authClient: AuthClient;
       staticToken: string;
       sender: string;
     },
+    parties: { copies: string[]; confidential: string[] },
+    label: string,
   ): Promise<void> {
-    const confidential = VICTIM_KPOST_ID;
-    const primary = FOREIGN.businessReceiverKpostID;
     const subject = `QA-CONF-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const body = variant.build({ subject, primary, confidential });
-
-    const response = await ctx.katchupClient.sendMessage(body, { token: ctx.staticToken });
-    const { json, text } = await readBody(response);
+    const body = buildCopyMessagePayload({ receiver: COPY_PRIMARY, ...parties }, { subject });
+    const sent = await ctx.katchupClient.sendMessage(body, { token: ctx.staticToken });
+    const sentBody = await readBody(sent);
     test.skip(
-      !wasAccepted(response.status(), json),
-      `the send was not accepted on this environment (HTTP ${response.status()}): ${text.slice(0, 160)}`,
+      !wasAccepted(sent.status(), sentBody.json),
+      `the send was not accepted on this environment (HTTP ${sent.status()}): ${sentBody.text.slice(0, 160)}`,
     );
 
-    // Throwaway device id: the default belongs to QA_KPOST_ID and reusing it evicts that session.
-    const login = await ctx.authClient.userLogin(
-      buildLoginPayload(primary, env.qaPassword, {
-        deviceIdentity_primary: `qa-nfrsec02-${Date.now()}`,
-        loginRO: { countryID: env.qaCountryId, password: env.qaPassword, userType: 'BUSINESS_M' },
-      }),
-    );
-    const recipientToken = /eyJ[\w-]+\.[\w-]+\.[\w-]+/.exec(await login.text())?.[0] ?? null;
-    test.skip(
-      recipientToken === null,
-      `the primary recipient "${primary}" could not authenticate, so their view cannot be read`,
-    );
+    for (const viewer of [COPY_PRIMARY, ...parties.copies, ...parties.confidential]) {
+      const token = await loginAs(ctx.authClient, viewer);
+      test.skip(token === null, `"${viewer}" could not authenticate, so their copy cannot be read`);
 
-    const fetchDelivered = async (): Promise<Record<string, unknown> | undefined> => {
-      const inbox = await ctx.katchupClient.katchupMessagesForSelectedContactID(
-        {
-          selectedContact: ctx.sender,
-          receiver: ctx.sender,
-          groupFlag: false,
-          firstMsgID: null,
-          lastMsgID: null,
-          msgID: 0,
-        },
-        { token: recipientToken as string },
+      const { row, response } = await recipientCopy(
+        ctx.katchupClient,
+        token as string,
+        ctx.sender,
+        subject,
       );
-      try {
-        const rows =
-          (JSON.parse(await inbox.text()) as { data?: Array<Record<string, unknown>> }).data ?? [];
-        return rows.find((row) => String(row.subject ?? '') === subject);
-      } catch {
-        return undefined;
+      expect(
+        row,
+        `NFR-SEC02 (${label}): "${viewer}" never received the message within 15s, so what they can see cannot be judged.`,
+      ).toBeDefined();
+
+      // A hidden recipient may see themselves; nobody may see any OTHER hidden recipient.
+      const others = parties.confidential.filter((c) => c !== viewer);
+      const { hidden } = contactListsOf(row as Record<string, unknown>);
+      const inList = hidden.filter((h) => h !== viewer);
+      const anywhere = others.filter((c) => JSON.stringify(row).includes(c));
+
+      if (inList.length || anywhere.length) {
+        await reportBusinessLogicFlaw(
+          response,
+          {
+            ...META,
+            body,
+            title:
+              'A Confidential Copy (hiddenContactList) recipient is disclosed to another recipient',
+            scenario:
+              `A messageType 14 Confidential Copy (${label}) was sent to ${COPY_PRIMARY}. Reading as ` +
+              `"${viewer}", their own copy names hidden recipient(s) ${JSON.stringify([...new Set([...inList, ...anywhere])])}. ` +
+              'NFR-SEC02 requires Confidential Copy recipients to stay invisible to every other ' +
+              'recipient — the feature exists solely to withhold that identity. ' +
+              `Delivered row: ${JSON.stringify(row).slice(0, 300)}`,
+          },
+          'Security/Information Disclosure',
+          'Critical',
+        );
       }
-    };
 
-    await expect
-      .poll(async () => (await fetchDelivered()) !== undefined, {
-        timeout: 15_000,
-        intervals: [500, 1_000, 1_000, 2_000, 2_000, 2_000, 3_000, 3_000],
-        message: `the message never reached the primary recipient within 15s, so NFR-SEC02 could not be verified on this shape. A Critical must not pass by default because delivery was slow.`,
-      })
-      .toBe(true);
-
-    const ourRow = (await fetchDelivered()) as Record<string, unknown>;
-
-    /*
-     * Two assertions, deliberately. The substring check catches the party appearing ANYWHERE on
-     * the row; the field check names the exact place the production capture showed it. A fix that
-     * empties hiddenContactList while leaking elsewhere — or the reverse — still fails.
-     */
-    const hidden = hiddenContactsOf(ourRow);
-    const inHiddenList = hidden.includes(confidential);
-    const anywhereOnRow = JSON.stringify(ourRow).includes(confidential);
-
-    if (inHiddenList || anywhereOnRow) {
-      await reportBusinessLogicFlaw(
-        response,
-        {
-          ...META,
-          body,
-          title: 'A Confidential Copy recipient is disclosed to the primary recipient',
-          scenario:
-            `A confidential message was sent as ${variant.label}. Expected: the confidential ` +
-            "recipient is stripped from every other recipient's copy. Actual: the primary " +
-            'recipient fetches the message via katchupMessagesForSelectedContactID and receives ' +
-            `the confidential account ${inHiddenList ? `in hiddenContactList ${JSON.stringify(hidden)}` : 'on the delivered row'}. ` +
-            'NFR-SEC02 requires Confidential Copy recipients to stay invisible to other ' +
-            'recipients — the feature exists solely to withhold that identity, so disclosing it ' +
-            `defeats it entirely. Delivered row: ${JSON.stringify(ourRow).slice(0, 300)}`,
-        },
-        'Security/Information Disclosure',
-        'Critical',
-      );
+      expect(
+        inList,
+        `NFR-SEC02 (${label}): "${viewer}"'s own copy lists other hidden recipients in hiddenContactList. Row: ${JSON.stringify(row).slice(0, 300)}`,
+      ).toEqual([]);
+      expect(
+        anywhere,
+        `NFR-SEC02 (${label}): "${viewer}"'s own copy names another hidden recipient somewhere on the row. Row: ${JSON.stringify(row).slice(0, 300)}`,
+      ).toEqual([]);
     }
-
-    expect(
-      inHiddenList,
-      `NFR-SEC02 (${variant.label}): the delivered row carries the confidential account "${confidential}" in hiddenContactList ${JSON.stringify(hidden)} — the one field whose entire purpose is to stay server-side. Row: ${JSON.stringify(ourRow).slice(0, 300)}`,
-    ).toBe(false);
-
-    expect(
-      anywhereOnRow,
-      `NFR-SEC02 (${variant.label}): the primary recipient's own copy names the Confidential Copy recipient "${confidential}" somewhere on the row. Row: ${JSON.stringify(ourRow).slice(0, 300)}`,
-    ).toBe(false);
   }
 
-  test('[NFR-SEC02] messageType 18: a Confidential Copy recipient must not be exposed', async ({
+  test('[NFR-SEC02] Confidential Copy: no recipient sees another hidden recipient', async ({
     katchupClient,
     authClient,
     authSession,
     staticToken,
   }) => {
-    await assertConfidentialPartyHidden(CONFIDENTIAL_VARIANTS.typeEighteen, {
-      katchupClient,
-      authClient,
-      staticToken,
-      sender: authSession.kpostID ?? env.qaKpostId,
-    });
+    await assertHiddenRecipientsStayHidden(
+      { katchupClient, authClient, staticToken, sender: authSession.kpostID ?? env.qaKpostId },
+      { copies: [], confidential: [COPY_SECOND, COPY_BUSINESS] },
+      'two hidden recipients',
+    );
   });
 
-  test('[NFR-SEC02] sharedType 14: hiddenContactList must not reach the other recipient', async ({
+  test('[NFR-SEC02] Cc + Confidential: a Cc recipient never sees the hidden recipient', async ({
     katchupClient,
     authClient,
     authSession,
     staticToken,
   }) => {
-    await assertConfidentialPartyHidden(CONFIDENTIAL_VARIANTS.sharedFourteen, {
-      katchupClient,
-      authClient,
-      staticToken,
-      sender: authSession.kpostID ?? env.qaKpostId,
-    });
+    await assertHiddenRecipientsStayHidden(
+      { katchupClient, authClient, staticToken, sender: authSession.kpostID ?? env.qaKpostId },
+      { copies: [COPY_SECOND], confidential: [COPY_BUSINESS] },
+      'mixed Cc and Confidential',
+    );
+  });
+
+  test('[NFR-SEC02] a Note on a Confidential Copy must not carry the hidden list in its snapshot', async ({
+    katchupClient,
+    authClient,
+    authSession,
+    staticToken,
+  }) => {
+    /*
+     * The subtle leak. The top-level `hiddenContactList` is stripped per recipient correctly, but a
+     * Note / Reminder / Reply embeds a `referenceMessage` SNAPSHOT of the original, and the live web
+     * client builds that snapshot from the sender's view — which legitimately holds the full hidden
+     * list. The server serves the snapshot to every recipient unchanged, so the primary and each
+     * hidden recipient learn the other hidden recipients through the note. Confirmed live 2026-09-11.
+     *
+     * Judged from each recipient's OWN copy (trap #5), one seeded thread (trap #6).
+     */
+    const sender = authSession.kpostID ?? env.qaKpostId;
+    const primary = VICTIM_KPOST_ID;
+    const hidden = [FOREIGN.thirdKpostID, FOREIGN.businessReceiverKpostID];
+    const subject = `QA-NOTE-CONF-${Date.now()}`;
+
+    const orig = await katchupClient.sendMessage(
+      buildCopyMessagePayload({ receiver: primary, confidential: hidden }, { subject }),
+      { token: staticToken },
+    );
+    const origRow = ((await readBody(orig)).json as { data?: Array<Record<string, unknown>> })
+      ?.data?.[0];
+    test.skip(!origRow?.msgID, 'the confidential original was not accepted on this environment');
+
+    const noteMarker = `QA-NOTE-${Date.now()}`;
+    // A note on a copies thread carries the copy envelope (forwardReceiverList / sharedMessageDetails)
+    // AND the referenceMessage snapshot — the live client's shape. Without the envelope the server 500s.
+    const note = await katchupClient.sendMessage(
+      buildCopyMessagePayload(
+        { receiver: primary, confidential: hidden },
+        {
+          subject,
+          sharedType: KATCHUP_SHARE_TYPE.note,
+          temporaryMsgID: (origRow as Record<string, unknown>).msgID,
+          referenceMessage: katchupSnapshotOf(origRow as Record<string, unknown>),
+          actualMessage: `[{"insert":"${noteMarker}\\n"}]`,
+        },
+      ),
+      { token: staticToken },
+    );
+    const { json: noteJson } = await readBody(note);
+    test.skip(
+      !wasAccepted(note.status(), noteJson),
+      'the note was not accepted on this environment',
+    );
+
+    for (const viewer of [primary, ...hidden]) {
+      const token = await loginAs(authClient, viewer);
+      test.skip(
+        token === null,
+        `"${viewer}" could not authenticate, so their copy of the note cannot be read`,
+      );
+
+      const { row } = await recipientCopy(katchupClient, token as string, sender, subject);
+      test.skip(
+        row === undefined,
+        `the note never reached "${viewer}", so the snapshot cannot be judged`,
+      );
+
+      const others = hidden.filter((h) => h !== viewer);
+      const leaked = others.filter((h) => JSON.stringify(row).includes(h));
+      if (leaked.length) {
+        await reportBusinessLogicFlaw(
+          note,
+          {
+            ...META,
+            body: {},
+            title: 'A Note on a Confidential Copy leaks the hidden recipients through its snapshot',
+            scenario:
+              `A Confidential Copy to ${primary} (hidden: ${JSON.stringify(hidden)}) was annotated with a Note ` +
+              "(sharedType 5). The top-level hiddenContactList is stripped per recipient, but the note's " +
+              `referenceMessage snapshot carries the full hidden list, so reading as "${viewer}" exposes hidden ` +
+              `recipient(s) ${JSON.stringify(leaked)}. NFR-SEC02 requires Confidential Copy recipients to stay ` +
+              `invisible to every other recipient. Delivered note: ${JSON.stringify(row).slice(0, 300)}`,
+          },
+          'Security/Information Disclosure',
+          'Critical',
+        );
+      }
+      expect(
+        leaked,
+        `NFR-SEC02: reading the Note as "${viewer}", its snapshot exposes other hidden recipient(s). Row: ${JSON.stringify(row).slice(0, 300)}`,
+      ).toEqual([]);
+    }
   });
 
   test('[FR-K08] a sender can Edit a message they sent — messageType 6', async ({
@@ -793,60 +863,98 @@ test.describe('POST /v2/katchup/sendMessage @audit', () => {
     ).toBe(true);
   });
 
-  test('[FR-K12] a sender can attach a Note to a message — messageType 5', async ({
+  test('[FR-K12] a sender can attach a Note (sharedType 5) without overwriting the message', async ({
     katchupClient,
     staticToken,
   }) => {
-    const base = await katchupClient.sendMessage(
-      buildKatchupMessagePayload({ subject: `QA-NOTE-${Date.now()}`, receiver: VICTIM_KPOST_ID }),
-      { token: staticToken },
-    );
-    const msgID = await sentMessageId(base);
-    expect(msgID, 'the base message must send so a note can be attached to it').not.toBeNull();
-
-    const note = buildKatchupMessagePayload({
-      subject: `QA-NOTE-${Date.now()}`,
-      receiver: VICTIM_KPOST_ID,
-      messageType: 5,
-      msgID: msgID as number,
-      referenceMsgID: msgID as number,
-      actualMessage: 'QA note attached to the message',
-    });
-    const response = await katchupClient.sendMessage(note, { token: staticToken });
-    const { json } = await readBody(response);
-    expect(
-      wasAccepted(response.status(), json),
-      'attaching a Note (type 5) to an own message must be accepted',
-    ).toBe(true);
-  });
-
-  test('[FR-K13] a sender can set a Reminder on a message — messageType 3', async ({
-    katchupClient,
-    staticToken,
-  }) => {
+    /*
+     * A Note rides on the thread as `sharedType 5` and references the original via
+     * `temporaryMsgID` + a `referenceMessage` snapshot — the live web client's shape. The old test
+     * sent `messageType 5` + `msgID`, and `msgID` OVERWRITES the referenced row (see
+     * gate/security/messageOwnership), so it destroyed the base message and still reported success.
+     */
+    const baseMarker = `QA-NOTE-BASE-${Date.now()}`;
     const base = await katchupClient.sendMessage(
       buildKatchupMessagePayload({
-        subject: `QA-REMINDER-${Date.now()}`,
+        subject: baseMarker,
         receiver: VICTIM_KPOST_ID,
+        actualMessage: `[{"insert":"${baseMarker}\\n"}]`,
       }),
       { token: staticToken },
     );
-    const msgID = await sentMessageId(base);
-    expect(msgID, 'the base message must send so a reminder can be set on it').not.toBeNull();
+    const { json: baseJson } = await readBody(base);
+    const baseRow = (baseJson as { data?: Array<Record<string, unknown>> })?.data?.[0];
+    expect(baseRow?.msgID, 'the base message must send so a note can reference it').toBeDefined();
 
-    const reminder = buildKatchupMessagePayload({
-      subject: `QA-REMINDER-${Date.now()}`,
-      receiver: VICTIM_KPOST_ID,
-      messageType: 3,
-      msgID: msgID as number,
-      referenceMsgID: msgID as number,
-      actualMessage: 'QA reminder on the message',
-    });
-    const response = await katchupClient.sendMessage(reminder, { token: staticToken });
+    const noteMarker = `QA-NOTE-${Date.now()}`;
+    const response = await katchupClient.sendMessage(
+      buildReferenceActionPayload(baseRow as Record<string, unknown>, KATCHUP_SHARE_TYPE.note, {
+        subject: baseMarker,
+        actualMessage: `[{"insert":"${noteMarker}\\n"}]`,
+      }),
+      { token: staticToken },
+    );
     const { json } = await readBody(response);
+    expect(wasAccepted(response.status(), json), 'attaching a Note must be accepted').toBe(true);
+
+    const rows = await conversationRows(katchupClient, staticToken, VICTIM_KPOST_ID);
     expect(
-      wasAccepted(response.status(), json),
-      'setting a Reminder (type 3) on an own message must be accepted',
+      rows.some(
+        (r) =>
+          Number(r.msgID) === Number(baseRow?.msgID) &&
+          String(r.actualMessage ?? '').includes(baseMarker),
+      ),
+      `FR-K12: attaching a Note destroyed the base message ${baseRow?.msgID} instead of annotating it — the Note was sent with the msgID takeover vector.`,
+    ).toBe(true);
+    expect(
+      rows.some(
+        (r) =>
+          String(r.actualMessage ?? '').includes(noteMarker) &&
+          Number(r.msgID) !== Number(baseRow?.msgID),
+      ),
+      'FR-K12: the Note was not delivered as its own message.',
+    ).toBe(true);
+  });
+
+  test('[FR-K13] a sender can set a Reminder (sharedType 3) without overwriting the message', async ({
+    katchupClient,
+    staticToken,
+  }) => {
+    const baseMarker = `QA-REMINDER-BASE-${Date.now()}`;
+    const base = await katchupClient.sendMessage(
+      buildKatchupMessagePayload({
+        subject: baseMarker,
+        receiver: VICTIM_KPOST_ID,
+        actualMessage: `[{"insert":"${baseMarker}\\n"}]`,
+      }),
+      { token: staticToken },
+    );
+    const { json: baseJson } = await readBody(base);
+    const baseRow = (baseJson as { data?: Array<Record<string, unknown>> })?.data?.[0];
+    expect(
+      baseRow?.msgID,
+      'the base message must send so a reminder can reference it',
+    ).toBeDefined();
+
+    const reminderMarker = `QA-REMINDER-${Date.now()}`;
+    const response = await katchupClient.sendMessage(
+      buildReferenceActionPayload(baseRow as Record<string, unknown>, KATCHUP_SHARE_TYPE.reminder, {
+        subject: baseMarker,
+        actualMessage: `[{"insert":"${reminderMarker}\\n"}]`,
+      }),
+      { token: staticToken },
+    );
+    const { json } = await readBody(response);
+    expect(wasAccepted(response.status(), json), 'setting a Reminder must be accepted').toBe(true);
+
+    const rows = await conversationRows(katchupClient, staticToken, VICTIM_KPOST_ID);
+    expect(
+      rows.some(
+        (r) =>
+          Number(r.msgID) === Number(baseRow?.msgID) &&
+          String(r.actualMessage ?? '').includes(baseMarker),
+      ),
+      `FR-K13: setting a Reminder destroyed the base message ${baseRow?.msgID} instead of annotating it.`,
     ).toBe(true);
   });
 });

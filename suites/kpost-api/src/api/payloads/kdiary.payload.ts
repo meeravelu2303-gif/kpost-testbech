@@ -1,5 +1,6 @@
 import { faker } from '../../utils/dataGen';
 import { qaLabel } from '../../utils/safeTestData';
+import { KALL_MODE, KDIARY_REMARKS } from '../enums/kpostTypes';
 
 /**
  * Request builders for the Kdiary controller (`/dairySchedule/**`).
@@ -76,7 +77,7 @@ export interface DiarySchedulePayload {
  * so the two builders below deliberately differ on those fields rather than sharing one shape.
  */
 export function buildSchedulePayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): DiarySchedulePayload {
   return {
     title: qaLabel('schedule'),
@@ -92,7 +93,7 @@ export function buildSchedulePayload(
     scheduleEndDateAndTime: diaryTimestamp(120),
     isReminder: false,
     isKoolKall: false,
-    kallMode: 0,
+    kallMode: KALL_MODE.audio,
     preferredDays: '',
     preferredWeek: '',
     preferredDate: '',
@@ -110,7 +111,7 @@ export function buildSchedulePayload(
  * meant no case could ever exercise the series branch.
  */
 export function buildExistingSchedulePayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): DiarySchedulePayload {
   return buildSchedulePayload({
     eventID: nonExistentEventId(),
@@ -127,7 +128,9 @@ export function buildExistingSchedulePayload(
  * overwrites that from the bearer token, but on `getEventDate` it does not — which is exactly
  * what the ownership tests target.
  */
-export function buildKdiaryROPayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+export function buildKdiaryROPayload(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
   return {
     title: qaLabel('event'),
     description: faker.lorem.sentence(),
@@ -140,7 +143,7 @@ export function buildKdiaryROPayload(overrides: Record<string, unknown> = {}): R
     seriesEndDate: diaryDate(30),
     isReminder: false,
     isKoolKall: false,
-    kallMode: 0,
+    kallMode: KALL_MODE.audio,
     // Array-typed on this DTO, unlike DiarySchedule.
     preferredDays: [],
     preferredWeek: [],
@@ -159,18 +162,22 @@ export function buildKdiaryROPayload(overrides: Record<string, unknown> = {}): R
 }
 
 /** A remarks update against an existing event. Defaults to a non-existent id. */
-export function buildRemarksPayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+export function buildRemarksPayload(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
   return buildKdiaryROPayload({
     eventID: nonExistentEventId(),
     eventIds: [nonExistentEventId()],
-    remarks: 1,
+    remarks: KDIARY_REMARKS.completed,
     remarksDescription: faker.lorem.sentence(),
     ...overrides,
   });
 }
 
 /** A date filter for getEventDate / getEventSelectedDate. */
-export function buildDateFilterPayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+export function buildDateFilterPayload(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
   return buildKdiaryROPayload({
     scheduleStartDateAndTime: `${diaryDate()} 00:00:00`,
     scheduleEndDateAndTime: `${diaryDate()} 23:59:59`,
@@ -185,7 +192,9 @@ export function buildDateFilterPayload(overrides: Record<string, unknown> = {}):
  * `kpostID` is present on the DTO but the controller overwrites it from the token on all
  * three routes, so a body value must never determine whose report is written.
  */
-export function buildReportPayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+export function buildReportPayload(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
   return {
     taskReport: `${qaLabel('report')} :: ${faker.lorem.sentence()}`,
     ...overrides,
@@ -194,14 +203,14 @@ export function buildReportPayload(overrides: Record<string, unknown> = {}): Rec
 
 /** A report edit/delete addressing an existing row. Defaults to a non-existent id. */
 export function buildExistingReportPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return buildReportPayload({ id: nonExistentReportId(), ...overrides });
 }
 
 /** A participant list addition against an existing event. */
 export function buildAddParticipantsPayload(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): DiarySchedulePayload {
   return buildSchedulePayload({
     eventID: nonExistentEventId(),

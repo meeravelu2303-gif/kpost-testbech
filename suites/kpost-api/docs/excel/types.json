@@ -1,0 +1,183 @@
+{
+  "source": "KPOST API (5).xlsx",
+  "sheet": "Types(Katchup,Kall&KDiary)",
+  "sections": {
+    "katchupStatus": {
+      "cell": "A3",
+      "values": {
+        "0": "Sent",
+        "1": "Unread",
+        "2": "Read",
+        "3": "Not sent",
+        "4": "Group"
+      }
+    },
+    "katchupMessageType": {
+      "cell": "A3",
+      "values": {
+        "0": "Normal Message",
+        "1": "Reply Message",
+        "2": "Share Message",
+        "3": "Reminder Message",
+        "4": "sms Message",
+        "5": "Note Message",
+        "6": "Edit Message",
+        "7": "Recall Message",
+        "8": "Comment Message",
+        "9": "Clarify Message",
+        "10": "Notification Mail /msgs",
+        "11": "Group Notification",
+        "14": "Copies Message",
+        "15": "Forward Message(Reveal)",
+        "16": "Forward Message(Hidden)",
+        "17": "Schedule call",
+        "18": "Secret Message",
+        "19": "bulk message",
+        "20": "forward multiple thread (Reveal)",
+        "21": "forward multiple thread (Hidden)",
+        "22": "Share digital card",
+        "23": "share location",
+        "24": "forward_selected_attachment",
+        "25": "Broadcast (reply enabled)",
+        "26": "Broadcast (no reply msg)"
+      }
+    },
+    "katchupShareType": {
+      "cell": "A5",
+      "values": {
+        "1": "Reply Message",
+        "2": "Share Message",
+        "3": "Reminder Message",
+        "5": "Note Message",
+        "6": "Edit Message",
+        "7": "Recall Message",
+        "8": "Comment Message",
+        "9": "Clarify Message",
+        "10": "Mail",
+        "15": "Forward Message"
+      }
+    },
+    "kallStatus": {
+      "cell": "C3",
+      "values": {
+        "0": "new",
+        "1": "connected",
+        "2": "cancelled",
+        "3": "noresponse",
+        "4": "declined",
+        "5": "busy",
+        "6": "Scheduled",
+        "7": "ReScheduled",
+        "8": "closed",
+        "9": "removed",
+        "10": "KoolKall Accepted",
+        "11": "Not Joined"
+      }
+    },
+    "kallType": {
+      "cell": "C3",
+      "values": {
+        "0": "normal",
+        "1": "kool/ scheduled"
+      }
+    },
+    "kallMode": {
+      "cell": "C5",
+      "values": {
+        "0": "Audio",
+        "1": "video",
+        "2": "Audio to video converted",
+        "3": "video to audio converted",
+        "4": "Primary Audio",
+        "5": "Primary Video"
+      }
+    },
+    "kallRepeatType": {
+      "cell": "C5",
+      "values": {
+        "0": "none",
+        "1": "daily",
+        "2": "weekly",
+        "3": "monthly"
+      }
+    },
+    "kmailType": {
+      "cell": "E3",
+      "values": {
+        "0": "New",
+        "1": "Reply",
+        "2": "Forward",
+        "3": "Reminder",
+        "4": "Draft",
+        "5": "Edit",
+        "6": "Note",
+        "7": "Delete",
+        "8": "Comment",
+        "9": "Clarify",
+        "10": "forward thread",
+        "11": "share",
+        "12": "mail otp",
+        "13": "bulkmail"
+      }
+    },
+    "kmailReceiverType": {
+      "cell": "E3",
+      "values": {
+        "1": "TO",
+        "2": "COPY",
+        "3": "CONFIDENTIAL"
+      }
+    },
+    "kmailPriority": {
+      "cell": "E3",
+      "values": {
+        "0": "low",
+        "1": "medium",
+        "2": "high"
+      }
+    },
+    "module": {
+      "cell": "E5",
+      "values": {
+        "0": "Kpost",
+        "1": "KatbookStore",
+        "2": "KmedDictionary",
+        "3": "SalesAndMarketing",
+        "4": "AdminModule",
+        "5": "KmedGlobal",
+        "6": "KadJournal",
+        "7": "KtechGlobal",
+        "8": "UstudyGlobal",
+        "9": "KtechDictionary",
+        "10": "uEducate",
+        "11": "UstudyGlobalAdmin",
+        "12": "KmedAdmin",
+        "13": "SDMS",
+        "14": "KmedPrep",
+        "15": "library Mgmt",
+        "16": "HRMS",
+        "17": "Kmed Library"
+      }
+    },
+    "kdiaryRemarks": {
+      "cell": "G3",
+      "values": {
+        "0": "None",
+        "1": "Completed",
+        "2": "Pending",
+        "3": "Not Done",
+        "4": "ReSchedule",
+        "5": "OnHold",
+        "6": "Delete"
+      }
+    },
+    "businessUserType": {
+      "cell": "I3",
+      "values": [
+        "BUSINESS_S",
+        "BUSINESS_M",
+        "BUSINESS_L"
+      ]
+    }
+  }
+}

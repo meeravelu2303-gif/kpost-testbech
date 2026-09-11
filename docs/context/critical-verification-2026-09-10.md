@@ -228,3 +228,48 @@ password issues a token again.
    same backoff the API bench's BR-S01 test already uses.
 2. A suite that fails to authenticate writes a report with `"defects": []`. A total execution
    failure must not be indistinguishable from a clean run.
+
+---
+
+# Retraction — 2026-09-11: BUG-API-6EEBB3 is invalid
+
+`BUG-API-6EEBB3` ("A Confidential Copy recipient is disclosed to the primary recipient", Critical)
+was filed on a **`messageType 18`** message with the "confidential" party in `selectedMembers`.
+The product team's type enum says **18 is a Secret message**. Confidential Copy is **`messageType
+14`**, with the party in `sharedMessageDetails.hiddenContactList` (Copies/Cc uses
+`revealContactList` on the same type).
+
+Measured live, one seeded message per case:
+
+| shape | party received a copy? | named on the primary's copy? |
+| --- | --- | --- |
+| 18 Secret, `selectedMembers` = party | **no** | yes — `selectedMembers` echoes what the sender typed |
+| 14, `hiddenContactList` = [party] | no | **no** — list comes back `[]` |
+| 14, `revealContactList` = [party] | no | yes — correct for Cc |
+
+On a Secret message `selectedMembers` makes nobody a recipient, so there was no confidential recipient
+to disclose. The ticket is invalid. The evidence was real; the premise came from a mislabel in the
+bench's own header ("18 = Secret / Conf.") that nobody checked against the product enum. The filing
+pre-flight cannot catch this class — it checks evidence against claim, not domain semantics.
+
+What remains true: a **production** capture shows `hiddenContactList` populated on a recipient's
+own row for the correct shape (messageType 14). QA strips it. That production leak is the real
+finding. Separately, the copied party never received a copy in any shape tried — an open question
+on how Cc / Confidential Copy delivery is driven (FR-K05 is now declared blocked on it).
+
+---
+
+# Resolved — 2026-09-11: Copies and Confidential Copy work on QA
+
+The "copied party never received a copy" question above was a **bench error**. The live web client
+drives delivery with `forwardReceiverList` (every recipient, Cc/hidden people and the primary); the
+bench had used `sharedDetailReceiverList`, which the client never sends. With the client's own shape
+(now `buildCopyMessagePayload`), every recipient receives the message, and visibility is correct from
+every vantage point on QA: Cc recipients all see the Cc list; the primary and Cc recipients see
+`hiddenContactList: []`; each hidden recipient sees only themselves. FR-K05 is no longer blocked.
+
+The **production** capture showing `hiddenContactList` populated on a recipient's own row is still the
+open finding — QA does not reproduce it, so production is likely on a different build.
+
+Type codes now come from the workbook's `Types(Katchup,Kall&KDiary)` tab via
+`src/api/enums/kpostTypes.ts`, checked against the tab by `npm run test:unit`.
