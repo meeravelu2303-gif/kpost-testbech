@@ -602,12 +602,46 @@ export async function assertRejectsInvalidInput(
      */
     identityTitle: `${meta.scenario} is not rejected with 400/422`,
     /*
-     * Callers may downgrade explicitly. The default treats a 2xx as acceptance, which is right
-     * for a write — an invalid body that returns 200 has persisted a corrupt row. A read marked
-     * `readOnly` accepts nothing and creates nothing, so it is graded Major: a real validation
-     * defect and a misleading response, but not a data-integrity breach.
+     * ONE TICKET PER ENDPOINT for the "no input validation" fault — not one per fuzzed field.
+     *
+     * A controller that never validates its body produces a separate finding for every field the
+     * suite fuzzes it with: omitted, null, empty, wrong type, oversized, each on every route. On
+     * 2026-09-10 that was **62 tickets for 4 defects** — 26 on Kdiary, 21 on Kall, 9 on Contacts,
+     * 6 on Groups — and it is the single biggest reason the report is hard to act on. A developer
+     * fixes one endpoint once; they should receive one ticket, with the fields listed as
+     * occurrences.
+     *
+     * Collapsed per ENDPOINT rather than per module, deliberately: an endpoint is the unit
+     * someone actually fixes, and two routes in the same controller can genuinely differ.
+     *
+     * `silentlyAccepted` is NOT collapsed. Each accepted input is a distinct business rule that
+     * has to be written ("a call with nobody invited", "an event that ends before it starts") —
+     * merging those would hide requirements rather than duplicate noise.
      */
-    severity: meta.severity ?? (silentlyAccepted ? (readOnly ? 'Major' : 'Critical') : 'Minor'),
+    dedupeKey: silentlyAccepted
+      ? undefined
+      : httpStatus >= 500
+        ? `UNVALIDATED-INPUT-5XX:${meta.method} ${meta.path}`
+        : `WRONG-REJECT-STATUS-${httpStatus}:${meta.method} ${meta.path}`,
+    /*
+     * Callers may downgrade explicitly.
+     *
+     * **A missing validation rule is MAJOR, not Critical.** The root `CLAUDE.md` defines Critical
+     * as auth bypass, injection or data exposure, and adds the reason: "a report where everything
+     * is Critical is a report nobody reads." This helper previously graded every accepted invalid
+     * write Critical on the argument that a corrupt row is a data-integrity breach. That argument
+     * is real but it is not the same class of harm — nobody's data is exposed and no control is
+     * bypassed — and it put 6 of 17 Criticals on things like "a booked call with nobody invited"
+     * and "an event that ends before it starts". Those are bugs worth fixing and worth reading
+     * about *after* the stored XSS and the anonymous directory dump.
+     *
+     * A read marked `readOnly` stays a rung lower still: it accepts nothing and creates nothing.
+     *
+     * Escalate deliberately, at the call site, when an accepted input genuinely does breach a
+     * security boundary — `meta.severity` is there for exactly that.
+     */
+    severity:
+      meta.severity ?? (silentlyAccepted ? (readOnly ? 'Minor' : 'Major') : 'Minor'),
     classification: silentlyAccepted
       ? 'Input Validation Gap'
       : httpStatus >= 500

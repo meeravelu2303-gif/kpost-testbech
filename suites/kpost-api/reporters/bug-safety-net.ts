@@ -260,10 +260,25 @@ export default class BugSafetyNetReporter implements Reporter {
         // exist, and the id must still be scoped to the test it belongs to.
         testId: test.id,
         title,
-        // Identity comes from this stable key, not the raw title: the title carries volatile
-        // tokens (IPs, ports, fuzz values, UUIDs) that would otherwise mint a new bug id every
-        // run. `stableKey` collapses those so the same fault keeps one id across runs.
-        dedupeKey: stableKey(message, method, endpointPath),
+        /*
+         * Identity comes from a stable key, not the raw title: the title carries volatile tokens
+         * (IPs, ports, fuzz values, UUIDs) that would otherwise mint a new bug id every run.
+         *
+         * An unhandled 5xx is keyed by ENDPOINT ALONE, using the same key
+         * `assertRejectsInvalidInput` uses. One controller that never validates its body throws
+         * on every field the suite fuzzes it with, and each throw arrives here with a different
+         * message — "a 5000-character description produced HTTP 500", "adding 500 participants
+         * produced HTTP 500" — so a message-derived key filed one ticket per symptom. Sharing the
+         * key means those merge with each other *and* with the findings the assertion helper
+         * files for the same endpoint: one endpoint, one ticket, every symptom an occurrence.
+         *
+         * Everything else keeps the message in its key. Two different wrong-status faults, or two
+         * different missing rate limits, are genuinely different defects even on one route.
+         */
+        dedupeKey:
+          classification === 'Unhandled NPE / Server Error'
+            ? `UNVALIDATED-INPUT-5XX:${method} ${endpointPath}`
+            : stableKey(message, method, endpointPath),
         severity,
         module: resolveModule(endpointPath).module,
         classification,

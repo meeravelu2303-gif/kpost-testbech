@@ -834,7 +834,62 @@ export function listOccurrences(id: string): BugOccurrence[] {
  *
  * Returns the defect id, which is stable across runs.
  */
+/**
+ * Refuses a defect whose **own recorded evidence contradicts its claim**.
+ *
+ * This is the last gate before a finding becomes a ticket, and it is deliberately narrow. A gate
+ * that guesses suppresses real defects, which is worse than filing a few weak ones — so it fires
+ * only on contradictions that can be read off the record itself, never on a judgement about
+ * whether the finding is *interesting*.
+ *
+ * The rules come from false positives this bench actually produced and that were disproved by
+ * hand against the live API on 2026-09-10:
+ *
+ *  - A request the server **refused** (401/403) cannot be evidence that data was exposed or a
+ *    control bypassed. `assertPublicRouteReachable` is the deliberate exception: there the 401
+ *    *is* the finding ("a route the contract declares public is gated"), and it says so in its
+ *    title, so that wording is allowed through.
+ *  - A claim that a specific foreign identifier came back must have that identifier in the body.
+ *    `BUG-API-0442A0` claimed a dashboard feed "echoed a smuggled participant" when the feed was
+ *    byte-identical with and without it.
+ *  - A claim that ids were **enumerable** cannot rest on a 404.
+ *
+ * Suppressions are announced on stderr rather than hidden: a gate nobody can see is a gate
+ * nobody can correct.
+ */
+function contradictsOwnEvidence(input: BugInput): string | null {
+  const actual = String(input.actual ?? '');
+  const claim = `${input.title ?? ''} ${input.description ?? ''}`;
+  const status = Number(/HTTP (\d{3})/.exec(actual)?.[1] ?? NaN);
+
+  const declaredPublicFinding = /declared public|contract marks|route is public/i.test(claim);
+  const claimsExposureOrBypass =
+    /expos|disclos|leak(?!s? database internals)|bypass|another user'?s|enumerat|smuggl/i.test(claim);
+
+  if (
+    claimsExposureOrBypass &&
+    (status === 401 || status === 403) &&
+    !declaredPublicFinding
+  ) {
+    return `claims exposure or bypass, but the recorded response is HTTP ${status} — the server refused the request, so it cannot evidence either`;
+  }
+
+  if (/enumerat/i.test(claim) && status === 404) {
+    return 'claims identifiers are enumerable, but the recorded response is HTTP 404 — nothing resolved';
+  }
+
+  return null;
+}
+
 export function recordBug(input: BugInput): string {
+  const contradiction = contradictsOwnEvidence(input);
+  if (contradiction) {
+    process.stderr.write(
+      `[bug-gate] SUPPRESSED "${String(input.title).slice(0, 90)}" on ${input.method} ${input.endpointPath}: ${contradiction}\n`
+    );
+    return '';
+  }
+
   const testId = input.testId ?? currentTestId();
   // `identityTitle` (when set) pins the id to a stable fingerprint while `title` stays free to
   // reword — see BugInput.identityTitle. It never reaches the stored record; strip it below.

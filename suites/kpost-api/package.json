@@ -55,7 +55,8 @@
     "test:adminmodule": "cd admin && npx playwright test",
     "test:adminmodule:list": "cd admin && npx playwright test --list --reporter=line",
     "typecheck:adminmodule": "cd admin && npx tsc --noEmit",
-    "audit:excel": "node scripts/excel-conformance.js --threshold 100"
+    "audit:excel": "node scripts/excel-conformance.js --threshold 100",
+    "audit:bugs": "node scripts/audit-bug-report.js"
   },
   "keywords": [],
   "author": "",
