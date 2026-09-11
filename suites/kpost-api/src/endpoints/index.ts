@@ -1,4 +1,5 @@
 import type { EndpointDefinition } from '../engine';
+import { contactsEndpoints } from './contacts';
 import { katchupEndpoints } from './katchup';
 
 /**
@@ -9,6 +10,6 @@ import { katchupEndpoints } from './katchup';
  * schema, content-type, headers, error contract, performance, security, database. No validation
  * code is written per endpoint.
  */
-export const ALL_ENDPOINTS: EndpointDefinition[] = [...katchupEndpoints];
+export const ALL_ENDPOINTS: EndpointDefinition[] = [...katchupEndpoints, ...contactsEndpoints];
 
-export { katchupEndpoints };
+export { contactsEndpoints, katchupEndpoints };

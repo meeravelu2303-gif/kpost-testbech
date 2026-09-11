@@ -18,16 +18,11 @@ import {
   assertNot200OKOnError,
   assertRejectsInvalidInput,
   assertStatusCodeParity,
+  assertPublicRouteReachable,
   readBody,
-  reportBusinessLogicFlaw,
   expectValidContract,
 } from '../../src/utils/apiAssertions';
-import {
-  BOUNDARY_NUMBERS,
-  SQLI,
-  UNICODE_STRINGS,
-  XSS,
-} from '../../src/utils/fuzzData';
+import { BOUNDARY_NUMBERS, SQLI, UNICODE_STRINGS, XSS } from '../../src/utils/fuzzData';
 import { env } from '../../src/config/env.config';
 import {
   buildCompanyNameExistPayload,
@@ -68,11 +63,11 @@ test.describe('Common - POST /v2/common/mobileNoExist', () => {
   test('2. boundary: too-short and too-long numbers', async ({ commonClient }) => {
     for (const mobileNumber of ['1', '9'.repeat(50), '9'.repeat(300)]) {
       const response = await commonClient.mobileNoExist(
-        buildMobileNoExistPayload({ mobileNumber })
+        buildMobileNoExistPayload({ mobileNumber }),
       );
       expect(
         response.status(),
-        `mobileNumber of length ${mobileNumber.length} caused a server error`
+        `mobileNumber of length ${mobileNumber.length} caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -90,7 +85,7 @@ test.describe('Common - POST /v2/common/mobileNoExist', () => {
   test('4. null/empty mobileNumber must be rejected', async ({ commonClient }) => {
     for (const value of [null, '', ' ']) {
       const response = await commonClient.mobileNoExist(
-        buildMobileNoExistPayload({ mobileNumber: value })
+        buildMobileNoExistPayload({ mobileNumber: value }),
       );
       await assertRejectsInvalidInput(response, {
         ...META,
@@ -102,18 +97,22 @@ test.describe('Common - POST /v2/common/mobileNoExist', () => {
   });
 
   test('5. type mismatch is handled without a 5xx', async ({ commonClient }) => {
-    for (const overrides of [{ mobileNumber: 9999999999 }, { countryID: 'one' }, { mobileNumber: [] }]) {
+    for (const overrides of [
+      { mobileNumber: 9999999999 },
+      { countryID: 'one' },
+      { mobileNumber: [] },
+    ]) {
       const response = await commonClient.mobileNoExist(buildMobileNoExistPayload(overrides));
       expect(
         response.status(),
-        `type mismatch ${JSON.stringify(overrides)} caused a server error`
+        `type mismatch ${JSON.stringify(overrides)} caused a server error`,
       ).toBeLessThan(500);
     }
   });
 
   test('6. an unknown countryID must be a 4xx', async ({ commonClient }) => {
     const response = await commonClient.mobileNoExist(
-      buildMobileNoExistPayload({ countryID: 99999 })
+      buildMobileNoExistPayload({ countryID: 99999 }),
     );
     await assertRejectsInvalidInput(response, {
       ...META,
@@ -129,25 +128,25 @@ test.describe('Common - POST /v2/common/mobileNoExist', () => {
 
     expect(
       text,
-      'an unauthenticated existence probe returned account details — this turns a yes/no check into a user-enumeration oracle'
+      'an unauthenticated existence probe returned account details — this turns a yes/no check into a user-enumeration oracle',
     ).not.toMatch(/"(kpostID|firstName|lastName|email)"\s*:\s*"[^"]+"/i);
   });
 
   test('8. enumeration: unlimited probing should be rate limited', async ({ commonClient }) => {
     const responses = await Promise.all(
-      Array.from({ length: 15 }, () => commonClient.mobileNoExist(buildMobileNoExistPayload()))
+      Array.from({ length: 15 }, () => commonClient.mobileNoExist(buildMobileNoExistPayload())),
     );
 
     expect(
       responses.some((r) => r.status() === 429),
-      '15 rapid existence probes were all served with no 429 — the whole subscriber base can be enumerated'
+      '15 rapid existence probes were all served with no 429 — the whole subscriber base can be enumerated',
     ).toBe(true);
   });
 
   test('9. SQL injection does not leak internals', async ({ commonClient }) => {
     for (const payload of SQLI) {
       const response = await commonClient.mobileNoExist(
-        buildMobileNoExistPayload({ mobileNumber: payload })
+        buildMobileNoExistPayload({ mobileNumber: payload }),
       );
       await assertNoInternalLeak(
         response,
@@ -155,7 +154,7 @@ test.describe('Common - POST /v2/common/mobileNoExist', () => {
           ...META,
           repro: `await commonClient.mobileNoExist(buildMobileNoExistPayload({ mobileNumber: ${JSON.stringify(payload)} }));`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -163,7 +162,7 @@ test.describe('Common - POST /v2/common/mobileNoExist', () => {
   test('10. XSS payload is not reflected unescaped', async ({ commonClient }) => {
     for (const payload of XSS.slice(0, 2)) {
       const response = await commonClient.mobileNoExist(
-        buildMobileNoExistPayload({ mobileNumber: payload })
+        buildMobileNoExistPayload({ mobileNumber: payload }),
       );
       await assertNoReflectedScript(
         response,
@@ -171,7 +170,7 @@ test.describe('Common - POST /v2/common/mobileNoExist', () => {
           ...META,
           repro: `await commonClient.mobileNoExist(buildMobileNoExistPayload({ mobileNumber: ${JSON.stringify(payload)} }));`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -201,11 +200,11 @@ test.describe('Common - POST /v2/common/isCompanyNameExist', () => {
   test('2. boundary: single character and oversized names', async ({ commonClient }) => {
     for (const companyName of ['a', 'a'.repeat(512), 'a'.repeat(5000)]) {
       const response = await commonClient.isCompanyNameExist(
-        buildCompanyNameExistPayload({ companyName })
+        buildCompanyNameExistPayload({ companyName }),
       );
       expect(
         response.status(),
-        `companyName of length ${companyName.length} caused a server error`
+        `companyName of length ${companyName.length} caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -223,7 +222,7 @@ test.describe('Common - POST /v2/common/isCompanyNameExist', () => {
   test('4. null/empty companyName must be rejected', async ({ commonClient }) => {
     for (const value of [null, '', ' ']) {
       const response = await commonClient.isCompanyNameExist(
-        buildCompanyNameExistPayload({ companyName: value })
+        buildCompanyNameExistPayload({ companyName: value }),
       );
       await assertRejectsInvalidInput(response, {
         ...META,
@@ -237,11 +236,11 @@ test.describe('Common - POST /v2/common/isCompanyNameExist', () => {
   test('5. type mismatch is handled without a 5xx', async ({ commonClient }) => {
     for (const value of [12345, ['Acme'], { name: 'Acme' }]) {
       const response = await commonClient.isCompanyNameExist(
-        buildCompanyNameExistPayload({ companyName: value })
+        buildCompanyNameExistPayload({ companyName: value }),
       );
       expect(
         response.status(),
-        `companyName=${JSON.stringify(value)} caused a server error`
+        `companyName=${JSON.stringify(value)} caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -249,11 +248,11 @@ test.describe('Common - POST /v2/common/isCompanyNameExist', () => {
   test('6. unicode company names are handled', async ({ commonClient }) => {
     for (const companyName of UNICODE_STRINGS.slice(0, 4)) {
       const response = await commonClient.isCompanyNameExist(
-        buildCompanyNameExistPayload({ companyName })
+        buildCompanyNameExistPayload({ companyName }),
       );
       expect(
         response.status(),
-        `unicode companyName "${companyName}" caused a server error`
+        `unicode companyName "${companyName}" caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -265,23 +264,23 @@ test.describe('Common - POST /v2/common/isCompanyNameExist', () => {
       (
         await Promise.all(
           variants.map((companyName) =>
-            commonClient.isCompanyNameExist(buildCompanyNameExistPayload({ companyName }))
-          )
+            commonClient.isCompanyNameExist(buildCompanyNameExistPayload({ companyName })),
+          ),
         )
-      ).map((r) => readBody(r))
+      ).map((r) => readBody(r)),
     );
 
     const verdicts = new Set(bodies.map((b) => b.text.toLowerCase().includes('exist')));
     expect(
       verdicts.size,
-      'case and whitespace variants of one company name gave different availability answers — two companies could register effectively the same name'
+      'case and whitespace variants of one company name gave different availability answers — two companies could register effectively the same name',
     ).toBe(1);
   });
 
   test('8. SQL injection does not leak internals', async ({ commonClient }) => {
     for (const payload of SQLI) {
       const response = await commonClient.isCompanyNameExist(
-        buildCompanyNameExistPayload({ companyName: payload })
+        buildCompanyNameExistPayload({ companyName: payload }),
       );
       await assertNoInternalLeak(
         response,
@@ -289,7 +288,7 @@ test.describe('Common - POST /v2/common/isCompanyNameExist', () => {
           ...META,
           repro: `await commonClient.isCompanyNameExist(buildCompanyNameExistPayload({ companyName: ${JSON.stringify(payload)} }));`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -297,7 +296,7 @@ test.describe('Common - POST /v2/common/isCompanyNameExist', () => {
   test('9. XSS payload is not reflected unescaped', async ({ commonClient }) => {
     for (const payload of XSS.slice(0, 3)) {
       const response = await commonClient.isCompanyNameExist(
-        buildCompanyNameExistPayload({ companyName: payload })
+        buildCompanyNameExistPayload({ companyName: payload }),
       );
       await assertNoReflectedScript(
         response,
@@ -305,7 +304,7 @@ test.describe('Common - POST /v2/common/isCompanyNameExist', () => {
           ...META,
           repro: `await commonClient.isCompanyNameExist(buildCompanyNameExistPayload({ companyName: ${JSON.stringify(payload)} }));`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -318,12 +317,12 @@ test.describe('Common - POST /v2/common/isCompanyNameExist', () => {
           commonClient.isCompanyNameExist(payload),
           commonClient.isCompanyNameExist(payload),
         ])
-      ).map((r) => readBody(r))
+      ).map((r) => readBody(r)),
     );
 
     expect(
       new Set(bodies.map((b) => b.text)).size,
-      'concurrent identical company-name checks disagreed'
+      'concurrent identical company-name checks disagreed',
     ).toBe(1);
   });
 
@@ -369,11 +368,13 @@ test.describe('Common - POST /v2/common/isCompanyNameExist', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* ========================================================================================
@@ -401,7 +402,7 @@ test.describe('Common - POST /v2/common/domain', () => {
     // Personal domains are documented as available only for a subset of countries.
     for (const countryID of [2, 3, 99999]) {
       const response = await commonClient.domain(
-        buildDomainPayload({ countryID, userType: 'Personal' })
+        buildDomainPayload({ countryID, userType: 'Personal' }),
       );
       await assertRejectsInvalidInput(response, {
         ...META,
@@ -440,7 +441,7 @@ test.describe('Common - POST /v2/common/domain', () => {
       const response = await commonClient.domain(buildDomainPayload(overrides));
       expect(
         response.status(),
-        `type mismatch ${JSON.stringify(overrides)} caused a server error`
+        `type mismatch ${JSON.stringify(overrides)} caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -474,7 +475,7 @@ test.describe('Common - POST /v2/common/domain', () => {
     expect(new Set(domains).size, 'duplicate domains in the list').toBe(domains.length);
     for (const domain of domains) {
       expect(String(domain), `"${domain}" is not a well-formed domain suffix`).toMatch(
-        /^@?[a-z0-9.-]+\.[a-z]{2,}$/i
+        /^@?[a-z0-9.-]+\.[a-z]{2,}$/i,
       );
     }
   });
@@ -488,7 +489,7 @@ test.describe('Common - POST /v2/common/domain', () => {
           ...META,
           repro: `await commonClient.domain(buildDomainPayload({ userType: ${JSON.stringify(payload)} }));`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -502,7 +503,7 @@ test.describe('Common - POST /v2/common/domain', () => {
           ...META,
           repro: `await commonClient.domain(buildDomainPayload({ userType: ${JSON.stringify(payload)} }));`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -553,7 +554,7 @@ test.describe('Common - POST /v2/common/generateDomainAndUniqueName', () => {
   test('4. null/empty inputs must be rejected', async ({ commonClient }) => {
     for (const value of [null, '', ' ']) {
       const response = await commonClient.generateDomainAndUniqueName(
-        buildGenerateDomainPayload({ companyName: value })
+        buildGenerateDomainPayload({ companyName: value }),
       );
       await assertRejectsInvalidInput(response, {
         ...META,
@@ -566,11 +567,11 @@ test.describe('Common - POST /v2/common/generateDomainAndUniqueName', () => {
   test('5. type mismatch is handled without a 5xx', async ({ commonClient }) => {
     for (const overrides of [{ companyName: 12345 }, { kpostID: [] }, { companyName: {} }]) {
       const response = await commonClient.generateDomainAndUniqueName(
-        buildGenerateDomainPayload(overrides)
+        buildGenerateDomainPayload(overrides),
       );
       expect(
         response.status(),
-        `type mismatch ${JSON.stringify(overrides)} caused a server error`
+        `type mismatch ${JSON.stringify(overrides)} caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -578,18 +579,18 @@ test.describe('Common - POST /v2/common/generateDomainAndUniqueName', () => {
   test('6. boundary: oversized company names', async ({ commonClient }) => {
     for (const companyName of ['a', 'a'.repeat(512), 'a'.repeat(5000)]) {
       const response = await commonClient.generateDomainAndUniqueName(
-        buildGenerateDomainPayload({ companyName })
+        buildGenerateDomainPayload({ companyName }),
       );
       expect(
         response.status(),
-        `companyName of length ${companyName.length} caused a server error`
+        `companyName of length ${companyName.length} caused a server error`,
       ).toBeLessThan(500);
     }
   });
 
   test('7. a generated domain must be a valid hostname', async ({ commonClient }) => {
     const response = await commonClient.generateDomainAndUniqueName(
-      buildGenerateDomainPayload({ companyName: 'Acme Widgets & Co. (Pvt) Ltd.' })
+      buildGenerateDomainPayload({ companyName: 'Acme Widgets & Co. (Pvt) Ltd.' }),
     );
     const { text } = await readBody(response);
     const match = text.match(/"(?:domain|internetDomainId)"\s*:\s*"([^"]+)"/i);
@@ -597,18 +598,18 @@ test.describe('Common - POST /v2/common/generateDomainAndUniqueName', () => {
 
     expect(
       match?.[1],
-      `generated domain "${match?.[1]}" contains characters that are not valid in a hostname`
+      `generated domain "${match?.[1]}" contains characters that are not valid in a hostname`,
     ).toMatch(/^@?[a-z0-9][a-z0-9.-]*\.[a-z]{2,}$/i);
   });
 
   test('8. unicode company names produce a usable domain, not a 5xx', async ({ commonClient }) => {
     for (const companyName of UNICODE_STRINGS.slice(0, 3)) {
       const response = await commonClient.generateDomainAndUniqueName(
-        buildGenerateDomainPayload({ companyName })
+        buildGenerateDomainPayload({ companyName }),
       );
       expect(
         response.status(),
-        `unicode companyName "${companyName}" caused a server error`
+        `unicode companyName "${companyName}" caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -623,19 +624,19 @@ test.describe('Common - POST /v2/common/generateDomainAndUniqueName', () => {
           commonClient.generateDomainAndUniqueName(payload),
           commonClient.generateDomainAndUniqueName(payload),
         ])
-      ).map((r) => readBody(r))
+      ).map((r) => readBody(r)),
     );
 
     expect(
       new Set(bodies.map((b) => b.text)).size,
-      'concurrent generation returned inconsistent results for the same company'
+      'concurrent generation returned inconsistent results for the same company',
     ).toBe(1);
   });
 
   test('10. SQL injection does not leak internals', async ({ commonClient }) => {
     for (const payload of SQLI.slice(0, 3)) {
       const response = await commonClient.generateDomainAndUniqueName(
-        buildGenerateDomainPayload({ companyName: payload })
+        buildGenerateDomainPayload({ companyName: payload }),
       );
       await assertNoInternalLeak(
         response,
@@ -643,7 +644,7 @@ test.describe('Common - POST /v2/common/generateDomainAndUniqueName', () => {
           ...META,
           repro: `await commonClient.generateDomainAndUniqueName(buildGenerateDomainPayload({ companyName: ${JSON.stringify(payload)} }));`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -651,7 +652,7 @@ test.describe('Common - POST /v2/common/generateDomainAndUniqueName', () => {
   test('11. XSS payload is not reflected unescaped', async ({ commonClient }) => {
     for (const payload of XSS.slice(0, 2)) {
       const response = await commonClient.generateDomainAndUniqueName(
-        buildGenerateDomainPayload({ companyName: payload })
+        buildGenerateDomainPayload({ companyName: payload }),
       );
       await assertNoReflectedScript(
         response,
@@ -659,7 +660,7 @@ test.describe('Common - POST /v2/common/generateDomainAndUniqueName', () => {
           ...META,
           repro: `await commonClient.generateDomainAndUniqueName(buildGenerateDomainPayload({ companyName: ${JSON.stringify(payload)} }));`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -675,7 +676,6 @@ test.describe('Common - POST /v2/common/generateDomainAndUniqueName', () => {
     await assertStatusCodeParity(response, META);
   });
 
-
   test('[contract] the response must satisfy the platform envelope', async ({
     genericClient,
     staticToken,
@@ -688,11 +688,13 @@ test.describe('Common - POST /v2/common/generateDomainAndUniqueName', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* ========================================================================================
@@ -717,7 +719,7 @@ test.describe('POST /v2/common/getUserDetailsByMobNo', () => {
 
     expect(
       /"(firstName|lastName|kpostID)"\s*:\s*"[^"]{2,}"/.test(text),
-      `an anonymous caller resolved a mobile number to a real identity. The whole /v2/common/** tree is permitAll, which is right for country and language lists and wrong for a person lookup — a ten-digit number space with known prefixes can be walked, and any number harvested elsewhere becomes a name. Body: ${text.slice(0, 300)}`
+      `an anonymous caller resolved a mobile number to a real identity. The whole /v2/common/** tree is permitAll, which is right for country and language lists and wrong for a person lookup — a ten-digit number space with known prefixes can be walked, and any number harvested elsewhere becomes a name. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -730,21 +732,21 @@ test.describe('POST /v2/common/getUserDetailsByMobNo', () => {
 
     expect(
       /"gender"\s*:\s*"(male|female|others)"/i.test(text),
-      `the anonymous lookup returned the user's gender. Even granting the lookup exists, a registration-time "is this number known" check needs a boolean, not a demographic profile. Body: ${text.slice(0, 300)}`
+      `the anonymous lookup returned the user's gender. Even granting the lookup exists, a registration-time "is this number known" check needs a boolean, not a demographic profile. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
   test('[3] enumeration: the lookup must be rate-limited', async ({ commonClient }) => {
     const responses = await Promise.all(
       Array.from({ length: 10 }, () =>
-        commonClient.getUserDetailsByMobNo(buildMobileLookupPayload(), { token: null })
-      )
+        commonClient.getUserDetailsByMobNo(buildMobileLookupPayload(), { token: null }),
+      ),
     );
     const throttled = responses.filter((r) => r.status() === 429).length;
 
     expect(
       throttled,
-      `ten anonymous lookups in parallel produced ${throttled} throttled responses. Without rate limiting an unauthenticated directory lookup can be walked at line speed.`
+      `ten anonymous lookups in parallel produced ${throttled} throttled responses. Without rate limiting an unauthenticated directory lookup can be walked at line speed.`,
     ).toBeGreaterThan(0);
   });
 
@@ -759,7 +761,7 @@ test.describe('POST /v2/common/getUserDetailsByMobNo', () => {
     const count = Array.isArray(data) ? data.length : 0;
     expect(
       count,
-      `a mobileNumber of "%" returned ${count} users to an anonymous caller. Body: ${text.slice(0, 300)}`
+      `a mobileNumber of "%" returned ${count} users to an anonymous caller. Body: ${text.slice(0, 300)}`,
     ).toBeLessThanOrEqual(1);
   });
 
@@ -776,7 +778,7 @@ test.describe('POST /v2/common/getUserDetailsByMobNo', () => {
         scenario: 'a directory lookup with no number to look up',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -792,7 +794,7 @@ test.describe('POST /v2/common/getUserDetailsByMobNo', () => {
         scenario: 'field "mobileNumber" set to null',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -808,7 +810,7 @@ test.describe('POST /v2/common/getUserDetailsByMobNo', () => {
         scenario: 'a three-digit mobile number',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -837,7 +839,7 @@ test.describe('POST /v2/common/getUserDetailsByMobNo', () => {
     await assertStatusCodeParity(response, { ...META, body: payload });
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -849,14 +851,18 @@ test.describe('POST /v2/common/getUserDetailsByMobNo', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 
   test('[contract] the response must satisfy the platform envelope', async ({
     genericClient,
@@ -870,11 +876,13 @@ test.describe('POST /v2/common/getUserDetailsByMobNo', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* =========================================================================================
@@ -896,11 +904,11 @@ test.describe('POST /v2/common/getCompanyDetails', () => {
       response,
       dataEnvelopeSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
-  test('[2] disclosure: an anonymous caller must not read a company\'s private details', async ({
+  test("[2] disclosure: an anonymous caller must not read a company's private details", async ({
     commonClient,
   }) => {
     const payload = buildMobileLookupPayload({ mobileNumber: KNOWN_MOBILE });
@@ -909,9 +917,9 @@ test.describe('POST /v2/common/getCompanyDetails', () => {
 
     expect(
       /"(bankAccountNumber|ifsc|panNumber|gstNumber|otherEmail|alternateMobileno)"\s*:\s*"[^"]{3,}"/i.test(
-        text
+        text,
       ),
-      `an anonymous company lookup returned banking or registration identifiers. Body: ${text.slice(0, 300)}`
+      `an anonymous company lookup returned banking or registration identifiers. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -942,7 +950,7 @@ test.describe('POST /v2/common/getCompanyDetails', () => {
         scenario: 'a company lookup naming no mobile number',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -958,7 +966,7 @@ test.describe('POST /v2/common/getCompanyDetails', () => {
         scenario: 'field "mobileNumber" set to null',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -968,7 +976,7 @@ test.describe('POST /v2/common/getCompanyDetails', () => {
 
     expect(
       response.status(),
-      `mobileNumber was sent as an array and produced HTTP ${response.status()}.`
+      `mobileNumber was sent as an array and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -977,15 +985,15 @@ test.describe('POST /v2/common/getCompanyDetails', () => {
   }) => {
     const responses = await Promise.all(
       ['9000000001', '9000000002', '9000000003'].map((mobileNumber) =>
-        commonClient.getCompanyDetails(buildMobileLookupPayload({ mobileNumber }), { token: null })
-      )
+        commonClient.getCompanyDetails(buildMobileLookupPayload({ mobileNumber }), { token: null }),
+      ),
     );
     const bodies = await Promise.all(responses.map((r) => readBody(r)));
     const resolved = bodies.filter((b) => /"companyName"\s*:\s*"[^"]{2,}"/.test(b.text));
 
     expect(
       resolved.length,
-      `${resolved.length} of 3 sequential mobile numbers resolved to a company for an anonymous caller. Sequential lookups plus no auth is a company directory.`
+      `${resolved.length} of 3 sequential mobile numbers resolved to a company for an anonymous caller. Sequential lookups plus no auth is a company directory.`,
     ).toBe(0);
   });
 
@@ -1014,7 +1022,7 @@ test.describe('POST /v2/common/getCompanyDetails', () => {
     await assertNot200OKOnError(response, { ...META, body: payload });
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1026,14 +1034,18 @@ test.describe('POST /v2/common/getCompanyDetails', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -1059,7 +1071,6 @@ test.describe('POST /v2/common/getCompanyDetails', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1073,7 +1084,6 @@ test.describe('POST /v2/common/getCompanyDetailsByAdmin', () => {
     repro: `await commonClient.getCompanyDetailsByAdmin(buildMobileLookupPayload(), { token: null });`,
   };
 
-
   test('[2] disclosure: administrative company data must not reach an anonymous caller', async ({
     commonClient,
   }) => {
@@ -1083,7 +1093,7 @@ test.describe('POST /v2/common/getCompanyDetailsByAdmin', () => {
 
     expect(
       /"(bankAccountNumber|ifsc|panNumber|gstNumber|adminKpostID)"\s*:\s*"[^"]{3,}"/i.test(text),
-      `the admin company view returned registration or banking identifiers to an anonymous caller. Body: ${text.slice(0, 300)}`
+      `the admin company view returned registration or banking identifiers to an anonymous caller. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1095,7 +1105,7 @@ test.describe('POST /v2/common/getCompanyDetailsByAdmin', () => {
       response,
       dataEnvelopeSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -1112,7 +1122,7 @@ test.describe('POST /v2/common/getCompanyDetailsByAdmin', () => {
         scenario: 'an admin company lookup with no company named',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1128,7 +1138,7 @@ test.describe('POST /v2/common/getCompanyDetailsByAdmin', () => {
         scenario: 'field "mobileNumber" set to null',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1138,7 +1148,7 @@ test.describe('POST /v2/common/getCompanyDetailsByAdmin', () => {
 
     expect(
       response.status(),
-      `mobileNumber was sent as an array and produced HTTP ${response.status()}.`
+      `mobileNumber was sent as an array and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1153,7 +1163,7 @@ test.describe('POST /v2/common/getCompanyDetailsByAdmin', () => {
     const count = Array.isArray(data) ? data.length : 0;
     expect(
       count,
-      `a wildcard mobileNumber returned ${count} companies. Body: ${text.slice(0, 300)}`
+      `a wildcard mobileNumber returned ${count} companies. Body: ${text.slice(0, 300)}`,
     ).toBeLessThanOrEqual(1);
   });
 
@@ -1182,7 +1192,7 @@ test.describe('POST /v2/common/getCompanyDetailsByAdmin', () => {
     await assertStatusCodeParity(response, { ...META, body: payload });
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1194,14 +1204,18 @@ test.describe('POST /v2/common/getCompanyDetailsByAdmin', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1215,7 +1229,6 @@ test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
     repro: `await commonClient.getCompanyDetailsByMobileNoAndproductId(buildCompanyByMobilePayload(), { token: null });`,
   };
 
-
   test('[1b] BREACH: the company name itself must not be returned anonymously', async ({
     commonClient,
   }) => {
@@ -1227,7 +1240,7 @@ test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
 
     expect(
       /"companyName"\s*:\s*"[^"]{2,}"/.test(text),
-      `an anonymous caller resolved a mobile number to a company. Combined with getUserDetailsByMobNo returning the name, a phone number yields a person and their employer — with no account required. Body: ${text.slice(0, 300)}`
+      `an anonymous caller resolved a mobile number to a company. Combined with getUserDetailsByMobNo returning the name, a phone number yields a person and their employer — with no account required. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1241,7 +1254,7 @@ test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
       response,
       dataEnvelopeSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -1250,7 +1263,7 @@ test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
   }) => {
     const response = await commonClient.getCompanyDetailsByMobileNoAndproductId(
       { productId: 1 },
-      { token: null }
+      { token: null },
     );
 
     await assertRejectsInvalidInput(
@@ -1261,7 +1274,7 @@ test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
         scenario: 'a lookup with no number',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1279,7 +1292,7 @@ test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
         scenario: 'field "mobileNumber" set to null',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1297,7 +1310,7 @@ test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
         scenario: 'productId 999999 is outside the known set',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1309,7 +1322,7 @@ test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
 
     expect(
       response.status(),
-      `productId was sent as a string and produced HTTP ${response.status()}.`
+      `productId was sent as a string and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1318,14 +1331,14 @@ test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
       Array.from({ length: 10 }, () =>
         commonClient.getCompanyDetailsByMobileNoAndproductId(buildCompanyByMobilePayload(), {
           token: null,
-        })
-      )
+        }),
+      ),
     );
     const throttled = responses.filter((r) => r.status() === 429).length;
 
     expect(
       throttled,
-      `ten anonymous lookups produced ${throttled} throttled responses. An unauthenticated number-to-employer lookup needs rate limiting.`
+      `ten anonymous lookups produced ${throttled} throttled responses. An unauthenticated number-to-employer lookup needs rate limiting.`,
     ).toBeGreaterThan(0);
   });
 
@@ -1360,7 +1373,7 @@ test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
     await assertStatusCodeParity(response, { ...META, body: payload });
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1372,14 +1385,18 @@ test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1402,7 +1419,7 @@ test.describe('POST /v2/common/mobileNoExistInsideCompany', () => {
 
     expect(
       /"(firstName|lastName|kpostID)"\s*:\s*"[^"]{2,}"/.test(text),
-      `an existence check returned identity fields. "Does this number exist in this company" must answer true or false — anything more turns a validation helper into a directory. Body: ${text.slice(0, 300)}`
+      `an existence check returned identity fields. "Does this number exist in this company" must answer true or false — anything more turns a validation helper into a directory. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1414,14 +1431,11 @@ test.describe('POST /v2/common/mobileNoExistInsideCompany', () => {
       response,
       dataEnvelopeSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
-
-  test('[4] missing required parameter: no companyID must be refused', async ({
-    commonClient,
-  }) => {
+  test('[4] missing required parameter: no companyID must be refused', async ({ commonClient }) => {
     const payload = buildCompanyMobileExistPayload();
     delete (payload as Record<string, unknown>).companyID;
 
@@ -1435,7 +1449,7 @@ test.describe('POST /v2/common/mobileNoExistInsideCompany', () => {
         scenario: 'an inside-company check with no company',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1451,7 +1465,7 @@ test.describe('POST /v2/common/mobileNoExistInsideCompany', () => {
         scenario: 'field "mobileNumber" set to null',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1461,7 +1475,7 @@ test.describe('POST /v2/common/mobileNoExistInsideCompany', () => {
 
     expect(
       response.status(),
-      `mobileNumber was sent as an array and produced HTTP ${response.status()}.`
+      `mobileNumber was sent as an array and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1497,7 +1511,7 @@ test.describe('POST /v2/common/mobileNoExistInsideCompany', () => {
     await assertStatusCodeParity(response, { ...META, body: payload });
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1509,14 +1523,18 @@ test.describe('POST /v2/common/mobileNoExistInsideCompany', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1530,30 +1548,23 @@ test.describe('POST /v2/common/getKpostIdUsingModule', () => {
     repro: `await commonClient.getKpostIdUsingModule(buildModuleLookupPayload(), { token: null });`,
   };
 
-  test('[1] disclosure: a module lookup must not list account handles', async ({
+  /*
+   * DECLARED PUBLIC — confirmed with the developers on 2026-09-11.
+   *
+   * This route serves the pre-token module picker, so it takes no Authorization header by
+   * design. An earlier revision filed the anonymous read as a Critical directory exposure
+   * (BUG-API-D238B5); that finding is retired, and the check is inverted to protect the
+   * intent instead — the defect here would be the route disappearing behind the auth filter,
+   * which would block the flow it exists to serve. Every other case in this block already
+   * calls anonymously, so they double as the positive control that it stays reachable.
+   */
+  test('[1] public contract: the module lookup must stay reachable without a token', async ({
     commonClient,
   }) => {
     const payload = buildModuleLookupPayload();
     const response = await commonClient.getKpostIdUsingModule(payload, { token: null });
-    const { json, text } = await readBody(response);
 
-    test.skip(json === null || json.statusCode !== 200, 'lookup returned no data');
-
-    const data = json?.data;
-    const count = Array.isArray(data) ? data.length : 0;
-    if (count > 1) {
-      await reportBusinessLogicFlaw(
-        response,
-        {
-          ...META,
-          body: payload,
-          title: 'Anonymous module lookup exposes account handles (user directory)',
-          scenario: `an anonymous module lookup returned ${count} kpostIDs. A list of account handles per product is a user directory. Body: ${text.slice(0, 300)}`,
-        },
-        'Security/Access Control',
-        'Critical'
-      );
-    }
+    await assertPublicRouteReachable(response, { ...META, body: payload });
   });
 
   test('[2] happy path: the lookup satisfies the Zod contract', async ({ commonClient }) => {
@@ -1564,7 +1575,7 @@ test.describe('POST /v2/common/getKpostIdUsingModule', () => {
       response,
       dataEnvelopeSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -1587,8 +1598,13 @@ test.describe('POST /v2/common/getKpostIdUsingModule', () => {
 
     await assertRejectsInvalidInput(
       response,
-      { ...META, body: payload, scenario: 'field "module" set to null', severity: 'Major' as const },
-      [400, 401, 403, 422]
+      {
+        ...META,
+        body: payload,
+        scenario: 'field "module" set to null',
+        severity: 'Major' as const,
+      },
+      [400, 401, 403, 422],
     );
   });
 
@@ -1604,7 +1620,7 @@ test.describe('POST /v2/common/getKpostIdUsingModule', () => {
         scenario: 'module 9999 is outside the known set',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1614,7 +1630,7 @@ test.describe('POST /v2/common/getKpostIdUsingModule', () => {
 
     expect(
       response.status(),
-      `module was sent as a string and produced HTTP ${response.status()}.`
+      `module was sent as a string and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1649,7 +1665,7 @@ test.describe('POST /v2/common/getKpostIdUsingModule', () => {
     const response = await commonClient.postRawTo(
       COMMON_PATHS.getKpostIdUsingModule,
       '{"module":',
-      { token: null }
+      { token: null },
     );
 
     await assertStatus(response, [400, 401, 403, 415], {
@@ -1659,7 +1675,7 @@ test.describe('POST /v2/common/getKpostIdUsingModule', () => {
     });
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1671,14 +1687,18 @@ test.describe('POST /v2/common/getKpostIdUsingModule', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1702,7 +1722,7 @@ test.describe('POST /v2/common/uniqueNameExist', () => {
       response,
       dataEnvelopeSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -1715,7 +1735,7 @@ test.describe('POST /v2/common/uniqueNameExist', () => {
 
     expect(
       /"(companyName|adminKpostID|companyID)"\s*:\s*"?[^",]{2,}/.test(text),
-      `a name-availability check returned company details. Availability is a boolean; anything more makes registration a reconnaissance tool. Body: ${text.slice(0, 300)}`
+      `a name-availability check returned company details. Availability is a boolean; anything more makes registration a reconnaissance tool. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1732,7 +1752,7 @@ test.describe('POST /v2/common/uniqueNameExist', () => {
         scenario: 'an availability check with no name',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1748,7 +1768,7 @@ test.describe('POST /v2/common/uniqueNameExist', () => {
         scenario: 'field "uniqueName" set to null',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1758,7 +1778,7 @@ test.describe('POST /v2/common/uniqueNameExist', () => {
 
     expect(
       response.status(),
-      `a 5000-character unique name produced HTTP ${response.status()}.`
+      `a 5000-character unique name produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1777,7 +1797,7 @@ test.describe('POST /v2/common/uniqueNameExist', () => {
 
     expect(
       response.status(),
-      `uniqueName was sent as a number and produced HTTP ${response.status()}.`
+      `uniqueName was sent as a number and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1806,7 +1826,7 @@ test.describe('POST /v2/common/uniqueNameExist', () => {
     await assertStatusCodeParity(response, { ...META, body: payload });
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1818,14 +1838,18 @@ test.describe('POST /v2/common/uniqueNameExist', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1868,13 +1892,13 @@ test.describe('GET /v2/common/getCompanyNameExistOnKpostAndKsmacc/{companyName}'
     commonClient,
   }) => {
     const response = await commonClient.getRawPath(
-      `${COMMON_PATHS.getCompanyNameExistOnKpostAndKsmacc}/`
+      `${COMMON_PATHS.getCompanyNameExistOnKpostAndKsmacc}/`,
     );
     const { text } = await readBody(response);
 
     expect(
       response.ok() && /"companyName"/.test(text),
-      `the route with an empty path variable answered ${response.status()} with company data. An omitted name must be a 404, never a listing of the customer base. Body: ${text.slice(0, 200)}`
+      `the route with an empty path variable answered ${response.status()} with company data. An omitted name must be a 404, never a listing of the customer base. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -1898,7 +1922,7 @@ test.describe('GET /v2/common/getCompanyNameExistOnKpostAndKsmacc/{companyName}'
 
     expect(
       rows > 20,
-      `a wildcard name check returned ${rows} company records. An existence check must answer yes or no, not enumerate the customer list.`
+      `a wildcard name check returned ${rows} company records. An existence check must answer yes or no, not enumerate the customer list.`,
     ).toBe(false);
   });
 
@@ -1926,12 +1950,12 @@ test.describe('GET /v2/common/getCompanyNameExistOnKpostAndKsmacc/{companyName}'
     const response = await commonClient.getCompanyNameExistOnKpostAndKsmacc('QA Probe Ltd');
     const { text } = await readBody(response);
     const leak = text.match(
-      /"(companyID|adminEmail|adminMobile|gstNumber|address|contactPerson)"\s*:\s*"?[^",}]+/i
+      /"(companyID|adminEmail|adminMobile|gstNumber|address|contactPerson)"\s*:\s*"?[^",}]+/i,
     );
 
     expect(
       leak !== null,
-      `an anonymous availability check returned a detail field (${leak ? leak[0].slice(0, 60) : ''}). The answer to "is this name taken" is a boolean; anything more turns a sign-up helper into a disclosure of another organisation's registration details. Body: ${text.slice(0, 200)}`
+      `an anonymous availability check returned a detail field (${leak ? leak[0].slice(0, 60) : ''}). The answer to "is this name taken" is a boolean; anything more turns a sign-up helper into a disclosure of another organisation's registration details. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -1942,13 +1966,13 @@ test.describe('GET /v2/common/getCompanyNameExistOnKpostAndKsmacc/{companyName}'
     // require actually enumerating anyone's customer list.
     const names = ['Acme', 'Globex', 'Initech', 'Umbrella', 'Soylent'];
     const responses = await Promise.all(
-      names.map((n) => commonClient.getCompanyNameExistOnKpostAndKsmacc(n))
+      names.map((n) => commonClient.getCompanyNameExistOnKpostAndKsmacc(n)),
     );
     const allAccepted = responses.every((r) => r.status() !== 429);
 
     expect(
       allAccepted,
-      `five back-to-back anonymous existence checks were all accepted with no throttling (statuses ${responses.map((r) => r.status()).join(', ')}). An unlimited public oracle over company names lets anyone test the whole customer base a name at a time.`
+      `five back-to-back anonymous existence checks were all accepted with no throttling (statuses ${responses.map((r) => r.status()).join(', ')}). An unlimited public oracle over company names lets anyone test the whole customer base a name at a time.`,
     ).toBe(false);
   });
 
@@ -1957,7 +1981,7 @@ test.describe('GET /v2/common/getCompanyNameExistOnKpostAndKsmacc/{companyName}'
   }) => {
     const response = await commonClient.postRawTo(
       `${COMMON_PATHS.getCompanyNameExistOnKpostAndKsmacc}/QA%20Probe%20Ltd`,
-      '{}'
+      '{}',
     );
 
     await assertStatus(response, [400, 401, 403, 404, 405, 415], {
@@ -1980,11 +2004,11 @@ test.describe('GET /v2/common/getCompanyNameExistOnKpostAndKsmacc/{companyName}'
 
     expect(
       viaPath.ok() === viaBody.ok(),
-      `getCompanyNameExistOnKpostAndKsmacc answered ${viaPath.status()} and isCompanyNameExist answered ${viaBody.status()} for the same name. Two availability checks over one namespace must not disagree, or registration and validation can be driven to different conclusions.`
+      `getCompanyNameExistOnKpostAndKsmacc answered ${viaPath.status()} and isCompanyNameExist answered ${viaBody.status()} for the same name. Two availability checks over one namespace must not disagree, or registration and validation can be driven to different conclusions.`,
     ).toBe(true);
   });
 
-  test('[IDOR] a foreign pathVariable must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign pathVariable must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1996,7 +2020,12 @@ test.describe('GET /v2/common/getCompanyNameExistOnKpostAndKsmacc/{companyName}'
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
+    const response = await genericClient.sendToPathVariable(
+      'GET',
+      META.path,
+      String(FOREIGN.uuid),
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'pathVariable',
@@ -2010,11 +2039,15 @@ test.describe('GET /v2/common/getCompanyNameExistOnKpostAndKsmacc/{companyName}'
   }) => {
     // Fired with an empty/unknown payload so the endpoint takes its *error* path — the branch
     // where this API most often answers HTTP 200 over an envelope reporting 500.
-    const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
+    const response = await genericClient.sendToPathVariable(
+      'GET',
+      META.path,
+      String(FOREIGN.uuid),
+      { token: staticToken },
+    );
 
     await assertStatusCodeParity(response, META);
   });
-
 });
 
 /* =========================================================================================

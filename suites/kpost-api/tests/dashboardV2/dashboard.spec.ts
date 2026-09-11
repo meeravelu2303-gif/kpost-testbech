@@ -18,6 +18,7 @@ import {
   assertNoReflectedScript,
   assertNot200OKOnError,
   assertStatusCodeParity,
+  comparableBody,
   assertUnauthorized,
   expectValidContract,
   readBody,
@@ -68,7 +69,7 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
       response,
       katchupDashboardResponseSchema,
       { ...META, body: payload },
-      [200, 201, 400, 401, 403]
+      [200, 201, 400, 401, 403],
     );
   });
 
@@ -76,12 +77,15 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
     dashboardV2Client,
     staticToken,
   }) => {
-    const payload = buildKatchupDashboardPayload({ firstMsgID: INT32_OVERFLOW, lastMsgID: INT32_OVERFLOW });
+    const payload = buildKatchupDashboardPayload({
+      firstMsgID: INT32_OVERFLOW,
+      lastMsgID: INT32_OVERFLOW,
+    });
     const response = await dashboardV2Client.katchupDashboardMsg(payload, { token: staticToken });
 
     expect(
       response.status(),
-      `firstMsgID=${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}. An out-of-range identifier must be refused as a client error, never surface as a server fault.`
+      `firstMsgID=${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}. An out-of-range identifier must be refused as a client error, never surface as a server fault.`,
     ).toBeLessThan(500);
   });
 
@@ -94,7 +98,7 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
 
     expect(
       response.status(),
-      `an oversized non-numeric serverTime cursor produced HTTP ${response.status()}. A pagination cursor must be validated, not passed to the database driver.`
+      `an oversized non-numeric serverTime cursor produced HTTP ${response.status()}. A pagination cursor must be validated, not passed to the database driver.`,
     ).toBeLessThan(500);
   });
 
@@ -151,7 +155,7 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
 
     expect(
       response.status(),
-      `firstMsgID was sent as a string and produced HTTP ${response.status()}. A type mismatch must be caught by deserialisation and answered as a client error.`
+      `firstMsgID was sent as a string and produced HTTP ${response.status()}. A type mismatch must be caught by deserialisation and answered as a client error.`,
     ).toBeLessThan(500);
   });
 
@@ -164,7 +168,7 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
 
     expect(
       response.status(),
-      `serverTime was sent as an array and produced HTTP ${response.status()}.`
+      `serverTime was sent as an array and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -182,7 +186,7 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
         body: payload,
         repro: `await dashboardV2Client.katchupDashboardMsg(buildKatchupDashboardPayload({ serverTime: ${JSON.stringify(XSS_PAYLOAD)} }), { token });`,
       },
-      XSS_PAYLOAD
+      XSS_PAYLOAD,
     );
   });
 
@@ -200,7 +204,7 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
         body: payload,
         repro: `await dashboardV2Client.katchupDashboardMsg(buildKatchupDashboardPayload({ serverTime: ${JSON.stringify(SQLI_PAYLOAD)} }), { token });`,
       },
-      SQLI_PAYLOAD
+      SQLI_PAYLOAD,
     );
   });
 
@@ -211,11 +215,7 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
     const payload = buildKatchupDashboardPayload({ serverTime: SQLI_DROP_PAYLOAD });
     const response = await dashboardV2Client.katchupDashboardMsg(payload, { token: staticToken });
 
-    await assertNoInternalLeak(
-      response,
-      { ...META, body: payload },
-      SQLI_DROP_PAYLOAD
-    );
+    await assertNoInternalLeak(response, { ...META, body: payload }, SQLI_DROP_PAYLOAD);
   });
 
   test('[8] auth: a request with no Authorization header must be HTTP 401/403', async ({
@@ -254,17 +254,35 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
     staticToken,
     authSession,
   }) => {
-    // The feed is resolved from the token; the Excel body carries no participant field. Smuggling
-    // one must be inert. Asserted on reflection, not row count — the caller's own feed may
-    // legitimately hold rows, so a count cannot distinguish a leak from normal data.
+    /*
+     * The feed is resolved from the token; the Excel body carries no participant field, so
+     * smuggling one must be inert.
+     *
+     * Asserted COMPARATIVELY — does the smuggled id change the feed? — not on whether the id
+     * appears in the body. The victim is a QA account the shared user genuinely exchanges
+     * messages with throughout this suite, so its identifier is legitimately all over the feed.
+     * The substring form reported a Critical leak against a feed that was **byte-identical** with
+     * and without the smuggled id (21,091 bytes both ways, verified 2026-09-10).
+     *
+     * Server-stamped cursors differ between any two calls, so they are stripped before comparing;
+     * see `comparableBody`.
+     */
+    const own = await readBody(
+      await dashboardV2Client.katchupDashboardMsg(buildKatchupDashboardPayload(), {
+        token: staticToken,
+      }),
+    );
+    // Positive control: two empty feeds are equal no matter what the server honoured.
+    test.skip(comparableBody(own.text).length < 64, 'the caller has no feed to compare against');
+
     const payload = buildKatchupDashboardPayload({ kpostUser: VICTIM_KPOST_ID });
     const response = await dashboardV2Client.katchupDashboardMsg(payload, { token: staticToken });
     const { text } = await readBody(response);
 
     expect(
-      text.includes(VICTIM_KPOST_ID),
-      `the katchup feed echoed a smuggled participant ("${VICTIM_KPOST_ID}") while authenticated as ${authSession.kpostID ?? 'an unrelated identity'} — the feed must be scoped to the token, never a caller-supplied id. Body: ${text.slice(0, 200)}`
-    ).toBe(false);
+      comparableBody(text),
+      `the smuggled participant ("${VICTIM_KPOST_ID}") changed the katchup feed returned to ${authSession.kpostID ?? 'an unrelated identity'} — the feed must be scoped to the token, never a caller-supplied id. Body: ${text.slice(0, 200)}`,
+    ).toBe(comparableBody(own.text));
   });
 
   test('[9] status misreporting: HTTP 200 must not carry a failure payload', async ({
@@ -307,12 +325,12 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
     const response = await dashboardV2Client.sendRaw(
       DASHBOARD_V2_PATHS.katchupDashboardMsg,
       '{invalid json',
-      { token: staticToken }
+      { token: staticToken },
     );
 
     expect(
       response.status(),
-      `a malformed JSON body produced HTTP ${response.status()}. A parse failure is a client error and must surface as 400, never as a 5xx.`
+      `a malformed JSON body produced HTTP ${response.status()}. A parse failure is a client error and must surface as 400, never as a 5xx.`,
     ).toBeLessThan(500);
   });
 
@@ -330,11 +348,11 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
 
     expect(
       new Set(statuses).size,
-      `three identical concurrent reads returned different statuses (${statuses.join(', ')}). A read-only feed must be deterministic under concurrency.`
+      `three identical concurrent reads returned different statuses (${statuses.join(', ')}). A read-only feed must be deterministic under concurrency.`,
     ).toBe(1);
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -346,14 +364,18 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -377,7 +399,7 @@ test.describe('POST /v2/dashboard/kallDashboard', () => {
       response,
       kallDashboardResponseSchema,
       { ...META, body: payload },
-      [200, 201, 400, 401, 403]
+      [200, 201, 400, 401, 403],
     );
   });
 
@@ -390,7 +412,7 @@ test.describe('POST /v2/dashboard/kallDashboard', () => {
 
     expect(
       response.status(),
-      `a call history request for the year 2999 produced HTTP ${response.status()}. An out-of-range date must return an empty result or a client error, not a server fault.`
+      `a call history request for the year 2999 produced HTTP ${response.status()}. An out-of-range date must return an empty result or a client error, not a server fault.`,
     ).toBeLessThan(500);
   });
 
@@ -403,7 +425,7 @@ test.describe('POST /v2/dashboard/kallDashboard', () => {
 
     expect(
       response.status(),
-      `an oversized serverTime produced HTTP ${response.status()}.`
+      `an oversized serverTime produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -446,7 +468,7 @@ test.describe('POST /v2/dashboard/kallDashboard', () => {
 
     expect(
       response.status(),
-      `selectedDate was sent as an empty object and produced HTTP ${response.status()}.`
+      `selectedDate was sent as an empty object and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -459,7 +481,7 @@ test.describe('POST /v2/dashboard/kallDashboard', () => {
 
     expect(
       response.status(),
-      `repeatType is an integer in the contract but was sent as a string, producing HTTP ${response.status()}.`
+      `repeatType is an integer in the contract but was sent as a string, producing HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -472,7 +494,7 @@ test.describe('POST /v2/dashboard/kallDashboard', () => {
 
     expect(
       response.status(),
-      `idsList is an array in the contract but was sent as a string, producing HTTP ${response.status()}.`
+      `idsList is an array in the contract but was sent as a string, producing HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -534,7 +556,7 @@ test.describe('POST /v2/dashboard/kallDashboard', () => {
 
     expect(
       text.includes(VICTIM_KPOST_ID),
-      `the call history echoed a smuggled participant ("${VICTIM_KPOST_ID}") — this sensitive metadata must be scoped to the authenticated identity, never a caller-supplied id. Body: ${text.slice(0, 200)}`
+      `the call history echoed a smuggled participant ("${VICTIM_KPOST_ID}") — this sensitive metadata must be scoped to the authenticated identity, never a caller-supplied id. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -575,15 +597,13 @@ test.describe('POST /v2/dashboard/kallDashboard', () => {
     dashboardV2Client,
     staticToken,
   }) => {
-    const response = await dashboardV2Client.sendRaw(
-      DASHBOARD_V2_PATHS.kallDashboard,
-      '{"a":}',
-      { token: staticToken }
-    );
+    const response = await dashboardV2Client.sendRaw(DASHBOARD_V2_PATHS.kallDashboard, '{"a":}', {
+      token: staticToken,
+    });
 
     expect(
       response.status(),
-      `a malformed JSON body produced HTTP ${response.status()}.`
+      `a malformed JSON body produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -601,11 +621,11 @@ test.describe('POST /v2/dashboard/kallDashboard', () => {
 
     expect(
       new Set(statuses).size,
-      `three identical concurrent reads returned different statuses (${statuses.join(', ')}).`
+      `three identical concurrent reads returned different statuses (${statuses.join(', ')}).`,
     ).toBe(1);
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -617,14 +637,18 @@ test.describe('POST /v2/dashboard/kallDashboard', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -650,7 +674,6 @@ test.describe('POST /v2/dashboard/kallDashboard', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });
 
 /* =========================================================================================
@@ -674,7 +697,7 @@ test.describe('POST /v2/dashboard/homeDashboardMsgs', () => {
       response,
       homeDashboardResponseSchema,
       { ...META, body: payload },
-      [200, 201, 400, 401, 403]
+      [200, 201, 400, 401, 403],
     );
   });
 
@@ -687,7 +710,7 @@ test.describe('POST /v2/dashboard/homeDashboardMsgs', () => {
 
     expect(
       response.status(),
-      `a negative paging window produced HTTP ${response.status()}. Negative offsets must be refused rather than passed to the query layer.`
+      `a negative paging window produced HTTP ${response.status()}. Negative offsets must be refused rather than passed to the query layer.`,
     ).toBeLessThan(500);
   });
 
@@ -700,7 +723,7 @@ test.describe('POST /v2/dashboard/homeDashboardMsgs', () => {
 
     expect(
       response.status(),
-      `a multi-byte UTF-8 serverTime produced HTTP ${response.status()}.`
+      `a multi-byte UTF-8 serverTime produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -743,7 +766,7 @@ test.describe('POST /v2/dashboard/homeDashboardMsgs', () => {
 
     expect(
       response.status(),
-      `serverTime was sent as an empty array and produced HTTP ${response.status()}.`
+      `serverTime was sent as an empty array and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -756,7 +779,7 @@ test.describe('POST /v2/dashboard/homeDashboardMsgs', () => {
 
     expect(
       response.status(),
-      `firstMsgID was sent as a string and produced HTTP ${response.status()}.`
+      `firstMsgID was sent as a string and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -769,7 +792,7 @@ test.describe('POST /v2/dashboard/homeDashboardMsgs', () => {
 
     expect(
       response.status(),
-      `serverTime was sent as a number and produced HTTP ${response.status()}.`
+      `serverTime was sent as a number and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -821,7 +844,7 @@ test.describe('POST /v2/dashboard/homeDashboardMsgs', () => {
 
     expect(
       text.includes(VICTIM_KPOST_ID),
-      `the home dashboard echoed a smuggled participant ("${VICTIM_KPOST_ID}") — it must be derived from the token identity, never a caller-supplied id. Body: ${text.slice(0, 200)}`
+      `the home dashboard echoed a smuggled participant ("${VICTIM_KPOST_ID}") — it must be derived from the token identity, never a caller-supplied id. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -865,12 +888,12 @@ test.describe('POST /v2/dashboard/homeDashboardMsgs', () => {
     const response = await dashboardV2Client.sendRaw(
       DASHBOARD_V2_PATHS.homeDashboardMsgs,
       'not json at all',
-      { token: staticToken }
+      { token: staticToken },
     );
 
     expect(
       response.status(),
-      `a malformed JSON body produced HTTP ${response.status()}.`
+      `a malformed JSON body produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -888,11 +911,11 @@ test.describe('POST /v2/dashboard/homeDashboardMsgs', () => {
 
     expect(
       new Set(statuses).size,
-      `three identical concurrent reads returned different statuses (${statuses.join(', ')}).`
+      `three identical concurrent reads returned different statuses (${statuses.join(', ')}).`,
     ).toBe(1);
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -904,14 +927,18 @@ test.describe('POST /v2/dashboard/homeDashboardMsgs', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -935,7 +962,7 @@ test.describe('POST /v2/dashboard/homeDashboardNewMsgs', () => {
       response,
       homeDashboardResponseSchema,
       { ...META, body: payload },
-      [200, 201, 400, 401, 403]
+      [200, 201, 400, 401, 403],
     );
   });
 
@@ -950,7 +977,7 @@ test.describe('POST /v2/dashboard/homeDashboardNewMsgs', () => {
 
     expect(
       response.status(),
-      `lastMsgID=${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}.`
+      `lastMsgID=${INT32_OVERFLOW} exceeds int32 and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -965,7 +992,7 @@ test.describe('POST /v2/dashboard/homeDashboardNewMsgs', () => {
 
     expect(
       response.status(),
-      `an oversized serverTime produced HTTP ${response.status()}.`
+      `an oversized serverTime produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1030,7 +1057,7 @@ test.describe('POST /v2/dashboard/homeDashboardNewMsgs', () => {
 
     expect(
       response.status(),
-      `lastMsgID was sent as a string and produced HTTP ${response.status()}.`
+      `lastMsgID was sent as a string and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1045,7 +1072,7 @@ test.describe('POST /v2/dashboard/homeDashboardNewMsgs', () => {
 
     expect(
       response.status(),
-      `deviceID was sent as a number and produced HTTP ${response.status()}.`
+      `deviceID was sent as a number and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1107,7 +1134,7 @@ test.describe('POST /v2/dashboard/homeDashboardNewMsgs', () => {
 
     expect(
       text.includes(VICTIM_KPOST_ID),
-      `the unread feed echoed a smuggled participant ("${VICTIM_KPOST_ID}") — unread state must be scoped to the authenticated identity. Body: ${text.slice(0, 200)}`
+      `the unread feed echoed a smuggled participant ("${VICTIM_KPOST_ID}") — unread state must be scoped to the authenticated identity. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -1155,12 +1182,12 @@ test.describe('POST /v2/dashboard/homeDashboardNewMsgs', () => {
     const response = await dashboardV2Client.sendRaw(
       DASHBOARD_V2_PATHS.homeDashboardNewMsgs,
       '[1,2,',
-      { token: staticToken }
+      { token: staticToken },
     );
 
     expect(
       response.status(),
-      `a malformed JSON body produced HTTP ${response.status()}.`
+      `a malformed JSON body produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1178,11 +1205,11 @@ test.describe('POST /v2/dashboard/homeDashboardNewMsgs', () => {
 
     expect(
       new Set(statuses).size,
-      `three identical concurrent reads returned different statuses (${statuses.join(', ')}).`
+      `three identical concurrent reads returned different statuses (${statuses.join(', ')}).`,
     ).toBe(1);
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1194,14 +1221,18 @@ test.describe('POST /v2/dashboard/homeDashboardNewMsgs', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1225,7 +1256,7 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
       response,
       kmailDashboardResponseSchema,
       { ...META, body: payload },
-      [200, 201, 400, 401, 403]
+      [200, 201, 400, 401, 403],
     );
   });
 
@@ -1240,7 +1271,7 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
 
     expect(
       response.status(),
-      `kmailID sent as a number produced HTTP ${response.status()}. A type mismatch must be answered as a client error, never a server fault.`
+      `kmailID sent as a number produced HTTP ${response.status()}. A type mismatch must be answered as a client error, never a server fault.`,
     ).toBeLessThan(500);
   });
 
@@ -1253,7 +1284,7 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
 
     expect(
       response.status(),
-      `kmailID sent as an object produced HTTP ${response.status()}.`
+      `kmailID sent as an object produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1267,7 +1298,7 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
 
     expect(
       response.status(),
-      `an empty body produced HTTP ${response.status()}. A kmailID-less request must be handled, not fault the handler.`
+      `an empty body produced HTTP ${response.status()}. A kmailID-less request must be handled, not fault the handler.`,
     ).toBeLessThan(500);
   });
 
@@ -1280,7 +1311,7 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
 
     expect(
       response.status(),
-      `kmailID set to null produced HTTP ${response.status()}.`
+      `kmailID set to null produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1293,7 +1324,7 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
 
     expect(
       response.status(),
-      `kmailIDs is an array in the contract but was sent as a string, producing HTTP ${response.status()}.`
+      `kmailIDs is an array in the contract but was sent as a string, producing HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1306,7 +1337,7 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
 
     expect(
       response.status(),
-      `groupFlag is a boolean in the contract but was sent as a string, producing HTTP ${response.status()}.`
+      `groupFlag is a boolean in the contract but was sent as a string, producing HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1370,7 +1401,7 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
 
     expect(
       text.includes(VICTIM_KPOST_ID),
-      `the mailbox feed echoed a smuggled kpostUser ("${VICTIM_KPOST_ID}") — a mailbox is among the most sensitive resources on the platform and must be resolved from the token, never the body. Body: ${text.slice(0, 200)}`
+      `the mailbox feed echoed a smuggled kpostUser ("${VICTIM_KPOST_ID}") — a mailbox is among the most sensitive resources on the platform and must be resolved from the token, never the body. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -1403,7 +1434,7 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
 
     expect(
       response.status(),
-      `an unrecognised field produced HTTP ${response.status()}.`
+      `an unrecognised field produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1414,12 +1445,12 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
     const response = await dashboardV2Client.sendRaw(
       DASHBOARD_V2_PATHS.getKmailDashboardMsg,
       '{invalid json',
-      { token: staticToken }
+      { token: staticToken },
     );
 
     expect(
       response.status(),
-      `a malformed JSON body produced HTTP ${response.status()}.`
+      `a malformed JSON body produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -1437,11 +1468,11 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
 
     expect(
       new Set(statuses).size,
-      `three identical concurrent reads returned different statuses (${statuses.join(', ')}).`
+      `three identical concurrent reads returned different statuses (${statuses.join(', ')}).`,
     ).toBe(1);
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1453,14 +1484,18 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -1486,5 +1521,4 @@ test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });

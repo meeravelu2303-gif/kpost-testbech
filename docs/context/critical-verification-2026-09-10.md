@@ -13,7 +13,7 @@ built on it is worthless. See [[kpost-auth-before-routing]].
 | id | finding | evidence |
 | -- | ------- | -------- |
 | `BUG-API-6EEBB3` | **Confidential Copy recipient disclosed to the primary recipient** | The recipient's own `katchupMessagesForSelectedContactID` fetch returns `selectedMembers` naming the confidential party. Verified from the recipient's session, not the sender's. |
-| `BUG-API-D238B5` | **Anonymous module lookup exposes the user directory** | `POST /v2/common/getKpostIdUsingModule` with **no token** returns **183 account handles** with names and gender. |
+| ~~`BUG-API-D238B5`~~ | ~~**Anonymous module lookup exposes the user directory**~~ — **RETIRED 2026-09-11, by design; see Closure below** | `POST /v2/common/getKpostIdUsingModule` with **no token** returns **183 account handles** with names and gender. |
 | `BUG-API-87F627` | **Stored XSS in Kdiary** | `createEvent` accepts `<script>alert('xss')</script>` as the title and `getTodaySchedules` serves it back unescaped on a later read. Stored, not merely reflected. |
 | `BUG-API-E2A672` | Unbounded recurring series accepted | `createEvent` with a daily recurrence and no `seriesEndDate` → 200, eventID issued. |
 | `BUG-API-78938D` | Event ending before it starts accepted | `createEvent` with end < start → 200, eventID 670 created. |
@@ -130,3 +130,54 @@ body that genuinely contained the victim's id — the flaw was that the id was t
 which no static rule can see. That class is caught the way it was caught here: by reproducing the
 finding against the live API before filing. `npm run audit:bugs` exists to point at which ones are
 worth that effort.
+
+---
+
+# Closure — 2026-09-11
+
+The three FALSE / unsupported Criticals above are now fixed **at source**, so a run cannot re-file
+them, and the one remaining contested Critical is retired as by-design. Each fix was verified
+against `192.168.0.66` before being accepted.
+
+## Retired as by-design (1)
+
+| id | resolution |
+| -- | ---------- |
+| `BUG-API-D238B5` | **Not a defect.** `POST /v2/common/getKpostIdUsingModule` takes no token *by design* — confirmed with the development team on 2026-09-11. It serves the pre-token module picker. The disclosure assertion is replaced by `assertPublicRouteReachable`, so the check now defends the intent: the defect would be the route disappearing behind the auth filter and blocking the flow. Close the existing ticket as INVALID. |
+
+**Open question, not filed:** the anonymous response carried handles together with names and
+gender. That the *route* is public is settled; whether the *payload* should be that wide is a
+separate product decision and is deliberately not being re-filed under another title.
+
+## Fixed at source (3)
+
+| id | the false premise | the repair |
+| -- | ----------------- | ---------- |
+| `BUG-API-0442A0` | `text.includes(VICTIM_KPOST_ID)` on the katchup feed | The victim is a QA account the shared user genuinely exchanges messages with, so its id is legitimately all over a 70,866-byte feed. Now **comparative** — own feed vs feed-with-smuggled-id, volatile cursors stripped via `comparableBody` — plus a positive control that skips when the own feed is too small to distinguish anything. `tests/dashboardV2/dashboard.spec.ts` |
+| `BUG-API-46FB1B` | `/"(message\|content\|prompt)"\s*:\s*"[^"]{3,}"/` counted as "transcript content" | That regex matches the **error envelope**. Live: ids 1-3 each answer `404 {"status":"FAILURE","message":"Session '1' was not found."}` — three matches, three phantom leaks. Now `returnedTranscript()` requires a success envelope whose `data` rows carry transcript text, with a trap-#2 positive control: the refusal must name the session, proving it came from the handler and not the pre-routing auth filter. `tests/integrations/aiAssistant.spec.ts` |
+| `BUG-API-D82D41` | demanded the foreign-identity font write be **refused** | An implementation that ignores the body's `kpostID` and stores the caller's own row is correct and answers 200 — by status, indistinguishable from an ordinary write. Now judged on **acknowledgement** via `assertNoForeignAcknowledgement`, matching the doctrine already used elsewhere in the bench. `tests/generalSettings/personalization.spec.ts` |
+
+The generalisable lesson, and why all three are the same bug: **a string match on a response body
+is not evidence of a leak.** The identifier being present says nothing about *why* it is present.
+Every disclosure claim needs either a comparison against the caller's own legitimate response or a
+structural read of where in the envelope the value sits.
+
+## Confirmed by the verification harness (7)
+
+`scripts/verify-findings.spec.ts` (run with `--config=scripts/verify-findings.config.ts`) replays a
+finding through the bench's **own builders and clients**, which is what made these decidable —
+the earlier hand-rolled probes died at the binding layer and read as "not confirmed".
+
+| id | evidence |
+| -- | -------- |
+| `51AA1B` | booked call with nobody invited → `kallID 41159` |
+| `3580D1` | call ending three hours before it starts → `kallID 41160` |
+| `5FD83F` | `repeatType 9999` → "Repeat Kool Kall Created" |
+| `B37E81` | `seriesEndDate` before the first occurrence → "Repeat Kool Kall Created" |
+| `7C4662` | `createSchedule` → `could not execute statement; SQL [n/a]; nested exception is org.hibernate.exception.DataException` |
+| `9077DE` | wallet notification to a caller-supplied mobile → `200 {"status":"SUCCESS"}` |
+| `198051` | `/admin/resetPassword` with `userType: "NOT_A_TIER"` → `200 {}` |
+
+`BUG-API-31BA6D` was the eighth and is **FALSE**: the server overwrites the spoofed `sender`, so
+the forward is attributed correctly. `tests/katchupV2/forwarding.spec.ts` now asserts on
+attribution in the recipient's own fetch rather than on the call succeeding.

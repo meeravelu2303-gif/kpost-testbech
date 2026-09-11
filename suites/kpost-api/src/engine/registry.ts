@@ -129,6 +129,35 @@ export function registryCoverage(): {
  * The caller supplies only what the contract cannot know. Everything else — the documented fields,
  * the module, the default statuses for the verb — comes from the Excel row.
  */
+/**
+ * Declares a family of endpoints that share a policy.
+ *
+ * The shared half — `auth`, `expectedStatuses`, performance tier, skips — is stated **once and
+ * explicitly**. That is the difference between this and a global default: a default applies
+ * silently to endpoints nobody considered, while a family is a deliberate statement that these
+ * particular routes share a contract. A member can still override any field.
+ *
+ * This is what makes declaring a module's twenty read endpoints twenty lines rather than four
+ * hundred, without weakening the rule that `expectedStatuses` is never assumed.
+ */
+export function defineFamily(
+  shared: Pick<EndpointDefinition, 'auth' | 'expectedStatuses'> & Partial<EndpointDefinition>,
+  members: Array<Pick<EndpointDefinition, 'id' | 'method' | 'path'> & Partial<EndpointDefinition>>
+): EndpointDefinition[] {
+  return members.map((member) => {
+    const row = loadContract().find((r) => normalisePath(r.path) === normalisePath(member.path));
+    return defineEndpoint({
+      ...shared,
+      module: member.module ?? shared.module ?? row?.module,
+      // Fields to fuzz come from the workbook unless the member names its own.
+      requiredFields:
+        member.requiredFields ?? shared.requiredFields ?? documentedFields(row?.request),
+      ...member,
+      skip: { ...shared.skip, ...member.skip },
+    } as EndpointDefinition);
+  });
+}
+
 export function fromContract(
   contractPath: string,
   method: HttpMethod,

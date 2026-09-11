@@ -51,6 +51,33 @@ const LAYOUTS = {
   KDIARY: { module: 'B', method: 'C', url: 'D', request: 'F' },
 };
 
+
+/**
+ * Top-level balanced `{…}` blocks in a cell, in order.
+ *
+ * Brace-counting rather than a regex: the documented bodies nest objects and arrays, and a lazy
+ * pattern stops at the first inner `}`.
+ */
+function extractJsonBlocks(text) {
+  const blocks = [];
+  let depth = 0;
+  let start = -1;
+  for (let i = 0; i < text.length; i += 1) {
+    if (text[i] === '{') {
+      if (depth === 0) start = i;
+      depth += 1;
+    } else if (text[i] === '}') {
+      depth -= 1;
+      if (depth === 0 && start >= 0) {
+        blocks.push(text.slice(start, i + 1));
+        start = -1;
+      }
+      if (depth < 0) depth = 0;
+    }
+  }
+  return blocks;
+}
+
 const TMP = path.join(process.env.TEMP || '/tmp', `xlsx-${Date.now()}`);
 fs.mkdirSync(TMP, { recursive: true });
 
@@ -146,27 +173,55 @@ for (const sheet of sheets) {
     }
     if (!urlValue) continue;
 
-    let pathValue = urlValue.startsWith('http')
-      ? '/' + urlValue.replace(/^https?:\/\/[^/]+\/?/, '')
-      : urlValue;
-    if (!pathValue.startsWith('/')) pathValue = `/${pathValue}`;
-    // Collapse the accidental double slash seen on KatchupAPI R4 (`//v2/signupLogin/userLogin/`).
-    pathValue = pathValue.replace(/^\/{2,}/, '/');
-    // A cell that carried two URLs keeps only the first; the second is a note, not the endpoint.
-    pathValue = pathValue.split(/\s+/)[0];
-    if (!/^\/[a-zA-Z]/.test(pathValue)) continue;
+    /*
+     * SOME ROWS DOCUMENT TWO ENDPOINTS.
+     *
+     * KatchupAPI R7 is `forgotPasswordUpdate` AND `changePassword`; R8 is `sendOTP` AND
+     * `validateOTP`. The url cell holds both URLs and the request cell holds both bodies, each
+     * behind a label. Keeping only the first URL and the whole request cell made the second
+     * endpoint's fields look like missing fields on the first — which reported `otp`/`sendDate`
+     * as absent from `sendOTP`, where they do not belong.
+     *
+     * So a row emits one record per URL, paired positionally with the balanced `{…}` blocks in
+     * the request cell. When the counts disagree the request is left EMPTY rather than guessed:
+     * a row the parser cannot split should contribute no field demands at all.
+     */
+    const urls = urlValue.split(/\s+/).filter((u) => /^https?:\/\/|^\//.test(u));
+    const bodies = extractJsonBlocks(String(cells[layout.request] ?? ''));
 
-    records.push({
-      tab: sheet.name,
-      row: rowNum,
-      module: String(cells[layout.module] ?? '').trim() || undefined,
-      name: layout.name ? String(cells[layout.name] ?? '').trim() || undefined : undefined,
-      method: layout.method ? String(cells[layout.method] ?? '').trim().toUpperCase() || undefined : undefined,
-      url: urlValue,
-      path: pathValue,
-      request: String(cells[layout.request] ?? ''),
-      yellow: isYellow(styles[layout.url]),
-    });
+    for (const [index, rawUrl] of urls.entries()) {
+      let pathValue = rawUrl.startsWith('http')
+        ? '/' + rawUrl.replace(/^https?:\/\/[^/]+\/?/, '')
+        : rawUrl;
+      if (!pathValue.startsWith('/')) pathValue = `/${pathValue}`;
+      // Collapse the accidental double slash on R4 (`//v2/signupLogin/userLogin/`).
+      pathValue = pathValue.replace(/^\/{2,}/, '/');
+      if (!/^\/[a-zA-Z]/.test(pathValue)) continue;
+
+      const request =
+        urls.length === 1
+          ? String(cells[layout.request] ?? '')
+          : bodies.length === urls.length
+            ? bodies[index]
+            : '';
+
+      records.push({
+        tab: sheet.name,
+        row: rowNum,
+        module: String(cells[layout.module] ?? '').trim() || undefined,
+        name: layout.name
+          ? String(cells[layout.name] ?? '').trim().split(/\s+/)[index] || undefined
+          : undefined,
+        method: layout.method
+          ? String(cells[layout.method] ?? '').trim().toUpperCase() || undefined
+          : undefined,
+        url: rawUrl,
+        path: pathValue,
+        request,
+        yellow: isYellow(styles[layout.url]),
+      });
+    }
+    continue;
   }
 }
 

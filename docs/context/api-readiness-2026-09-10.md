@@ -301,3 +301,45 @@ incomplete 301. The five remaining gaps are real and named in the gate output (`
 
 `npm run audit:excel` is pinned at threshold 100 and therefore **fails today**. That is the gate
 doing its job; lowering it to go green would discard the finding.
+
+---
+
+# Excel conformance closed to 100% — 2026-09-11
+
+Against the **complete** 329-endpoint contract, not the incomplete one the earlier 100% was
+measured against. Five reported gaps; only two were real.
+
+## Three were parser or matcher artifacts
+
+**Rows 7 and 8 each document TWO endpoints.** R7 is `forgotPasswordUpdate` *and* `changePassword`;
+R8 is `sendOTP` *and* `validateOTP`. The url cell holds both URLs, the request cell both bodies.
+Keeping only the first URL and the whole request cell made the *second* endpoint's fields read as
+missing from the first — reporting `otp`/`sendDate` as absent from `sendOTP`, where they do not
+belong. Adding them would have sent fields the endpoint does not take.
+
+The parser now emits one record per URL, paired positionally with the balanced `{…}` blocks in the
+request cell. When the counts disagree the request is left **empty** rather than guessed: a row the
+parser cannot split should contribute no field demands at all. `changePassword` and `validateOTP`
+are now contract rows in their own right.
+
+**`buildKpostIdSuggestionPayload` was defined twice in the same suite** — `auth.payload.ts` and
+`companyAdministration.payload.ts`, two different payloads behind one identifier. The gate resolves
+builders by name, so whichever file it walked last won, and `mobileNumber` read as never sent to
+`kpostIDsuggestionList` when the auth builder does send it. The company one is renamed
+`buildCompanyKpostIdSuggestionPayload`. This is the intra-suite twin of the cross-suite collision
+fixed on 2026-09-10 — nine names collide between KPost and KMail.
+
+## Two were real, and both are fixed
+
+- **`userLogin` was missing `module`** (Excel R4, 0 = KPost). Verified live before adding: login
+  answers 200 and issues a token with it present. Checked explicitly because every other test in
+  the suite depends on that one request succeeding.
+- **`signup` was missing `module`, `email`, and the address block** — `pinCode`, `areaName`,
+  `state`, `city`, which live INSIDE `userProfile`, not at the top level. Verified both shapes
+  reach signup's OTP gate identically, so the fields bind rather than being ignored.
+
+## State
+
+`npm run audit:excel` → **100.00%**, 0 documented fields absent, threshold 100. **10/10 CI gates
+green.** Preflight passes and the auth suite is unchanged (the same 20 backend faults, one fewer
+skip).

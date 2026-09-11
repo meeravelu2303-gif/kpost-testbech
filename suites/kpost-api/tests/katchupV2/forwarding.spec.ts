@@ -206,7 +206,24 @@ test.describe('POST /v2/katchup/forwardKatchupMessage', () => {
 
     test.skip(json === null, 'response was not JSON');
 
-    const forwarded = json?.statusCode === 200 && String(json?.status).toUpperCase() === 'SUCCESS';
+    /*
+     * Verdict on ATTRIBUTION, not on a 200.
+     *
+     * A 200 here means only "a message was created" — and the server creates one either way,
+     * because it stamps `sender` from the bearer token. Verified live 2026-09-11: supplying
+     * `sender: <victim>` produced `msgID 850282` with `sender: meera960@kpostindia.com` (the
+     * caller), a receiver from our own builder, and our own body. Nothing of the victim's was
+     * republished — the spoofed identity was discarded, which is the endpoint behaving correctly.
+     *
+     * Reading the 200 as a breach reported a Critical "a message between two other parties was
+     * forwarded" against that. What would actually evidence the claim is the VICTIM appearing as
+     * the sender of the forwarded message, so that is what is asserted.
+     */
+    const rows = Array.isArray((json as { data?: unknown })?.data)
+      ? ((json as { data: Array<Record<string, unknown>> }).data ?? [])
+      : [];
+    const forwarded = rows.some((row) => String(row.sender ?? '') === VICTIM_KPOST_ID);
+
     if (forwarded) {
       await reportBusinessLogicFlaw(
         response,
@@ -224,7 +241,7 @@ test.describe('POST /v2/katchup/forwardKatchupMessage', () => {
 
     expect(
       forwarded,
-      `a message between "${VICTIM_KPOST_ID}" and themselves was forwarded by ${authSession.kpostID ?? 'a different identity'}. Forwarding republishes private content into a conversation the author cannot see. Body: ${text.slice(0, 200)}`
+      `the forwarded message is attributed to "${VICTIM_KPOST_ID}" while the caller was ${authSession.kpostID ?? 'a different identity'} — the body-supplied sender reached the record, so one user can republish another's private content under their name. Body: ${text.slice(0, 200)}`
     ).toBe(false);
   });
 

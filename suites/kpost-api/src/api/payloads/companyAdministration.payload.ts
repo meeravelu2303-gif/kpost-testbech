@@ -209,7 +209,14 @@ export function buildDisplayNameSuggestionPayload(overrides: Record<string, unkn
 }
 
 /** createKpostIDAndDesignationSuggestion — Excel: { companyName, designation, companyID }. */
-export function buildKpostIdSuggestionPayload(overrides: Record<string, unknown> = {}) {
+/*
+ * Named for its module. It previously shared the bare name `buildKpostIdSuggestionPayload` with
+ * the auth builder in the same suite — two different payloads, one identifier. A reader could not
+ * tell which they were importing, and the Excel gate (which resolves builders by name) picked
+ * whichever file it walked last, reporting `mobileNumber` as never sent to
+ * kpostIDsuggestionList when the auth builder does send it.
+ */
+export function buildCompanyKpostIdSuggestionPayload(overrides: Record<string, unknown> = {}) {
   return {
     companyName: qaLabel('company'),
     designation: faker.person.jobTitle(),

@@ -117,7 +117,7 @@ Criticals genuine. Then converted 8 REAL findings that were landing in "Assertio
 expect/throw → EXCLUDED from Bugzilla) to `reportBusinessLogicFlaw` so they file as graded tickets:
 - verificationAndRecovery: mobile OTP bypass + mail OTP bypass (Critical, Security/Access Control) +
   forgotPassword user-enumeration (Major).
-- common/directory getKpostIdUsingModule anonymous kpostID leak (Critical).
+- ~~common/directory getKpostIdUsingModule anonymous kpostID leak (Critical).~~ RETIRED 2026-09-11 — the route is public by design (developers confirmed); see critical-verification-2026-09-10.md.
 - common/platform saveEnquiryDetails spam-flood (Major, Security/Rate Limiting).
 - contactsDirectoryV2/contactDirectory deleteContact SQL-tautology accepted (Critical).
 - profile/profileUpdates updatePrivacySettingDetails vs setProfilePrivacy inconsistency (Major).

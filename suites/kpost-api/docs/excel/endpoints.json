@@ -14,9 +14,18 @@
     "row": 3,
     "module": "Signup",
     "name": "fetchUserDetails",
-    "url": "https://devapi2.kpostindia.com/v2/profile/fetchUserDetails/\n\nhttps://devapi2.kpostindia.com/v2/signupLogin/fetchUserDetails/",
+    "url": "https://devapi2.kpostindia.com/v2/profile/fetchUserDetails/",
     "path": "/v2/profile/fetchUserDetails/",
-    "request": "{\n    \"kpostID\": \"karans@kpost.in\",\n    \"countryID\":1\n}",
+    "request": "",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 3,
+    "module": "Signup",
+    "url": "https://devapi2.kpostindia.com/v2/signupLogin/fetchUserDetails/",
+    "path": "/v2/signupLogin/fetchUserDetails/",
+    "request": "",
     "yellow": false
   },
   {
@@ -52,20 +61,40 @@
     "tab": "KatchupAPI",
     "row": 7,
     "module": "common",
-    "name": "forgotPasswordUpdate  \n\n\nchangePassword",
-    "url": "https://devapi2.kpostindia.com/v2/common/forgotPasswordUpdate  \n\n\n   https://devapi2.kpostindia.com/v2/profile/changePassword",
+    "name": "forgotPasswordUpdate",
+    "url": "https://devapi2.kpostindia.com/v2/common/forgotPasswordUpdate",
     "path": "/v2/common/forgotPasswordUpdate",
-    "request": "forgot password\n{  \"kpostID\": \"karans@kpostindia.com\",\n  \"forgotPassword\": \"1234567890\"       }\n\n\nchangePassword \n{\n\"oldPassword\":\"1234567\",\n\"confirmPassword\":\"123456\"}",
+    "request": "{  \"kpostID\": \"karans@kpostindia.com\",\n  \"forgotPassword\": \"1234567890\"       }",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 7,
+    "module": "common",
+    "name": "changePassword",
+    "url": "https://devapi2.kpostindia.com/v2/profile/changePassword",
+    "path": "/v2/profile/changePassword",
+    "request": "{\n\"oldPassword\":\"1234567\",\n\"confirmPassword\":\"123456\"}",
     "yellow": false
   },
   {
     "tab": "KatchupAPI",
     "row": 8,
     "module": "common",
-    "name": "sendOTP\n\n\nvalidateOTP",
-    "url": "https://devapi2.kpostindia.com/v2/common/sendOTP/\n\nhttps://devapi2.kpostindia.com/v2/common/validateOTP/",
+    "name": "sendOTP",
+    "url": "https://devapi2.kpostindia.com/v2/common/sendOTP/",
     "path": "/v2/common/sendOTP/",
-    "request": "Send OTP\n\n{\n    \"countryID\": 1,\n    \"mobileNumber\":\"8056234596\",\n    \"requestType\":\"signup\" or \"business\" or \"institution\"\n}\n\nValidate OTP\n\n{\n  \"otp\": \"546093\",\n  \"countryID\": 1,\n  \"mobileNumber\": \"8056234596\",\n  \"sendDate\": 1687927955000\n}",
+    "request": "{\n    \"countryID\": 1,\n    \"mobileNumber\":\"8056234596\",\n    \"requestType\":\"signup\" or \"business\" or \"institution\"\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 8,
+    "module": "common",
+    "name": "validateOTP",
+    "url": "https://devapi2.kpostindia.com/v2/common/validateOTP/",
+    "path": "/v2/common/validateOTP/",
+    "request": "{\n  \"otp\": \"546093\",\n  \"countryID\": 1,\n  \"mobileNumber\": \"8056234596\",\n  \"sendDate\": 1687927955000\n}",
     "yellow": false
   },
   {
@@ -795,9 +824,18 @@
     "tab": "KatchupAPI",
     "row": 88,
     "module": "KALLv2  Kool Kall",
-    "url": "https://devapi2.kpostindia.com/v2/kall/endKall\nurl changed to \nhttps://devapi2.kpostindia.com/v2/kall/endKoolKall",
+    "url": "https://devapi2.kpostindia.com/v2/kall/endKall",
     "path": "/v2/kall/endKall",
-    "request": "{\n    \"id\": 3,\n    \"kallID\": 3\n}",
+    "request": "",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 88,
+    "module": "KALLv2  Kool Kall",
+    "url": "https://devapi2.kpostindia.com/v2/kall/endKoolKall",
+    "path": "/v2/kall/endKoolKall",
+    "request": "",
     "yellow": false
   },
   {
@@ -2870,16 +2908,6 @@
   },
   {
     "tab": "KMAILAPI",
-    "row": 33,
-    "module": "Kmail",
-    "method": "POST",
-    "url": "sentMail/getMailCredentials/",
-    "path": "/sentMail/getMailCredentials/",
-    "request": "{\n    \"kpostID\": \"baskar1992@kpostindia.com\",\n    \"password\": \"aTrwaD4pcK0=\"\n}",
-    "yellow": false
-  },
-  {
-    "tab": "KMAILAPI",
     "row": 34,
     "module": "Kmail",
     "method": "POST",
@@ -2906,25 +2934,6 @@
     "url": "/common/getInstantReply/",
     "path": "/common/getInstantReply/",
     "request": "NOT REQUIRED",
-    "yellow": false
-  },
-  {
-    "tab": "KMAILAPI",
-    "row": 37,
-    "module": "Kmail",
-    "method": "POST",
-    "url": "common/postBoxContacts/",
-    "path": "/common/postBoxContacts/",
-    "request": "{\n      \"lastFetchTime\":1682280626000\n\n}",
-    "yellow": false
-  },
-  {
-    "tab": "KMAILAPI",
-    "row": 38,
-    "module": "Kmail",
-    "url": "kmailSetting/getDigitalSignature",
-    "path": "/kmailSetting/getDigitalSignature",
-    "request": "GET METHOD",
     "yellow": false
   },
   {
@@ -2975,32 +2984,12 @@
   },
   {
     "tab": "KMAILAPI",
-    "row": 44,
-    "module": "Kmail",
-    "method": "POST",
-    "url": "draft/draftMailMultiPart",
-    "path": "/draft/draftMailMultiPart",
-    "request": "files (multipart/form-data) – value select file.\ntext (application/json)\nvalue for text (application/json)\n{\n    \"toAddress\": \"baskar1992@kpostindia.com\",\n    \"kmailContent\": \"How r u testing new mail from postman\",\n    \"kmailSubject\": \"mail from postman 5.0 mail no 7, with attachment\",\n    \"saluation\": \"Hello\",\n    \"kmailID\": \"0\" or \"1420\",\n    \"saluationName\": \"Jitendra\",\n    \"kmailSendDate\": 1671701730543,\n     \"ccList\":[\"jksrivatsa@gmail.com\"],\n    \"bccList\":[\"jksrivatsa@yahoo.com\"],\n    \"priority\": 0,\n    \"kmailType\": 0\n    }",
-    "yellow": false
-  },
-  {
-    "tab": "KMAILAPI",
     "row": 45,
     "module": "Kmail",
     "method": "POST",
     "url": "/v2/sentMail/postMail/",
     "path": "/v2/sentMail/postMail/",
     "request": "{ \n\"toAddress\": \"rajan@kpost.in\",\n\"kmailSubject\":\"win over Indonesian Fredy Setiawan. postman new concept Implemented with attachment\",\n\"referenceKmailID\":null,\n\"saluation\": \"Hello\",\n\"saluationName\": \"Rajan\",\n\"kmailContent\": \"took his career tally to 14 World Championship medals, which includes 6 gold, 3 silver, 5 bronze in all categories.\",\n\"groupFlag\":false,\n\"groupReceiverList\":null,\n\"kmailSendDate\": 1710324340000,\n\"senderLatitde\": 13.0476875,\n\"senderLongitude\": 80.2655737,\n\"kmailType\": 0,\n\"forwardList\":null,\n\"revealSource\":false,\n\"selectedMembers\":\"N\",\n\"priority\": 2,\n\"attachmentFlag\": 1,\n\"originalKmailID\":null,\n\"forwardNote\":\"forward note\",\n\"forwardRevealDetails\":{\n\"fromAddress\":\"\",\n\"toAddress\":\"\",\n\"ccList\":[],\n\"sendDate\":\"\"\n},\n\"forwardAttachmentLists\":[],\n\"ccList\":[],\n\"bccList\":[],\n  \"attachmentCaption\":\"[{\\\"fileName\\\":\\\"downloaded_file_1732703266727_image.png\\\",\\\"caption\\\":\\\"caption cheking hi hi hi checking \\\"}]\",\n\"attachmentUuid\":[\"0eca760e-f8f3-4bce-82c4-cca74880d6b3\",\"5b0bf853-a970-47bd-8f32-5d5bdb225435\",\"64d646c2-9511-4fb1-8051-0c031b48e40c\"]\n}",
-    "yellow": false
-  },
-  {
-    "tab": "KMAILAPI",
-    "row": 46,
-    "module": "Kmail",
-    "method": "GET",
-    "url": "readMail/getCopiesInfo/{kmailID}",
-    "path": "/readMail/getCopiesInfo/{kmailID}",
-    "request": "",
     "yellow": false
   },
   {
@@ -3025,26 +3014,6 @@
   },
   {
     "tab": "KMAILAPI",
-    "row": 49,
-    "module": "Kmail",
-    "method": "GET",
-    "url": "readMail/downloadThumbnail/{uuid}",
-    "path": "/readMail/downloadThumbnail/{uuid}",
-    "request": "GET METHOD",
-    "yellow": false
-  },
-  {
-    "tab": "KMAILAPI",
-    "row": 50,
-    "module": "Kmail",
-    "method": "GET",
-    "url": "readMail/mediaStreaming/{uuid}",
-    "path": "/readMail/mediaStreaming/{uuid}",
-    "request": "GET METHOD",
-    "yellow": false
-  },
-  {
-    "tab": "KMAILAPI",
     "row": 51,
     "module": "Kmail",
     "method": "POST",
@@ -3061,16 +3030,6 @@
     "url": "/kmailSetting/saveOrUpdateCustomizedInstantReply",
     "path": "/kmailSetting/saveOrUpdateCustomizedInstantReply",
     "request": "for update \n{\n    \"id\" : \"c0012346-79ec-4362-90cb-6ab7f7cdcb42\",\n    \"instantReply\" : \"Updated Mail recived Successfully\"\n}     \nfor save       \n{\n   \"instantReply\" : \"Updated Mail recived Successfully\"\n}",
-    "yellow": false
-  },
-  {
-    "tab": "KMAILAPI",
-    "row": 53,
-    "module": "Kmail",
-    "method": "POST",
-    "url": "common/kmailGroupReadStatus/",
-    "path": "/common/kmailGroupReadStatus/",
-    "request": "{\n    \"kmailID\": 9993\n}",
     "yellow": false
   },
   {

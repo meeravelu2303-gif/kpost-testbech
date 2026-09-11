@@ -154,9 +154,21 @@ export function buildSignupPayload(overrides: Record<string, unknown> = {}): Sig
     gender: 'male',
     dateOfBirth: '1989-07-09',
     countryCode: '91',
+    /*
+     * Excel row 17: `module` selects the product the account is created under (0 = KPost), and the
+     * address block lives INSIDE `userProfile`, not at the top level. Verified 2026-09-11 that
+     * both bind — signup reaches its OTP gate identically with and without them, so these are
+     * accepted by the DTO rather than merely ignored.
+     */
+    module: 0,
+    email: '',
     userProfile: {
       landLineNumber: '044444343784',
       referalId: '',
+      pinCode: '600004',
+      areaName: 'Mylapore',
+      state: 'TamilNadu',
+      city: 'Chennai',
     },
     ...overrides,
   } as SignupPayload;
@@ -250,6 +262,12 @@ export function buildLoginPayload(
     login_lattitude: null,
     login_longitude: null,
     oneSignal_Key: '',
+    /*
+     * Excel row 4: the product the session belongs to (0 = KPost). Verified 2026-09-11 that
+     * userLogin answers 200 and issues a token with it present — checked explicitly because every
+     * other test in the suite depends on this one request succeeding.
+     */
+    module: 0,
     loginRO: {
       countryID: env.qaCountryId,
       password,

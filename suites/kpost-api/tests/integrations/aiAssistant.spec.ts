@@ -1,4 +1,10 @@
-import { test, expect, EXPIRED_TOKEN, FORGED_ALG_NONE_JWT, MALFORMED_TOKEN } from '../../src/fixtures/api.fixture';
+import {
+  test,
+  expect,
+  EXPIRED_TOKEN,
+  FORGED_ALG_NONE_JWT,
+  MALFORMED_TOKEN,
+} from '../../src/fixtures/api.fixture';
 import {
   INTEGRATION_PATHS,
   INTEGRATION_PATH_TEMPLATES,
@@ -72,7 +78,7 @@ test.describe('POST /ai/messageAssist', () => {
       response,
       dataEnvelopeSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403, 429]
+      [200, 400, 401, 403, 429],
     );
   });
 
@@ -96,7 +102,7 @@ test.describe('POST /ai/messageAssist', () => {
 
     expect(
       response.status(),
-      `a 5000-character prompt produced HTTP ${response.status()}. Input tokens are billed; without a length cap a single caller controls the invoice.`
+      `a 5000-character prompt produced HTTP ${response.status()}. Input tokens are billed; without a length cap a single caller controls the invoice.`,
     ).toBeLessThan(500);
   });
 
@@ -112,11 +118,11 @@ test.describe('POST /ai/messageAssist', () => {
 
     expect(
       /you are (a|an|the)\b|system prompt|your instructions are/i.test(text),
-      `a prompt asking for the system prompt produced a response that looks like one. The system prompt encodes the product's guardrails and often internal context; leaking it tells an attacker exactly what to work around. Body: ${text.slice(0, 300)}`
+      `a prompt asking for the system prompt produced a response that looks like one. The system prompt encodes the product's guardrails and often internal context; leaking it tells an attacker exactly what to work around. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
-  test('[5] INJECTION: embedded instructions must not reach another user\'s data', async ({
+  test("[5] INJECTION: embedded instructions must not reach another user's data", async ({
     integrationsClient,
     staticToken,
     authSession,
@@ -131,7 +137,7 @@ test.describe('POST /ai/messageAssist', () => {
 
     expect(
       text.includes(VICTIM_KPOST_ID) && /message|said|wrote|conversation/i.test(text),
-      `the assistant returned content about "${VICTIM_KPOST_ID}" to ${authSession.kpostID ?? 'a different user'}. If the assistant has tool access to platform data, its retrieval must be scoped by the caller's token — a prompt must never be able to widen it. Body: ${text.slice(0, 300)}`
+      `the assistant returned content about "${VICTIM_KPOST_ID}" to ${authSession.kpostID ?? 'a different user'}. If the assistant has tool access to platform data, its retrieval must be scoped by the caller's token — a prompt must never be able to widen it. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -149,7 +155,7 @@ test.describe('POST /ai/messageAssist', () => {
         scenario: 'an assist call with no prompt',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -162,8 +168,13 @@ test.describe('POST /ai/messageAssist', () => {
 
     await assertRejectsInvalidInput(
       response,
-      { ...META, body: payload, scenario: 'field "message" set to null', severity: 'Major' as const },
-      [400, 401, 403, 422]
+      {
+        ...META,
+        body: payload,
+        scenario: 'field "message" set to null',
+        severity: 'Major' as const,
+      },
+      [400, 401, 403, 422],
     );
   });
 
@@ -174,14 +185,14 @@ test.describe('POST /ai/messageAssist', () => {
     // Five short prompts, not fifty — the point is to observe throttling, not to run up a bill.
     const responses = await Promise.all(
       Array.from({ length: 5 }, () =>
-        integrationsClient.aiMessageAssist(buildAiMessagePayload(), { token: staticToken })
-      )
+        integrationsClient.aiMessageAssist(buildAiMessagePayload(), { token: staticToken }),
+      ),
     );
     const throttled = responses.filter((r) => r.status() === 429).length;
 
     expect(
       throttled,
-      `five concurrent completions produced ${throttled} throttled responses. Per-token billing with no rate limit means one authenticated account can generate an unbounded invoice.`
+      `five concurrent completions produced ${throttled} throttled responses. Per-token billing with no rate limit means one authenticated account can generate an unbounded invoice.`,
     ).toBeGreaterThan(0);
   });
 
@@ -195,7 +206,7 @@ test.describe('POST /ai/messageAssist', () => {
 
     expect(
       /"(apiKey|api_key|authorization|bearer sk-)"?\s*[:=]/i.test(text),
-      `a failed completion echoed something shaped like a provider credential. Body: ${text.slice(0, 250)}`
+      `a failed completion echoed something shaped like a provider credential. Body: ${text.slice(0, 250)}`,
     ).toBe(false);
   });
 
@@ -209,7 +220,7 @@ test.describe('POST /ai/messageAssist', () => {
     await assertNoReflectedScript(response, { ...META, body: payload }, XSS_PAYLOAD);
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -221,7 +232,12 @@ test.describe('POST /ai/messageAssist', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
@@ -239,7 +255,6 @@ test.describe('POST /ai/messageAssist', () => {
 
     await assertStatusCodeParity(response, META);
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -265,7 +280,6 @@ test.describe('POST /ai/messageAssist', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });
 
 /* =========================================================================================
@@ -304,7 +318,7 @@ test.describe('POST /ai/messageAssistStream', () => {
 
     expect(
       /event-stream|ndjson|octet-stream|json/i.test(contentType),
-      `the streaming route answered content-type "${contentType}". A client cannot consume a stream it cannot identify; text/event-stream or NDJSON is expected.`
+      `the streaming route answered content-type "${contentType}". A client cannot consume a stream it cannot identify; text/event-stream or NDJSON is expected.`,
     ).toBe(true);
   });
 
@@ -316,7 +330,7 @@ test.describe('POST /ai/messageAssistStream', () => {
 
     expect(
       response.status(),
-      `a 5000-character prompt produced HTTP ${response.status()}. A stream holds a connection open for the length of the completion, so an unbounded prompt is both an unbounded bill and a held socket.`
+      `a 5000-character prompt produced HTTP ${response.status()}. A stream holds a connection open for the length of the completion, so an unbounded prompt is both an unbounded bill and a held socket.`,
     ).toBeLessThan(500);
   });
 
@@ -334,7 +348,7 @@ test.describe('POST /ai/messageAssistStream', () => {
 
     expect(
       /you are (a|an|the)\b|system prompt|your instructions are/i.test(text),
-      `the stream emitted what looks like its own system prompt. Body: ${text.slice(0, 300)}`
+      `the stream emitted what looks like its own system prompt. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -352,7 +366,7 @@ test.describe('POST /ai/messageAssistStream', () => {
         scenario: 'a stream request with no prompt',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -387,7 +401,7 @@ test.describe('POST /ai/messageAssistStream', () => {
 
     expect(
       stream.status(),
-      `unauthenticated: the stream answered ${stream.status()} while the non-stream answered ${plain.status()}. Two entry points to the same capability must enforce the same rule, or the weaker one becomes the way in.`
+      `unauthenticated: the stream answered ${stream.status()} while the non-stream answered ${plain.status()}. Two entry points to the same capability must enforce the same rule, or the weaker one becomes the way in.`,
     ).toBe(plain.status());
   });
 
@@ -415,11 +429,11 @@ test.describe('POST /ai/messageAssistStream', () => {
 
     expect(
       /"(apiKey|api_key|authorization|bearer sk-)"?\s*[:=]/i.test(text),
-      `the stream failure echoed something shaped like a provider credential. Body: ${text.slice(0, 250)}`
+      `the stream failure echoed something shaped like a provider credential. Body: ${text.slice(0, 250)}`,
     ).toBe(false);
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -431,7 +445,12 @@ test.describe('POST /ai/messageAssistStream', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
@@ -449,7 +468,6 @@ test.describe('POST /ai/messageAssistStream', () => {
 
     await assertStatusCodeParity(response, META);
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -488,11 +506,13 @@ test.describe('POST /ai/messageAssistStream', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* =========================================================================================
@@ -516,7 +536,7 @@ test.describe('POST /ai/chatResponse', () => {
       response,
       dataEnvelopeSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403, 429]
+      [200, 400, 401, 403, 429],
     );
   });
 
@@ -547,7 +567,7 @@ test.describe('POST /ai/chatResponse', () => {
 
     expect(
       /"(history|messages|previous)"\s*:\s*\[/.test(text),
-      `continuing an unknown session returned prior conversation content to ${authSession.kpostID ?? 'the caller'}. A session id must be checked against its owner before any history is replayed into the prompt. Body: ${text.slice(0, 300)}`
+      `continuing an unknown session returned prior conversation content to ${authSession.kpostID ?? 'the caller'}. A session id must be checked against its owner before any history is replayed into the prompt. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -565,7 +585,7 @@ test.describe('POST /ai/chatResponse', () => {
         scenario: 'a chat call with no prompt',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -575,7 +595,7 @@ test.describe('POST /ai/chatResponse', () => {
 
     expect(
       response.status(),
-      `a 5000-character prompt produced HTTP ${response.status()}.`
+      `a 5000-character prompt produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -591,7 +611,7 @@ test.describe('POST /ai/chatResponse', () => {
 
     expect(
       /you are (a|an|the)\b|system prompt|your instructions are/i.test(text),
-      `the chat route emitted what looks like its system prompt. Body: ${text.slice(0, 300)}`
+      `the chat route emitted what looks like its system prompt. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -634,7 +654,7 @@ test.describe('POST /ai/chatResponse', () => {
     await assertStatusCodeParity(response, { ...META, body: payload });
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -646,14 +666,18 @@ test.describe('POST /ai/chatResponse', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -679,7 +703,6 @@ test.describe('POST /ai/chatResponse', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });
 
 /* =========================================================================================
@@ -713,7 +736,7 @@ test.describe('GET /ai/sessions', () => {
     });
   });
 
-  test('[3] IDOR: the list must contain only the caller\'s own sessions', async ({
+  test("[3] IDOR: the list must contain only the caller's own sessions", async ({
     integrationsClient,
     staticToken,
     authSession,
@@ -728,7 +751,7 @@ test.describe('GET /ai/sessions', () => {
 
     expect(
       text.includes(VICTIM_KPOST_ID),
-      `?kpostID=${VICTIM_KPOST_ID} surfaced that user's sessions while the caller was ${authSession.kpostID ?? 'a different identity'}. What someone asks an assistant is often more candid than anything they would put in a message. Body: ${text.slice(0, 300)}`
+      `?kpostID=${VICTIM_KPOST_ID} surfaced that user's sessions while the caller was ${authSession.kpostID ?? 'a different identity'}. What someone asks an assistant is often more candid than anything they would put in a message. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -756,7 +779,7 @@ test.describe('GET /ai/sessions', () => {
     const count = Array.isArray(data) ? data.length : 0;
     expect(
       count,
-      `the session list returned ${count} entries in one response. Conversation history grows without bound. Body: ${text.slice(0, 200)}`
+      `the session list returned ${count} entries in one response. Conversation history grows without bound. Body: ${text.slice(0, 200)}`,
     ).toBeLessThan(1000);
   });
 
@@ -808,11 +831,11 @@ test.describe('GET /ai/sessions', () => {
 
     expect(
       first.status(),
-      `two identical reads returned ${first.status()} and ${second.status()}. Listing sessions must not create one.`
+      `two identical reads returned ${first.status()} and ${second.status()}. Listing sessions must not create one.`,
     ).toBe(second.status());
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -824,7 +847,12 @@ test.describe('GET /ai/sessions', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('GET', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'GET',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
@@ -842,7 +870,6 @@ test.describe('GET /ai/sessions', () => {
 
     await assertStatusCodeParity(response, META);
   });
-
 });
 
 /* =========================================================================================
@@ -908,7 +935,7 @@ test.describe('GET /ai/sessions/{aiType}', () => {
 
     expect(
       text.includes(VICTIM_KPOST_ID),
-      `?kpostID=${VICTIM_KPOST_ID} surfaced that user's sessions while the caller was ${authSession.kpostID ?? 'a different identity'}. Body: ${text.slice(0, 300)}`
+      `?kpostID=${VICTIM_KPOST_ID} surfaced that user's sessions while the caller was ${authSession.kpostID ?? 'a different identity'}. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -922,7 +949,7 @@ test.describe('GET /ai/sessions/{aiType}', () => {
 
     expect(
       response.status(),
-      `a traversal sequence in the aiType segment produced HTTP ${response.status()}.`
+      `a traversal sequence in the aiType segment produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -936,7 +963,7 @@ test.describe('GET /ai/sessions/{aiType}', () => {
 
     expect(
       response.status(),
-      `a 5000-character path segment produced HTTP ${response.status()}.`
+      `a 5000-character path segment produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -981,7 +1008,7 @@ test.describe('GET /ai/sessions/{aiType}', () => {
     await assertStatusCodeParity(response, META);
   });
 
-  test('[IDOR] a foreign pathVariable must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign pathVariable must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -993,14 +1020,18 @@ test.describe('GET /ai/sessions/{aiType}', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
+    const response = await genericClient.sendToPathVariable(
+      'GET',
+      META.path,
+      String(FOREIGN.uuid),
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'pathVariable',
       foreignValue: FOREIGN.uuid,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -1012,6 +1043,27 @@ test.describe('GET /ai/messages/{sessionId}', () => {
     path: INTEGRATION_PATH_TEMPLATES.aiMessages,
     repro: `await integrationsClient.aiMessages(sessionId, { token });`,
   };
+
+  /*
+   * True only when the body is an actual transcript.
+   *
+   * A bare /"(message|content)"\s*:\s*"…"/ test matches the ERROR envelope — {"status":
+   * "FAILURE","message":"No Data Found"} satisfies it — so ids 1-3 all 404ing once produced a
+   * Critical "the whole conversation store can be walked". The read has to prove a turn came
+   * back: a success envelope whose `data` carries rows with transcript text.
+   */
+  function returnedTranscript(status: number, json: Record<string, unknown> | null): boolean {
+    if (status < 200 || status >= 300) return false;
+    if (json === null) return false;
+    if (typeof json.statusCode === 'number' && json.statusCode >= 400) return false;
+    if (String(json.status ?? '').toUpperCase() === 'FAILURE') return false;
+
+    const data = json.data;
+    const rows = Array.isArray(data) ? data : data && typeof data === 'object' ? [data] : [];
+    return rows.some((row) =>
+      /"(message|content|prompt|response)"\s*:\s*"[^"]{3,}"/i.test(JSON.stringify(row)),
+    );
+  }
 
   test('[1] happy path: a transcript read satisfies the Zod contract', async ({
     integrationsClient,
@@ -1046,11 +1098,9 @@ test.describe('GET /ai/messages/{sessionId}', () => {
     });
     const { json, text } = await readBody(response);
 
-    test.skip(json === null || json.statusCode !== 200, 'no transcript returned');
-
     expect(
-      /"(message|content|prompt|response)"\s*:\s*"[^"]{3,}"/i.test(text),
-      `a transcript came back for a session the caller (${authSession.kpostID ?? 'unknown'}) does not own. The session id must be checked against its owner — it is the only key protecting what someone asked an assistant. Body: ${text.slice(0, 300)}`
+      returnedTranscript(response.status(), json),
+      `a transcript came back for a session the caller (${authSession.kpostID ?? 'unknown'}) does not own. The session id must be checked against its owner — it is the only key protecting what someone asked an assistant. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1059,16 +1109,25 @@ test.describe('GET /ai/messages/{sessionId}', () => {
     staticToken,
   }) => {
     const responses = await Promise.all(
-      ['1', '2', '3'].map((id) => integrationsClient.aiMessages(id, { token: staticToken }))
+      ['1', '2', '3'].map((id) => integrationsClient.aiMessages(id, { token: staticToken })),
     );
     const bodies = await Promise.all(responses.map((r) => readBody(r)));
-    const withContent = bodies.filter((b) =>
-      /"(message|content|prompt)"\s*:\s*"[^"]{3,}"/i.test(b.text)
+    /*
+     * Positive control (trap #2): this API authenticates before routing, so a bare 404 is
+     * also what an undeployed path returns — and "no id resolved" would then be green against
+     * a route that does not exist. The refusal has to come from the handler, which proves
+     * itself by naming the session it looked up.
+     */
+    test.skip(
+      !bodies.some((b) => /session/i.test(b.text)),
+      'GET /ai/messages/{sessionId} did not answer from its own handler',
     );
+
+    const withContent = bodies.filter((b, i) => returnedTranscript(responses[i].status(), b.json));
 
     expect(
       withContent.length,
-      `${withContent.length} of session ids 1-3 returned transcript content. If session ids are short integers rather than UUIDs, the whole conversation store can be walked.`
+      `${withContent.length} of session ids 1-3 returned transcript content. If session ids are short integers rather than UUIDs, the whole conversation store can be walked. Bodies: ${bodies.map((b) => b.text.slice(0, 120)).join(' | ')}`,
     ).toBe(0);
   });
 
@@ -1120,7 +1179,7 @@ test.describe('GET /ai/messages/{sessionId}', () => {
     const count = Array.isArray(data) ? data.length : 0;
     expect(
       count,
-      `the transcript returned ${count} messages in one response. Body: ${text.slice(0, 200)}`
+      `the transcript returned ${count} messages in one response. Body: ${text.slice(0, 200)}`,
     ).toBeLessThan(1000);
   });
 
@@ -1142,7 +1201,7 @@ test.describe('GET /ai/messages/{sessionId}', () => {
     await assertNoReflectedScript(response, META, XSS_PAYLOAD);
   });
 
-  test('[IDOR] a foreign pathVariable must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign pathVariable must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1154,7 +1213,12 @@ test.describe('GET /ai/messages/{sessionId}', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
+    const response = await genericClient.sendToPathVariable(
+      'GET',
+      META.path,
+      String(FOREIGN.uuid),
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'pathVariable',
@@ -1168,11 +1232,15 @@ test.describe('GET /ai/messages/{sessionId}', () => {
   }) => {
     // Fired with an empty/unknown payload so the endpoint takes its *error* path — the branch
     // where this API most often answers HTTP 200 over an envelope reporting 500.
-    const response = await genericClient.sendToPathVariable('GET', META.path, String(FOREIGN.uuid), { token: staticToken });
+    const response = await genericClient.sendToPathVariable(
+      'GET',
+      META.path,
+      String(FOREIGN.uuid),
+      { token: staticToken },
+    );
 
     await assertStatusCodeParity(response, META);
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -1198,5 +1266,4 @@ test.describe('GET /ai/messages/{sessionId}', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });

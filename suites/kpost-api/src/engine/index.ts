@@ -16,6 +16,7 @@ export { ApiEngine, describeFailures, describeStages, STAGE_ORDER } from './pipe
 export {
   defineEndpoint,
   defineEndpoints,
+  defineFamily,
   fromContract,
   registeredEndpoints,
   registryCoverage,

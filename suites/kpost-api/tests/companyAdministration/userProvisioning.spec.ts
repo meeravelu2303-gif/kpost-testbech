@@ -30,7 +30,7 @@ import {
   buildAdminUserRegistrationPayload,
   buildReallocateUserPayload,
   buildDisplayNameSuggestionPayload,
-  buildKpostIdSuggestionPayload,
+  buildCompanyKpostIdSuggestionPayload,
   nonExistentCompanyId,
   nonExistentKpostId,
 } from '../../src/api/payloads/companyAdministration.payload';
@@ -975,14 +975,14 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.createKpostIDAndDesignationSuggestion,
-    repro: `await companyAdminClient.createKpostIDAndDesignationSuggestion(buildKpostIdSuggestionPayload(), { token });`,
+    repro: `await companyAdminClient.createKpostIDAndDesignationSuggestion(buildCompanyKpostIdSuggestionPayload(), { token });`,
   };
 
   test('[1] happy path: a suggestion request satisfies the Zod contract', async ({
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload();
+    const payload = buildCompanyKpostIdSuggestionPayload();
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: adminToken,
     });
@@ -999,7 +999,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload({ companyName: MAX_LENGTH_STRING });
+    const payload = buildCompanyKpostIdSuggestionPayload({ companyName: MAX_LENGTH_STRING });
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: adminToken,
     });
@@ -1014,7 +1014,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload({ companyName: UTF8_STRING });
+    const payload = buildCompanyKpostIdSuggestionPayload({ companyName: UTF8_STRING });
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: adminToken,
     });
@@ -1029,7 +1029,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload();
+    const payload = buildCompanyKpostIdSuggestionPayload();
     delete (payload as Record<string, unknown>).companyName;
 
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
@@ -1047,7 +1047,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload({ companyName: null });
+    const payload = buildCompanyKpostIdSuggestionPayload({ companyName: null });
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: adminToken,
     });
@@ -1063,7 +1063,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload({ companyName: '' });
+    const payload = buildCompanyKpostIdSuggestionPayload({ companyName: '' });
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: adminToken,
     });
@@ -1079,7 +1079,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload({ companyName: ['Acme'] });
+    const payload = buildCompanyKpostIdSuggestionPayload({ companyName: ['Acme'] });
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: adminToken,
     });
@@ -1094,7 +1094,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload({ companyName: XSS_PAYLOAD });
+    const payload = buildCompanyKpostIdSuggestionPayload({ companyName: XSS_PAYLOAD });
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: adminToken,
     });
@@ -1106,7 +1106,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload({ companyName: SQLI_PAYLOAD });
+    const payload = buildCompanyKpostIdSuggestionPayload({ companyName: SQLI_PAYLOAD });
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: adminToken,
     });
@@ -1117,7 +1117,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
   test('[8] auth: a request with no Authorization header must be HTTP 401/403', async ({
     companyAdminClient,
   }) => {
-    const payload = buildKpostIdSuggestionPayload();
+    const payload = buildCompanyKpostIdSuggestionPayload();
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: null,
     });
@@ -1126,7 +1126,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
   });
 
   test('[8b] auth: an expired token must be HTTP 401/403', async ({ companyAdminClient }) => {
-    const payload = buildKpostIdSuggestionPayload();
+    const payload = buildCompanyKpostIdSuggestionPayload();
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: EXPIRED_TOKEN,
     });
@@ -1138,7 +1138,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload({ kpostID: 'someone-else' });
+    const payload = buildCompanyKpostIdSuggestionPayload({ kpostID: 'someone-else' });
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: adminToken,
     });
@@ -1154,7 +1154,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload();
+    const payload = buildCompanyKpostIdSuggestionPayload();
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: adminToken,
     });
@@ -1166,7 +1166,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload();
+    const payload = buildCompanyKpostIdSuggestionPayload();
     const response = await companyAdminClient.createKpostIDAndDesignationSuggestion(payload, {
       token: adminToken,
     });
@@ -1210,7 +1210,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
     companyAdminClient,
     adminToken,
   }) => {
-    const payload = buildKpostIdSuggestionPayload();
+    const payload = buildCompanyKpostIdSuggestionPayload();
     const [first, second, third] = await Promise.all([
       companyAdminClient.createKpostIDAndDesignationSuggestion(payload, { token: adminToken }),
       companyAdminClient.createKpostIDAndDesignationSuggestion(payload, { token: adminToken }),
