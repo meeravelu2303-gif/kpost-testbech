@@ -52,3 +52,10 @@ Thumbs.db
 # --- local AI assistant config (kept per-developer, not shared) ---
 .claude/
 **/.claude/
+
+# Editor scratch files. A 149-line copy of a test block (.tmp_block.txt) was committed to the
+# repo root and sat there unreferenced; this stops the next one.
+*.tmp
+.tmp_*
+*.orig
+*.rej
