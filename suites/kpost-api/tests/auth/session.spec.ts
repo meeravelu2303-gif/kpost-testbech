@@ -41,7 +41,7 @@ import { FOREIGN } from '../../src/api/clients/generic.client';
 
 test.describe.configure({ timeout: 90_000 });
 
-test.describe('Auth - POST /v2/signupLogin/userLogin', () => {
+test.describe('Auth - POST /v2/signupLogin/userLogin @audit', () => {
   const META = {
     method: 'POST',
     path: AUTH_PATHS.userLogin,
@@ -289,7 +289,7 @@ test.describe('Auth - POST /v2/signupLogin/userLogin', () => {
  * Revocation tests are the one place where using the shared token is actively destructive.
  * ===================================================================================== */
 
-test.describe('Auth - POST /v2/signupLogin/userLogout', () => {
+test.describe('Auth - POST /v2/signupLogin/userLogout @audit', () => {
   const META = {
     method: 'POST',
     path: AUTH_PATHS.userLogout,
@@ -620,7 +620,7 @@ test.describe('Auth - POST /v2/signupLogin/userLogout', () => {
  * POST /v2/signupLogin/setAccessCode — public (security: [])
  * ===================================================================================== */
 
-test.describe('Auth - POST /v2/signupLogin/getLoginHistory', () => {
+test.describe('Auth - POST /v2/signupLogin/getLoginHistory @audit', () => {
   const META = {
     method: 'POST',
     path: AUTH_PATHS.getLoginHistory,
@@ -846,7 +846,7 @@ test.describe('Auth - POST /v2/signupLogin/getLoginHistory', () => {
  * POST /v2/signupLogin/generateJWTokens — public (security: [])
  * ===================================================================================== */
 
-test.describe('Auth - POST /v2/signupLogin/generateJWTokens', () => {
+test.describe('Auth - POST /v2/signupLogin/generateJWTokens @audit', () => {
   const META = {
     method: 'POST',
     path: AUTH_PATHS.generateJWTokens,
@@ -1070,7 +1070,7 @@ test.describe('Auth - POST /v2/signupLogin/generateJWTokens', () => {
  * POST /v2/signupLogin/fetchUserDetails — public (security: [])
  * ===================================================================================== */
 
-test.describe('Auth - POST /v2/signupLogin/fetchUserDetails', () => {
+test.describe('Auth - POST /v2/signupLogin/fetchUserDetails @audit', () => {
   const META = {
     method: 'POST',
     path: AUTH_PATHS.fetchUserDetails,
@@ -1285,7 +1285,7 @@ test.describe('Auth - POST /v2/signupLogin/fetchUserDetails', () => {
  * POST /v2/signupLogin/fetchPersonalUserDetails — public (security: [])
  * ===================================================================================== */
 
-test.describe('Auth - POST /v2/signupLogin/fetchPersonalUserDetails', () => {
+test.describe('Auth - POST /v2/signupLogin/fetchPersonalUserDetails @audit', () => {
   const META = {
     method: 'POST',
     path: AUTH_PATHS.fetchPersonalUserDetails,
@@ -1479,7 +1479,7 @@ test.describe('Auth - POST /v2/signupLogin/fetchPersonalUserDetails', () => {
  * password, pinCode, uniqueName.
  * ===================================================================================== */
 
-test.describe('Auth - GET /v2/signupLogin/userLogoutFromAllDevices', () => {
+test.describe('Auth - GET /v2/signupLogin/userLogoutFromAllDevices @audit', () => {
   const META = {
     method: 'GET',
     path: AUTH_PATHS.userLogoutFromAllDevices,
@@ -1723,7 +1723,7 @@ test.describe('Auth - GET /v2/signupLogin/userLogoutFromAllDevices', () => {
  * GET /v2/signupLogin/getActiveSession — secured
  * ===================================================================================== */
 
-test.describe('Auth - GET /v2/signupLogin/getActiveSession', () => {
+test.describe('Auth - GET /v2/signupLogin/getActiveSession @audit', () => {
   const META = {
     method: 'GET',
     path: AUTH_PATHS.getActiveSession,

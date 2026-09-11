@@ -55,7 +55,7 @@ const MAX_LENGTH_STRING = 'a'.repeat(5000);
 /* =========================================================================================
  * POST /v2/aws/generate-presigned-url
  * ====================================================================================== */
-test.describe('POST /v2/aws/generate-presigned-url', () => {
+test.describe('POST /v2/aws/generate-presigned-url @audit', () => {
   const META = {
     method: 'POST',
     path: INTEGRATION_PATHS.awsPresignedPost,
@@ -272,7 +272,7 @@ test.describe('POST /v2/aws/generate-presigned-url', () => {
 /* =========================================================================================
  * GET /v2/aws/generate-presigned-url
  * ====================================================================================== */
-test.describe('GET /v2/aws/generate-presigned-url', () => {
+test.describe('GET /v2/aws/generate-presigned-url @audit', () => {
   const META = {
     method: 'GET',
     path: INTEGRATION_PATHS.awsPresignedGet,
@@ -430,7 +430,7 @@ test.describe('GET /v2/aws/generate-presigned-url', () => {
 /* =========================================================================================
  * POST /v2/aws/katchup/generate-presigned-url
  * ====================================================================================== */
-test.describe('POST /v2/aws/katchup/generate-presigned-url', () => {
+test.describe('POST /v2/aws/katchup/generate-presigned-url @audit', () => {
   const META = {
     method: 'POST',
     path: INTEGRATION_PATHS.awsKatchupPresigned,
@@ -640,7 +640,7 @@ test.describe('POST /v2/aws/katchup/generate-presigned-url', () => {
 /* =========================================================================================
  * POST /v2/aws/checkAttachmentS3
  * ====================================================================================== */
-test.describe('POST /v2/aws/checkAttachmentS3', () => {
+test.describe('POST /v2/aws/checkAttachmentS3 @audit', () => {
   const META = {
     method: 'POST',
     path: INTEGRATION_PATHS.awsCheckAttachment,
@@ -840,7 +840,7 @@ test.describe('POST /v2/aws/checkAttachmentS3', () => {
 /* =========================================================================================
  * GET /v2/aws/checkAttachmenS3/{uuid}   (typo preserved from the shipped API)
  * ====================================================================================== */
-test.describe('GET /v2/aws/checkAttachmenS3/{uuid}', () => {
+test.describe('GET /v2/aws/checkAttachmenS3/{uuid} @audit', () => {
   const META = {
     method: 'GET',
     path: INTEGRATION_PATH_TEMPLATES.awsCheckAttachmentByUuid,
@@ -1030,7 +1030,7 @@ test.describe('GET /v2/aws/checkAttachmenS3/{uuid}', () => {
 /* =========================================================================================
  * GET /v2/aws/deleteAttachmentFromS3/{uuid}  — destructive, and a GET
  * ====================================================================================== */
-test.describe('GET /v2/aws/deleteAttachmentFromS3/{uuid}', () => {
+test.describe('GET /v2/aws/deleteAttachmentFromS3/{uuid} @audit', () => {
   const META = {
     method: 'GET',
     path: INTEGRATION_PATH_TEMPLATES.awsDeleteAttachment,

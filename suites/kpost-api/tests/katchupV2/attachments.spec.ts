@@ -79,7 +79,7 @@ const MAX_LENGTH_STRING = 'a'.repeat(5000);
 /* =========================================================================================
  * The download matrix — six routes, one question: does it check who is asking?
  * ====================================================================================== */
-test.describe('Katchup attachment downloads — authentication', () => {
+test.describe('Katchup attachment downloads — authentication @audit', () => {
   const META = {
     method: 'GET',
     path: '/v2/katchup/{download-routes}/{uuid}',
@@ -218,7 +218,7 @@ test.describe('Katchup attachment downloads — authentication', () => {
 /* =========================================================================================
  * GET /v2/katchup/downloadAttachment/{uuid}
  * ====================================================================================== */
-test.describe('GET /v2/katchup/downloadAttachment/{uuid}', () => {
+test.describe('GET /v2/katchup/downloadAttachment/{uuid} @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATH_TEMPLATES.downloadAttachment,
@@ -407,7 +407,7 @@ test.describe('GET /v2/katchup/downloadAttachment/{uuid}', () => {
 /* =========================================================================================
  * GET /v2/katchup/downloadThumbnail/{uuid}
  * ====================================================================================== */
-test.describe('GET /v2/katchup/downloadThumbnail/{uuid}', () => {
+test.describe('GET /v2/katchup/downloadThumbnail/{uuid} @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATH_TEMPLATES.downloadThumbnail,
@@ -591,7 +591,7 @@ test.describe('GET /v2/katchup/downloadThumbnail/{uuid}', () => {
 /* =========================================================================================
  * GET /v2/katchup/download/{uuid}
  * ====================================================================================== */
-test.describe('GET /v2/katchup/download/{uuid}', () => {
+test.describe('GET /v2/katchup/download/{uuid} @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATH_TEMPLATES.download,
@@ -783,7 +783,7 @@ test.describe('GET /v2/katchup/download/{uuid}', () => {
 /* =========================================================================================
  * GET /v2/katchup/downloadFromS3/{uuid}
  * ====================================================================================== */
-test.describe('GET /v2/katchup/downloadFromS3/{uuid}', () => {
+test.describe('GET /v2/katchup/downloadFromS3/{uuid} @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATH_TEMPLATES.downloadFromS3,
@@ -962,7 +962,7 @@ test.describe('GET /v2/katchup/downloadFromS3/{uuid}', () => {
 /* =========================================================================================
  * GET /v2/katchup/oldDownload/{uuid}
  * ====================================================================================== */
-test.describe('GET /v2/katchup/oldDownload/{uuid}', () => {
+test.describe('GET /v2/katchup/oldDownload/{uuid} @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATH_TEMPLATES.oldDownload,
@@ -1153,7 +1153,7 @@ test.describe('GET /v2/katchup/oldDownload/{uuid}', () => {
 /* =========================================================================================
  * GET /v2/katchup/mediaStreaming/{uuid}
  * ====================================================================================== */
-test.describe('GET /v2/katchup/mediaStreaming/{uuid}', () => {
+test.describe('GET /v2/katchup/mediaStreaming/{uuid} @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATH_TEMPLATES.mediaStreaming,
@@ -1320,7 +1320,7 @@ test.describe('GET /v2/katchup/mediaStreaming/{uuid}', () => {
 /* =========================================================================================
  * POST /v2/katchup/uploadMultipartFiles/
  * ====================================================================================== */
-test.describe('POST /v2/katchup/uploadMultipartFiles/', () => {
+test.describe('POST /v2/katchup/uploadMultipartFiles/ @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.uploadMultipartFiles,
@@ -1496,7 +1496,7 @@ test.describe('POST /v2/katchup/uploadMultipartFiles/', () => {
 /* =========================================================================================
  * POST /v2/katchup/generateThumbnailUsingUUID
  * ====================================================================================== */
-test.describe('POST /v2/katchup/generateThumbnailUsingUUID', () => {
+test.describe('POST /v2/katchup/generateThumbnailUsingUUID @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.generateThumbnailUsingUUID,
@@ -1669,7 +1669,7 @@ test.describe('POST /v2/katchup/generateThumbnailUsingUUID', () => {
 /* =========================================================================================
  * POST /v2/katchup/sendKatchupMsgMultiPart/
  * ====================================================================================== */
-test.describe('POST /v2/katchup/sendKatchupMsgMultiPart/', () => {
+test.describe('POST /v2/katchup/sendKatchupMsgMultiPart/ @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.sendKatchupMsgMultiPart,
@@ -1860,7 +1860,7 @@ test.describe('POST /v2/katchup/sendKatchupMsgMultiPart/', () => {
  * The highest fan-out write in the API. Recipient lists are held to two synthetic identities;
  * the size-limit case asserts that a limit exists rather than trying to exceed it.
  * ====================================================================================== */
-test.describe('POST /v2/katchup/sendBulkKatchupMsgMultiPart/', () => {
+test.describe('POST /v2/katchup/sendBulkKatchupMsgMultiPart/ @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.sendBulkKatchupMsgMultiPart,

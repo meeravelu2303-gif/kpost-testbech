@@ -39,7 +39,7 @@ const bulkSendAllowed = env.allowBulkSend;
 /* =========================================================================================
  * POST /v2/sentMail/postBulkMail
  * ====================================================================================== */
-test.describe('POST /v2/sentMail/postBulkMail', () => {
+test.describe('POST /v2/sentMail/postBulkMail @audit', () => {
   const META = {
     method: 'POST',
     path: SENT_MAIL_PATHS.postBulkMail,
@@ -261,7 +261,7 @@ test.describe('POST /v2/sentMail/postBulkMail', () => {
 /* =========================================================================================
  * POST /v2/sentMail/postBulkMailMultipart
  * ====================================================================================== */
-test.describe('POST /v2/sentMail/postBulkMailMultipart', () => {
+test.describe('POST /v2/sentMail/postBulkMailMultipart @audit', () => {
   const META = {
     method: 'POST',
     path: SENT_MAIL_PATHS.postBulkMailMultipart,
@@ -350,7 +350,7 @@ test.describe('POST /v2/sentMail/postBulkMailMultipart', () => {
 /* =========================================================================================
  * GET /v2/sentMail/bulkMail/status/{fromAddress}
  * ====================================================================================== */
-test.describe('GET /v2/sentMail/bulkMail/status/{fromAddress}', () => {
+test.describe('GET /v2/sentMail/bulkMail/status/{fromAddress} @audit', () => {
   const META = {
     method: 'GET',
     path: PATH_TEMPLATES.bulkMailStatus,

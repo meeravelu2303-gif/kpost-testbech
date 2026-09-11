@@ -59,7 +59,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /dairySchedule/createEvent
  * ====================================================================================== */
-test.describe('POST /dairySchedule/createEvent', () => {
+test.describe('POST /dairySchedule/createEvent @audit', () => {
   const META = {
     method: 'POST',
     path: KDIARY_PATHS.createEvent,
@@ -367,7 +367,7 @@ test.describe('POST /dairySchedule/createEvent', () => {
 /* =========================================================================================
  * POST /dairySchedule/updateEvent
  * ====================================================================================== */
-test.describe('POST /dairySchedule/updateEvent', () => {
+test.describe('POST /dairySchedule/updateEvent @audit', () => {
   const META = {
     method: 'POST',
     path: KDIARY_PATHS.updateEvent,
@@ -623,7 +623,7 @@ test.describe('POST /dairySchedule/updateEvent', () => {
 /* =========================================================================================
  * POST /dairySchedule/editScheduleEvent
  * ====================================================================================== */
-test.describe('POST /dairySchedule/editScheduleEvent', () => {
+test.describe('POST /dairySchedule/editScheduleEvent @audit', () => {
   const META = {
     method: 'POST',
     path: KDIARY_PATHS.editScheduleEvent,
@@ -869,7 +869,7 @@ test.describe('POST /dairySchedule/editScheduleEvent', () => {
 /* =========================================================================================
  * GET /dairySchedule/getEvents
  * ====================================================================================== */
-test.describe('GET /dairySchedule/getEvents', () => {
+test.describe('GET /dairySchedule/getEvents @audit', () => {
   const META = {
     method: 'GET',
     path: KDIARY_PATHS.getEvents,
@@ -1062,7 +1062,7 @@ test.describe('GET /dairySchedule/getEvents', () => {
 /* =========================================================================================
  * POST /dairySchedule/getEventDate
  * ====================================================================================== */
-test.describe('POST /dairySchedule/getEventDate', () => {
+test.describe('POST /dairySchedule/getEventDate @audit', () => {
   const META = {
     method: 'POST',
     path: KDIARY_PATHS.getEventDate,
@@ -1276,7 +1276,7 @@ test.describe('POST /dairySchedule/getEventDate', () => {
 /* =========================================================================================
  * POST /dairySchedule/deleteEvent
  * ====================================================================================== */
-test.describe('POST /dairySchedule/deleteEvent', () => {
+test.describe('POST /dairySchedule/deleteEvent @audit', () => {
   const META = {
     method: 'POST',
     path: KDIARY_PATHS.deleteEvent,
@@ -1547,7 +1547,7 @@ test.describe('POST /dairySchedule/deleteEvent', () => {
 /* =========================================================================================
  * POST /dairySchedule/addparticipants
  * ====================================================================================== */
-test.describe('POST /dairySchedule/addparticipants', () => {
+test.describe('POST /dairySchedule/addparticipants @audit', () => {
   const META = {
     method: 'POST',
     path: KDIARY_PATHS.addparticipants,

@@ -76,7 +76,7 @@ async function createDraft(
 /* =========================================================================================
  * POST /v2/draft/draftMail
  * ====================================================================================== */
-test.describe('POST /v2/draft/draftMail', () => {
+test.describe('POST /v2/draft/draftMail @audit', () => {
   const META = {
     method: 'POST',
     path: DRAFT_PATHS.draftMail,
@@ -294,7 +294,7 @@ test.describe('POST /v2/draft/draftMail', () => {
 /* =========================================================================================
  * POST /v2/draft/draftMailMultiPart/
  * ====================================================================================== */
-test.describe('POST /v2/draft/draftMailMultiPart/', () => {
+test.describe('POST /v2/draft/draftMailMultiPart/ @audit', () => {
   const META = {
     method: 'POST',
     path: DRAFT_PATHS.draftMailMultiPart,
@@ -392,7 +392,7 @@ test.describe('POST /v2/draft/draftMailMultiPart/', () => {
 /* =========================================================================================
  * GET /v2/draft/getAllDraftMails
  * ====================================================================================== */
-test.describe('GET /v2/draft/getAllDraftMails', () => {
+test.describe('GET /v2/draft/getAllDraftMails @audit', () => {
   const META = {
     method: 'GET',
     path: DRAFT_PATHS.getAllDraftMails,
@@ -502,7 +502,7 @@ test.describe('GET /v2/draft/getAllDraftMails', () => {
 /* =========================================================================================
  * GET /v2/draft/getDraftMailsContacts
  * ====================================================================================== */
-test.describe('GET /v2/draft/getDraftMailsContacts', () => {
+test.describe('GET /v2/draft/getDraftMailsContacts @audit', () => {
   const META = {
     method: 'GET',
     path: DRAFT_PATHS.getDraftMailsContacts,
@@ -561,7 +561,7 @@ test.describe('GET /v2/draft/getDraftMailsContacts', () => {
 /* =========================================================================================
  * POST /v2/draft/getDraftMailsForSelectedContact
  * ====================================================================================== */
-test.describe('POST /v2/draft/getDraftMailsForSelectedContact', () => {
+test.describe('POST /v2/draft/getDraftMailsForSelectedContact @audit', () => {
   const META = {
     method: 'POST',
     path: DRAFT_PATHS.getDraftMailsForSelectedContact,
@@ -669,7 +669,7 @@ test.describe('POST /v2/draft/getDraftMailsForSelectedContact', () => {
 /* =========================================================================================
  * POST /v2/readMail/draftMailContent
  * ====================================================================================== */
-test.describe('POST /v2/readMail/draftMailContent', () => {
+test.describe('POST /v2/readMail/draftMailContent @audit', () => {
   const META = {
     method: 'POST',
     path: READ_MAIL_PATHS.draftMailContent,
@@ -791,7 +791,7 @@ test.describe('POST /v2/readMail/draftMailContent', () => {
 /* =========================================================================================
  * POST /v2/draft/deleteDraftMail
  * ====================================================================================== */
-test.describe('POST /v2/draft/deleteDraftMail', () => {
+test.describe('POST /v2/draft/deleteDraftMail @audit', () => {
   const META = {
     method: 'POST',
     path: DRAFT_PATHS.deleteDraftMail,

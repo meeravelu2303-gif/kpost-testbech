@@ -56,7 +56,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /kword/share
  * ====================================================================================== */
-test.describe('POST /kword/share', () => {
+test.describe('POST /kword/share @audit', () => {
   const META = {
     method: 'POST',
     path: KWORD_PATHS.share,
@@ -353,7 +353,7 @@ test.describe('POST /kword/share', () => {
 /* =========================================================================================
  * GET /kword/documents/{docId}
  * ====================================================================================== */
-test.describe('GET /kword/documents/{docId}', () => {
+test.describe('GET /kword/documents/{docId} @audit', () => {
   const META = {
     method: 'GET',
     path: KWORD_PATH_TEMPLATES.documentById,
@@ -606,7 +606,7 @@ test.describe('GET /kword/documents/{docId}', () => {
 /* =========================================================================================
  * GET /kword/documentsType
  * ====================================================================================== */
-test.describe('GET /kword/documentsType', () => {
+test.describe('GET /kword/documentsType @audit', () => {
   const META = {
     method: 'GET',
     path: KWORD_PATHS.documentsType,

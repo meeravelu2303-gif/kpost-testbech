@@ -91,7 +91,7 @@ async function looksLikeImage(response: {
 /* =========================================================================================
  * GET /v2/profile/downloadProfileImage/{kpostID}
  * ====================================================================================== */
-test.describe('GET /v2/profile/downloadProfileImage/{kpostID}', () => {
+test.describe('GET /v2/profile/downloadProfileImage/{kpostID} @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.downloadProfileImage,
@@ -319,7 +319,7 @@ test.describe('GET /v2/profile/downloadProfileImage/{kpostID}', () => {
 /* =========================================================================================
  * GET /v2/profile/downloadFullProfileImage/{kpostID}
  * ====================================================================================== */
-test.describe('GET /v2/profile/downloadFullProfileImage/{kpostID}', () => {
+test.describe('GET /v2/profile/downloadFullProfileImage/{kpostID} @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.downloadFullProfileImage,
@@ -561,7 +561,7 @@ test.describe('GET /v2/profile/downloadFullProfileImage/{kpostID}', () => {
 /* =========================================================================================
  * GET /v2/profile/downloadCoverImage/{kpostID}
  * ====================================================================================== */
-test.describe('GET /v2/profile/downloadCoverImage/{kpostID}', () => {
+test.describe('GET /v2/profile/downloadCoverImage/{kpostID} @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.downloadCoverImage,
@@ -799,7 +799,7 @@ test.describe('GET /v2/profile/downloadCoverImage/{kpostID}', () => {
 /* =========================================================================================
  * GET /v2/profile/sendPrimaryOrSecondaryDeviceOtp/{requestType}
  * ====================================================================================== */
-test.describe('GET /v2/profile/sendPrimaryOrSecondaryDeviceOtp/{requestType}', () => {
+test.describe('GET /v2/profile/sendPrimaryOrSecondaryDeviceOtp/{requestType} @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.sendPrimaryOrSecondaryDeviceOtp,

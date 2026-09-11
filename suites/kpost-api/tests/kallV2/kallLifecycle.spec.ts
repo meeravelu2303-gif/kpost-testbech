@@ -58,7 +58,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/kall/initiateKall
  * ====================================================================================== */
-test.describe('POST /v2/kall/initiateKall', () => {
+test.describe('POST /v2/kall/initiateKall @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.initiateKall,
@@ -380,7 +380,7 @@ test.describe('POST /v2/kall/initiateKall', () => {
 /* =========================================================================================
  * POST /v2/kall/updateKallStatus
  * ====================================================================================== */
-test.describe('POST /v2/kall/updateKallStatus', () => {
+test.describe('POST /v2/kall/updateKallStatus @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.updateKallStatus,
@@ -622,7 +622,7 @@ test.describe('POST /v2/kall/updateKallStatus', () => {
 /* =========================================================================================
  * POST /v2/kall/updateSenderAndReceiverKallStatus
  * ====================================================================================== */
-test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus', () => {
+test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.updateSenderAndReceiverKallStatus,
@@ -935,7 +935,7 @@ test.describe('POST /v2/kall/updateSenderAndReceiverKallStatus', () => {
 /* =========================================================================================
  * POST /v2/kall/getKallStatus
  * ====================================================================================== */
-test.describe('POST /v2/kall/getKallStatus', () => {
+test.describe('POST /v2/kall/getKallStatus @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.getKallStatus,
@@ -1155,7 +1155,7 @@ test.describe('POST /v2/kall/getKallStatus', () => {
 /* =========================================================================================
  * POST /v2/kall/getKallStatusUsingKallID
  * ====================================================================================== */
-test.describe('POST /v2/kall/getKallStatusUsingKallID', () => {
+test.describe('POST /v2/kall/getKallStatusUsingKallID @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.getKallStatusUsingKallID,
@@ -1360,7 +1360,7 @@ test.describe('POST /v2/kall/getKallStatusUsingKallID', () => {
  * call id — the pair `buildExistingKallPayload` already produces. Every id addresses a
  * non-existent call: ending a real one would drop a call another spec is mid-way through.
  * ====================================================================================== */
-test.describe('POST /v2/kall/endKall', () => {
+test.describe('POST /v2/kall/endKall @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.endKall,
@@ -1595,7 +1595,7 @@ test.describe('POST /v2/kall/endKall', () => {
 /* =========================================================================================
  * POST /v2/kall/endKoolKall
  * ====================================================================================== */
-test.describe('POST /v2/kall/endKoolKall', () => {
+test.describe('POST /v2/kall/endKoolKall @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.endKoolKall,
@@ -1835,7 +1835,7 @@ test.describe('POST /v2/kall/endKoolKall', () => {
 /* =========================================================================================
  * POST /v2/kall/endIndividualKall
  * ====================================================================================== */
-test.describe('POST /v2/kall/endIndividualKall', () => {
+test.describe('POST /v2/kall/endIndividualKall @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.endIndividualKall,

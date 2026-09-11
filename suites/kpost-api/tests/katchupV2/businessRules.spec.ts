@@ -92,7 +92,7 @@ async function sentMessageId(response: import('@playwright/test').APIResponse): 
 /* =========================================================================================
  * POST /v2/katchup/sendMessage — the promises the composer makes
  * ====================================================================================== */
-test.describe('POST /v2/katchup/sendMessage', () => {
+test.describe('POST /v2/katchup/sendMessage @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.sendMessage,
@@ -552,7 +552,7 @@ test.describe('POST /v2/katchup/sendMessage', () => {
 /* =========================================================================================
  * POST /v2/katchup/recallMessage — the sender's post-send control
  * ====================================================================================== */
-test.describe('POST /v2/katchup/recallMessage', () => {
+test.describe('POST /v2/katchup/recallMessage @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.recallMessage,
@@ -580,7 +580,7 @@ test.describe('POST /v2/katchup/recallMessage', () => {
 /* =========================================================================================
  * POST /v2/katchup/deleteKatchUpMessage — the sender's Delete action
  * ====================================================================================== */
-test.describe('POST /v2/katchup/deleteKatchUpMessage', () => {
+test.describe('POST /v2/katchup/deleteKatchUpMessage @audit', () => {
   test('[FR-K20] a sender can Delete a message they sent', async ({ katchupClient, staticToken }) => {
     const original = await katchupClient.sendMessage(
       buildKatchupMessagePayload({ subject: `QA-DELETE-${Date.now()}`, receiver: VICTIM_KPOST_ID }),

@@ -54,7 +54,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /generalSetting/fontSetting
  * ====================================================================================== */
-test.describe('POST /generalSetting/fontSetting', () => {
+test.describe('POST /generalSetting/fontSetting @audit', () => {
   const META = {
     method: 'POST',
     path: GENERAL_SETTINGS_PATHS.fontSetting,
@@ -367,7 +367,7 @@ test.describe('POST /generalSetting/fontSetting', () => {
 /* =========================================================================================
  * POST /generalSetting/changeTheme
  * ====================================================================================== */
-test.describe('POST /generalSetting/changeTheme', () => {
+test.describe('POST /generalSetting/changeTheme @audit', () => {
   const META = {
     method: 'POST',
     path: GENERAL_SETTINGS_PATHS.changeTheme,
@@ -686,7 +686,7 @@ test.describe('POST /generalSetting/changeTheme', () => {
 /* =========================================================================================
  * GET /generalSetting/getPersonalize
  * ====================================================================================== */
-test.describe('GET /generalSetting/getPersonalize', () => {
+test.describe('GET /generalSetting/getPersonalize @audit', () => {
   const META = {
     method: 'GET',
     path: GENERAL_SETTINGS_PATHS.getPersonalize,

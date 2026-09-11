@@ -56,7 +56,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /dairySchedule/createSchedule
  * ====================================================================================== */
-test.describe('POST /dairySchedule/createSchedule', () => {
+test.describe('POST /dairySchedule/createSchedule @audit', () => {
   const META = {
     method: 'POST',
     path: KDIARY_PATHS.createSchedule,
@@ -422,7 +422,7 @@ test.describe('POST /dairySchedule/createSchedule', () => {
 /* =========================================================================================
  * GET /dairySchedule/getTodaySchedules
  * ====================================================================================== */
-test.describe('GET /dairySchedule/getTodaySchedules', () => {
+test.describe('GET /dairySchedule/getTodaySchedules @audit', () => {
   const META = {
     method: 'GET',
     path: KDIARY_PATHS.getTodaySchedules,
@@ -625,7 +625,7 @@ test.describe('GET /dairySchedule/getTodaySchedules', () => {
 /* =========================================================================================
  * POST /dairySchedule/updateScheduleRemarks
  * ====================================================================================== */
-test.describe('POST /dairySchedule/updateScheduleRemarks', () => {
+test.describe('POST /dairySchedule/updateScheduleRemarks @audit', () => {
   const META = {
     method: 'POST',
     path: KDIARY_PATHS.updateScheduleRemarks,
@@ -862,7 +862,7 @@ test.describe('POST /dairySchedule/updateScheduleRemarks', () => {
 /* =========================================================================================
  * POST /dairySchedule/getEventSelectedDate
  * ====================================================================================== */
-test.describe('POST /dairySchedule/getEventSelectedDate', () => {
+test.describe('POST /dairySchedule/getEventSelectedDate @audit', () => {
   const META = {
     method: 'POST',
     path: KDIARY_PATHS.getEventSelectedDate,

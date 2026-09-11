@@ -63,7 +63,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /kpresentation/create
  * ====================================================================================== */
-test.describe('POST /kpresentation/create', () => {
+test.describe('POST /kpresentation/create @audit', () => {
   const META = {
     method: 'POST',
     path: KPRESENTATION_PATHS.create,
@@ -383,7 +383,7 @@ test.describe('POST /kpresentation/create', () => {
 /* =========================================================================================
  * POST /kpresentation/savePresentation
  * ====================================================================================== */
-test.describe('POST /kpresentation/savePresentation', () => {
+test.describe('POST /kpresentation/savePresentation @audit', () => {
   const META = {
     method: 'POST',
     path: KPRESENTATION_PATHS.savePresentation,
@@ -676,7 +676,7 @@ test.describe('POST /kpresentation/savePresentation', () => {
 /* =========================================================================================
  * GET /kpresentation/presentations
  * ====================================================================================== */
-test.describe('GET /kpresentation/presentations', () => {
+test.describe('GET /kpresentation/presentations @audit', () => {
   const META = {
     method: 'GET',
     path: KPRESENTATION_PATHS.presentations,
@@ -906,7 +906,7 @@ test.describe('GET /kpresentation/presentations', () => {
 /* =========================================================================================
  * GET /kpresentation/presentations/{presentationId}
  * ====================================================================================== */
-test.describe('GET /kpresentation/presentations/{presentationId}', () => {
+test.describe('GET /kpresentation/presentations/{presentationId} @audit', () => {
   const META = {
     method: 'GET',
     path: KPRESENTATION_PATH_TEMPLATES.presentationById,
@@ -1205,7 +1205,7 @@ test.describe('GET /kpresentation/presentations/{presentationId}', () => {
 /* =========================================================================================
  * GET /kpresentation/delete — a destructive write behind a safe method
  * ====================================================================================== */
-test.describe('GET /kpresentation/delete', () => {
+test.describe('GET /kpresentation/delete @audit', () => {
   const META = {
     method: 'GET',
     path: KPRESENTATION_PATHS.delete,

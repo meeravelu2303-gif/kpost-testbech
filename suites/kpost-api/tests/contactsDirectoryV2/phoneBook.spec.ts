@@ -54,7 +54,7 @@ const VICTIM_KPOST_ID = FOREIGN.victimKpostID;
 /* =========================================================================================
  * POST /v2/contacts/importPhoneContacts
  * ====================================================================================== */
-test.describe('POST /v2/contacts/importPhoneContacts', () => {
+test.describe('POST /v2/contacts/importPhoneContacts @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.importPhoneContacts,
@@ -407,7 +407,7 @@ test.describe('POST /v2/contacts/importPhoneContacts', () => {
 /* =========================================================================================
  * GET /v2/contacts/getImportedPhoneContacts
  * ====================================================================================== */
-test.describe('GET /v2/contacts/getImportedPhoneContacts', () => {
+test.describe('GET /v2/contacts/getImportedPhoneContacts @audit', () => {
   const META = {
     method: 'GET',
     path: CONTACTS_V2_PATHS.getImportedPhoneContacts,
@@ -636,7 +636,7 @@ test.describe('GET /v2/contacts/getImportedPhoneContacts', () => {
 /* =========================================================================================
  * POST /v2/contacts/updateInviteStatus
  * ====================================================================================== */
-test.describe('POST /v2/contacts/updateInviteStatus', () => {
+test.describe('POST /v2/contacts/updateInviteStatus @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.updateInviteStatus,

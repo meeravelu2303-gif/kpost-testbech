@@ -77,7 +77,7 @@ const REJECTED = [400, 401, 403, 422];
 /* =========================================================================================
  * POST /v2/profile/updateBasicInformation
  * ====================================================================================== */
-test.describe('POST /v2/profile/updateBasicInformation', () => {
+test.describe('POST /v2/profile/updateBasicInformation @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.updateBasicInformation,
@@ -316,7 +316,7 @@ test.describe('POST /v2/profile/updateBasicInformation', () => {
 /* =========================================================================================
  * POST /v2/profile/updateContactInformation
  * ====================================================================================== */
-test.describe('POST /v2/profile/updateContactInformation', () => {
+test.describe('POST /v2/profile/updateContactInformation @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.updateContactInformation,
@@ -541,7 +541,7 @@ test.describe('POST /v2/profile/updateContactInformation', () => {
 /* =========================================================================================
  * POST /v2/profile/updateDesignation
  * ====================================================================================== */
-test.describe('POST /v2/profile/updateDesignation', () => {
+test.describe('POST /v2/profile/updateDesignation @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.updateDesignation,
@@ -752,7 +752,7 @@ test.describe('POST /v2/profile/updateDesignation', () => {
 /* =========================================================================================
  * POST /v2/profile/setProfilePrivacy
  * ====================================================================================== */
-test.describe('POST /v2/profile/setProfilePrivacy', () => {
+test.describe('POST /v2/profile/setProfilePrivacy @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.setProfilePrivacy,
@@ -993,7 +993,7 @@ test.describe('POST /v2/profile/setProfilePrivacy', () => {
 /* =========================================================================================
  * POST /v2/profile/updatePrivacySettingDetails
  * ====================================================================================== */
-test.describe('POST /v2/profile/updatePrivacySettingDetails', () => {
+test.describe('POST /v2/profile/updatePrivacySettingDetails @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.updatePrivacySettingDetails,

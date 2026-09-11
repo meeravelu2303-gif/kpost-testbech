@@ -44,7 +44,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/knews/updateKnewsSettings
  * ====================================================================================== */
-test.describe('POST /v2/knews/updateKnewsSettings', () => {
+test.describe('POST /v2/knews/updateKnewsSettings @audit', () => {
   const META = {
     method: 'POST',
     path: KNEWS_PATHS.updateKnewsSettings,
@@ -416,7 +416,7 @@ test.describe('POST /v2/knews/updateKnewsSettings', () => {
 /* =========================================================================================
  * GET /v2/knews/getKnewsSettings
  * ====================================================================================== */
-test.describe('GET /v2/knews/getKnewsSettings', () => {
+test.describe('GET /v2/knews/getKnewsSettings @audit', () => {
   const META = {
     method: 'GET',
     path: KNEWS_PATHS.getKnewsSettings,

@@ -53,7 +53,7 @@ const MAX_LENGTH_STRING = 'a'.repeat(5000);
 /* =========================================================================================
  * Mail signature — reads
  * ====================================================================================== */
-test.describe('Mail signature reads', () => {
+test.describe('Mail signature reads @audit', () => {
   test('[getMailSignature] happy path satisfies the contract', async ({ settingClient, token }) => {
     const META = {
       method: 'GET',
@@ -175,7 +175,7 @@ test.describe('Mail signature reads', () => {
 /* =========================================================================================
  * Mail signature — writes
  * ====================================================================================== */
-test.describe('Mail signature writes', () => {
+test.describe('Mail signature writes @audit', () => {
   const BLOCKS = [
     {
       name: 'PersonalData',
@@ -454,7 +454,7 @@ test.describe('Mail signature writes', () => {
 /* =========================================================================================
  * Letterhead
  * ====================================================================================== */
-test.describe('Letterhead', () => {
+test.describe('Letterhead @audit', () => {
   test('[upload] happy path: a header/footer pair uploads', async ({ settingClient, token }) => {
     const META = {
       method: 'POST',
@@ -739,7 +739,7 @@ test.describe('Letterhead', () => {
 /* =========================================================================================
  * Salutations
  * ====================================================================================== */
-test.describe('Custom salutations', () => {
+test.describe('Custom salutations @audit', () => {
   const META = {
     method: 'POST',
     path: SETTING_PATHS.saveOrUpdateCustomizedSaluations,
@@ -915,7 +915,7 @@ test.describe('Custom salutations', () => {
 /* =========================================================================================
  * Instant replies
  * ====================================================================================== */
-test.describe('Canned instant replies', () => {
+test.describe('Canned instant replies @audit', () => {
   const META = {
     method: 'POST',
     path: SETTING_PATHS.saveOrUpdateCustomizedInstantReply,
@@ -1087,7 +1087,7 @@ test.describe('Canned instant replies', () => {
 /* =========================================================================================
  * Mail-count day window — updateMailCountDaysLimit (POST) / getMailCountDaysLimit (GET)
  * ====================================================================================== */
-test.describe('Mail-count day window', () => {
+test.describe('Mail-count day window @audit', () => {
   const META = {
     method: 'POST',
     path: SETTING_PATHS.updateMailCountDaysLimit,

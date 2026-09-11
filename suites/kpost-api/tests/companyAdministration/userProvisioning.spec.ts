@@ -73,7 +73,7 @@ const FOREIGN_COMPANY_ID = '1';
 /* =========================================================================================
  * POST /admin/addingUserByAdmin
  * ====================================================================================== */
-test.describe('POST /admin/addingUserByAdmin', () => {
+test.describe('POST /admin/addingUserByAdmin @audit', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.addingUserByAdmin,
@@ -405,7 +405,7 @@ test.describe('POST /admin/addingUserByAdmin', () => {
 /* =========================================================================================
  * POST /admin/addingUserForReallocateByAdmin
  * ====================================================================================== */
-test.describe('POST /admin/addingUserForReallocateByAdmin', () => {
+test.describe('POST /admin/addingUserForReallocateByAdmin @audit', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.addingUserForReallocateByAdmin,
@@ -705,7 +705,7 @@ test.describe('POST /admin/addingUserForReallocateByAdmin', () => {
 /* =========================================================================================
  * GET /admin/userManagementDetails/{companyID}
  * ====================================================================================== */
-test.describe('GET /admin/userManagementDetails/{companyID}', () => {
+test.describe('GET /admin/userManagementDetails/{companyID} @audit', () => {
   const META = {
     method: 'GET',
     path: COMPANY_ADMIN_PATH_TEMPLATES.userManagementDetails,
@@ -971,7 +971,7 @@ test.describe('GET /admin/userManagementDetails/{companyID}', () => {
 /* =========================================================================================
  * POST /admin/createKpostIDAndDesignationSuggestion
  * ====================================================================================== */
-test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
+test.describe('POST /admin/createKpostIDAndDesignationSuggestion @audit', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.createKpostIDAndDesignationSuggestion,
@@ -1249,7 +1249,7 @@ test.describe('POST /admin/createKpostIDAndDesignationSuggestion', () => {
 /* =========================================================================================
  * POST /admin/displayNameSuggestion
  * ====================================================================================== */
-test.describe('POST /admin/displayNameSuggestion', () => {
+test.describe('POST /admin/displayNameSuggestion @audit', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.displayNameSuggestion,

@@ -55,7 +55,7 @@ const VICTIM_DEVICE_ID = 'victim-device-identity-0001';
 /* =========================================================================================
  * POST /v2/profile/setDeviceAsPrimary
  * ====================================================================================== */
-test.describe('POST /v2/profile/setDeviceAsPrimary', () => {
+test.describe('POST /v2/profile/setDeviceAsPrimary @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.setDeviceAsPrimary,
@@ -273,7 +273,7 @@ test.describe('POST /v2/profile/setDeviceAsPrimary', () => {
 /* =========================================================================================
  * POST /v2/profile/updateDeviceAsPrimary
  * ====================================================================================== */
-test.describe('POST /v2/profile/updateDeviceAsPrimary', () => {
+test.describe('POST /v2/profile/updateDeviceAsPrimary @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.updateDeviceAsPrimary,
@@ -472,7 +472,7 @@ test.describe('POST /v2/profile/updateDeviceAsPrimary', () => {
 /* =========================================================================================
  * POST /v2/profile/setDeviceAsSecondary
  * ====================================================================================== */
-test.describe('POST /v2/profile/setDeviceAsSecondary', () => {
+test.describe('POST /v2/profile/setDeviceAsSecondary @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.setDeviceAsSecondary,
@@ -666,7 +666,7 @@ test.describe('POST /v2/profile/setDeviceAsSecondary', () => {
 /* =========================================================================================
  * POST /v2/profile/updateDeviceAsSecondary
  * ====================================================================================== */
-test.describe('POST /v2/profile/updateDeviceAsSecondary', () => {
+test.describe('POST /v2/profile/updateDeviceAsSecondary @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.updateDeviceAsSecondary,
@@ -844,7 +844,7 @@ test.describe('POST /v2/profile/updateDeviceAsSecondary', () => {
 /* =========================================================================================
  * GET /v2/profile/isDevicePrimaryOrNot
  * ====================================================================================== */
-test.describe('GET /v2/profile/isDevicePrimaryOrNot', () => {
+test.describe('GET /v2/profile/isDevicePrimaryOrNot @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.isDevicePrimaryOrNot,
@@ -1019,7 +1019,7 @@ test.describe('GET /v2/profile/isDevicePrimaryOrNot', () => {
  * Dispatches a real OTP to the caller's registered number. Called a small, fixed number of
  * times — never in a loop, and deliberately without a rate-limit probe.
  * ====================================================================================== */
-test.describe('GET /v2/profile/sendPrimaryDeviceOtp', () => {
+test.describe('GET /v2/profile/sendPrimaryDeviceOtp @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.sendPrimaryDeviceOtp,
@@ -1168,7 +1168,7 @@ test.describe('GET /v2/profile/sendPrimaryDeviceOtp', () => {
  *
  * The first step of account deletion. Dispatches a real OTP; called sparingly.
  * ====================================================================================== */
-test.describe('GET /v2/profile/sendAccountDeactivationOtp', () => {
+test.describe('GET /v2/profile/sendAccountDeactivationOtp @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.sendAccountDeactivationOtp,

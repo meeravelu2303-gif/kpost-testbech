@@ -57,7 +57,9 @@
     "typecheck:adminmodule": "cd admin && npx tsc --noEmit",
     "audit:excel": "node scripts/excel-conformance.js --threshold 100",
     "audit:bugs": "node scripts/audit-bug-report.js",
-    "contract:parse": "node scripts/parse-excel-contract.js"
+    "contract:parse": "node scripts/parse-excel-contract.js",
+    "test:gate": "playwright test --project=gate --reporter=list",
+    "audit:gate": "node scripts/audit-gate.js"
   },
   "keywords": [],
   "author": "",

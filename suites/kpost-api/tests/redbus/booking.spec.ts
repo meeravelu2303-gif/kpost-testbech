@@ -72,7 +72,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /redbus/blockTicket/{kPostId}
  * ====================================================================================== */
-test.describe('POST /redbus/blockTicket/{kPostId}', () => {
+test.describe('POST /redbus/blockTicket/{kPostId} @audit', () => {
   const META = {
     method: 'POST',
     path: REDBUS_PATH_TEMPLATES.blockTicket,
@@ -381,7 +381,7 @@ test.describe('POST /redbus/blockTicket/{kPostId}', () => {
 /* =========================================================================================
  * POST /redbus/getUpdatedFare/
  * ====================================================================================== */
-test.describe('POST /redbus/getUpdatedFare/', () => {
+test.describe('POST /redbus/getUpdatedFare/ @audit', () => {
   const META = {
     method: 'POST',
     path: REDBUS_PATHS.getUpdatedFare,
@@ -560,7 +560,7 @@ test.describe('POST /redbus/getUpdatedFare/', () => {
  * REFUSAL PATHS ONLY. Every case below addresses a non-existent tempPNR. A test that
  * confirmed a real hold would charge a real card.
  * ====================================================================================== */
-test.describe('POST /redbus/bookticket', () => {
+test.describe('POST /redbus/bookticket @audit', () => {
   const META = {
     method: 'POST',
     path: REDBUS_PATHS.bookticket,
@@ -788,7 +788,7 @@ test.describe('POST /redbus/bookticket', () => {
  * REFUSAL PATHS ONLY. Every case addresses a non-existent ticket number. A test that
  * cancelled a real ticket would strand a real passenger.
  * ====================================================================================== */
-test.describe('POST /redbus/cancelticket/', () => {
+test.describe('POST /redbus/cancelticket/ @audit', () => {
   const META = {
     method: 'POST',
     path: REDBUS_PATHS.cancelticket,
@@ -1031,7 +1031,7 @@ test.describe('POST /redbus/cancelticket/', () => {
 /* =========================================================================================
  * POST /redbus/ticketdetails/
  * ====================================================================================== */
-test.describe('POST /redbus/ticketdetails/', () => {
+test.describe('POST /redbus/ticketdetails/ @audit', () => {
   const META = {
     method: 'POST',
     path: REDBUS_PATHS.ticketdetails,

@@ -55,7 +55,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/katchup/deleteKatchUpMessage
  * ====================================================================================== */
-test.describe('POST /v2/katchup/deleteKatchUpMessage', () => {
+test.describe('POST /v2/katchup/deleteKatchUpMessage @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.deleteKatchUpMessage,
@@ -292,7 +292,7 @@ test.describe('POST /v2/katchup/deleteKatchUpMessage', () => {
 /* =========================================================================================
  * POST /v2/katchup/recallMessage
  * ====================================================================================== */
-test.describe('POST /v2/katchup/recallMessage', () => {
+test.describe('POST /v2/katchup/recallMessage @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.recallMessage,
@@ -484,7 +484,7 @@ test.describe('POST /v2/katchup/recallMessage', () => {
 /* =========================================================================================
  * POST /v2/katchup/markOrUnmarkImportantMessage
  * ====================================================================================== */
-test.describe('POST /v2/katchup/markOrUnmarkImportantMessage', () => {
+test.describe('POST /v2/katchup/markOrUnmarkImportantMessage @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.markOrUnmarkImportantMessage,
@@ -687,7 +687,7 @@ test.describe('POST /v2/katchup/markOrUnmarkImportantMessage', () => {
 /* =========================================================================================
  * POST /v2/katchup/reportAbuse
  * ====================================================================================== */
-test.describe('POST /v2/katchup/reportAbuse', () => {
+test.describe('POST /v2/katchup/reportAbuse @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.reportAbuse,
@@ -927,7 +927,7 @@ test.describe('POST /v2/katchup/reportAbuse', () => {
 /* =========================================================================================
  * GET /v2/katchup/getAllReportMsg
  * ====================================================================================== */
-test.describe('GET /v2/katchup/getAllReportMsg', () => {
+test.describe('GET /v2/katchup/getAllReportMsg @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATHS.getAllReportMsg,
@@ -1097,7 +1097,7 @@ test.describe('GET /v2/katchup/getAllReportMsg', () => {
 /* =========================================================================================
  * POST /v2/katchup/getReadStatusGroupMessage
  * ====================================================================================== */
-test.describe('POST /v2/katchup/getReadStatusGroupMessage', () => {
+test.describe('POST /v2/katchup/getReadStatusGroupMessage @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.getReadStatusGroupMessage,
@@ -1280,7 +1280,7 @@ test.describe('POST /v2/katchup/getReadStatusGroupMessage', () => {
 /* =========================================================================================
  * GET /v2/katchup/getDeletedKatchupMsgIds/{lastMsgID}
  * ====================================================================================== */
-test.describe('GET /v2/katchup/getDeletedKatchupMsgIds/{lastMsgID}', () => {
+test.describe('GET /v2/katchup/getDeletedKatchupMsgIds/{lastMsgID} @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATH_TEMPLATES.getDeletedKatchupMsgIds,
@@ -1466,7 +1466,7 @@ test.describe('GET /v2/katchup/getDeletedKatchupMsgIds/{lastMsgID}', () => {
 /* =========================================================================================
  * GET /v2/katchup/getUnopenedMessagesCount
  * ====================================================================================== */
-test.describe('GET /v2/katchup/getUnopenedMessagesCount', () => {
+test.describe('GET /v2/katchup/getUnopenedMessagesCount @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATHS.getUnopenedMessagesCount,
@@ -1643,7 +1643,7 @@ test.describe('GET /v2/katchup/getUnopenedMessagesCount', () => {
 /* =========================================================================================
  * GET /v2/katchup/getUnopenedMessagesAndKmailsTotalCount
  * ====================================================================================== */
-test.describe('GET /v2/katchup/getUnopenedMessagesAndKmailsTotalCount', () => {
+test.describe('GET /v2/katchup/getUnopenedMessagesAndKmailsTotalCount @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATHS.getUnopenedMessagesAndKmailsTotalCount,

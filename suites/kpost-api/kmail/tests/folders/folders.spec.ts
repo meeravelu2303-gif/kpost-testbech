@@ -59,7 +59,7 @@ const SQLI_WILDCARD = '%';
 /* =========================================================================================
  * POST /v2/common/getKmailDashboardMsg  — the inbox
  * ====================================================================================== */
-test.describe('POST /v2/common/getKmailDashboardMsg', () => {
+test.describe('POST /v2/common/getKmailDashboardMsg @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.getKmailDashboardMsg,
@@ -350,7 +350,7 @@ test.describe('POST /v2/common/getKmailDashboardMsg', () => {
 /* =========================================================================================
  * POST /v2/common/getKmailDashboardNewMsg  — incremental refresh
  * ====================================================================================== */
-test.describe('POST /v2/common/getKmailDashboardNewMsg', () => {
+test.describe('POST /v2/common/getKmailDashboardNewMsg @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.getKmailDashboardNewMsg,
@@ -456,7 +456,7 @@ test.describe('POST /v2/common/getKmailDashboardNewMsg', () => {
 /* =========================================================================================
  * POST /v2/common/getBulkKmailDashboardMsg  — the bulk folder
  * ====================================================================================== */
-test.describe('POST /v2/common/getBulkKmailDashboardMsg', () => {
+test.describe('POST /v2/common/getBulkKmailDashboardMsg @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.getBulkKmailDashboardMsg,
@@ -533,7 +533,7 @@ test.describe('POST /v2/common/getBulkKmailDashboardMsg', () => {
 /* =========================================================================================
  * POST /v2/common/getAllImportantMails  — the Important folder
  * ====================================================================================== */
-test.describe('POST /v2/common/getAllImportantMails', () => {
+test.describe('POST /v2/common/getAllImportantMails @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.getAllImportantMails,
@@ -618,7 +618,7 @@ test.describe('POST /v2/common/getAllImportantMails', () => {
 /* =========================================================================================
  * Counts
  * ====================================================================================== */
-test.describe('Mail counts', () => {
+test.describe('Mail counts @audit', () => {
   test('[1] getAllMailCount: happy path satisfies the contract', async ({
     mailboxClient,
     token,
@@ -776,7 +776,7 @@ test.describe('Mail counts', () => {
 /* =========================================================================================
  * Follow-up buckets — KMail's distinctive "folders"
  * ====================================================================================== */
-test.describe('Follow-up status buckets', () => {
+test.describe('Follow-up status buckets @audit', () => {
   const BUCKETS = [
     {
       name: 'sentMailNotOpened',
@@ -966,7 +966,7 @@ test.describe('Follow-up status buckets', () => {
 /* =========================================================================================
  * Envelope contract
  * ====================================================================================== */
-test.describe('Response envelope contract', () => {
+test.describe('Response envelope contract @audit', () => {
   test('[envelope] the documented status casing is asserted once, here', async ({
     mailboxClient,
     token,

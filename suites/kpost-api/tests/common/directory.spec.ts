@@ -45,7 +45,7 @@ const MAX_LENGTH_STRING = 'a'.repeat(5000);
 const KNOWN_MOBILE = '9000000147';
 const REFUSED = [400, 401, 403, 422];
 
-test.describe('Common - POST /v2/common/mobileNoExist', () => {
+test.describe('Common - POST /v2/common/mobileNoExist @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.mobileNoExist,
@@ -185,7 +185,7 @@ test.describe('Common - POST /v2/common/mobileNoExist', () => {
  * POST /v2/common/isCompanyNameExist
  * ===================================================================================== */
 
-test.describe('Common - POST /v2/common/isCompanyNameExist', () => {
+test.describe('Common - POST /v2/common/isCompanyNameExist @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.isCompanyNameExist,
@@ -381,7 +381,7 @@ test.describe('Common - POST /v2/common/isCompanyNameExist', () => {
  * Reference-data reads: GET /countries, POST /country, GET /getStates, GET /getProfession
  * ===================================================================================== */
 
-test.describe('Common - POST /v2/common/domain', () => {
+test.describe('Common - POST /v2/common/domain @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.domain,
@@ -513,7 +513,7 @@ test.describe('Common - POST /v2/common/domain', () => {
   });
 });
 
-test.describe('Common - POST /v2/common/generateDomainAndUniqueName', () => {
+test.describe('Common - POST /v2/common/generateDomainAndUniqueName @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.generateDomainAndUniqueName,
@@ -701,7 +701,7 @@ test.describe('Common - POST /v2/common/generateDomainAndUniqueName', () => {
  * GET /v2/common/msStatus — health probe.
  * ===================================================================================== */
 
-test.describe('POST /v2/common/getUserDetailsByMobNo', () => {
+test.describe('POST /v2/common/getUserDetailsByMobNo @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.getUserDetailsByMobNo,
@@ -889,7 +889,7 @@ test.describe('POST /v2/common/getUserDetailsByMobNo', () => {
  * POST /v2/common/getCompanyDetails
  * ====================================================================================== */
 
-test.describe('POST /v2/common/getCompanyDetails', () => {
+test.describe('POST /v2/common/getCompanyDetails @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.getCompanyDetails,
@@ -1077,7 +1077,7 @@ test.describe('POST /v2/common/getCompanyDetails', () => {
  * POST /v2/common/getCompanyDetailsByAdmin
  * ====================================================================================== */
 
-test.describe('POST /v2/common/getCompanyDetailsByAdmin', () => {
+test.describe('POST /v2/common/getCompanyDetailsByAdmin @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.getCompanyDetailsByAdmin,
@@ -1222,7 +1222,7 @@ test.describe('POST /v2/common/getCompanyDetailsByAdmin', () => {
  * POST /v2/common/getCompanyDetailsByMobileNoAndproductId
  * ====================================================================================== */
 
-test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
+test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.getCompanyDetailsByMobileNoAndproductId,
@@ -1403,7 +1403,7 @@ test.describe('POST /v2/common/getCompanyDetailsByMobileNoAndproductId', () => {
  * POST /v2/common/mobileNoExistInsideCompany
  * ====================================================================================== */
 
-test.describe('POST /v2/common/mobileNoExistInsideCompany', () => {
+test.describe('POST /v2/common/mobileNoExistInsideCompany @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.mobileNoExistInsideCompany,
@@ -1541,7 +1541,7 @@ test.describe('POST /v2/common/mobileNoExistInsideCompany', () => {
  * POST /v2/common/getKpostIdUsingModule
  * ====================================================================================== */
 
-test.describe('POST /v2/common/getKpostIdUsingModule', () => {
+test.describe('POST /v2/common/getKpostIdUsingModule @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.getKpostIdUsingModule,
@@ -1705,7 +1705,7 @@ test.describe('POST /v2/common/getKpostIdUsingModule', () => {
  * POST /v2/common/uniqueNameExist
  * ====================================================================================== */
 
-test.describe('POST /v2/common/uniqueNameExist', () => {
+test.describe('POST /v2/common/uniqueNameExist @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.uniqueNameExist,
@@ -1856,7 +1856,7 @@ test.describe('POST /v2/common/uniqueNameExist', () => {
  * POST /v2/common/getCitiesByRegionId
  * ====================================================================================== */
 
-test.describe('GET /v2/common/getCompanyNameExistOnKpostAndKsmacc/{companyName}', () => {
+test.describe('GET /v2/common/getCompanyNameExistOnKpostAndKsmacc/{companyName} @audit', () => {
   const META = {
     method: 'GET',
     path: COMMON_PATHS.getCompanyNameExistOnKpostAndKsmacc,

@@ -38,7 +38,7 @@ import {
 } from '../../src/api/payloads/common.payload';
 import { FOREIGN } from '../../src/api/clients/generic.client';
 
-test.describe('Common - POST /v2/common/sendOTP', () => {
+test.describe('Common - POST /v2/common/sendOTP @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.sendOTP,
@@ -182,7 +182,7 @@ test.describe('Common - POST /v2/common/sendOTP', () => {
  * POST /v2/common/validateOTP
  * ===================================================================================== */
 
-test.describe('Common - POST /v2/common/validateOTP', () => {
+test.describe('Common - POST /v2/common/validateOTP @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.validateOTP,
@@ -354,7 +354,7 @@ test.describe('Common - POST /v2/common/validateOTP', () => {
  * POST /v2/common/sendOTPtoMail  &  POST /v2/common/validateMailOTP
  * ===================================================================================== */
 
-test.describe('Common - POST /v2/common/sendOTPtoMail', () => {
+test.describe('Common - POST /v2/common/sendOTPtoMail @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.sendOTPtoMail,
@@ -519,7 +519,7 @@ test.describe('Common - POST /v2/common/sendOTPtoMail', () => {
 
 });
 
-test.describe('Common - POST /v2/common/validateMailOTP', () => {
+test.describe('Common - POST /v2/common/validateMailOTP @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.validateMailOTP,
@@ -727,7 +727,7 @@ test.describe('Common - POST /v2/common/validateMailOTP', () => {
  * POST /v2/common/mobileNoExist — read-only existence probe.
  * ===================================================================================== */
 
-test.describe('Common - POST /v2/common/forgotPasswordOTPOrSentKpostIDSms', () => {
+test.describe('Common - POST /v2/common/forgotPasswordOTPOrSentKpostIDSms @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.forgotPasswordOTPOrSentKpostIDSms,
@@ -951,7 +951,7 @@ test.describe('Common - POST /v2/common/forgotPasswordOTPOrSentKpostIDSms', () =
 
 });
 
-test.describe('Common - POST /v2/common/forgotPasswordUpdate', () => {
+test.describe('Common - POST /v2/common/forgotPasswordUpdate @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.forgotPasswordUpdate,

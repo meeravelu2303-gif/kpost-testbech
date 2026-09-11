@@ -43,7 +43,7 @@ import { FOREIGN } from '../../src/api/clients/generic.client';
 
 test.describe.configure({ timeout: 90_000 });
 
-test.describe('Auth - POST /v2/signupLogin/signup', () => {
+test.describe('Auth - POST /v2/signupLogin/signup @audit', () => {
   const META = {
     method: 'POST',
     path: AUTH_PATHS.signup,
@@ -378,7 +378,7 @@ test.describe('Auth - POST /v2/signupLogin/signup', () => {
  * POST /v2/signupLogin/userLogin — public (security: [])
  * ===================================================================================== */
 
-test.describe('Auth - POST /v2/signupLogin/setAccessCode', () => {
+test.describe('Auth - POST /v2/signupLogin/setAccessCode @audit', () => {
   const META = {
     method: 'POST',
     path: AUTH_PATHS.setAccessCode,
@@ -565,7 +565,7 @@ test.describe('Auth - POST /v2/signupLogin/setAccessCode', () => {
  * POST /v2/signupLogin/kpostIdExist — public (security: [])
  * ===================================================================================== */
 
-test.describe('Auth - POST /v2/signupLogin/kpostIdExist', () => {
+test.describe('Auth - POST /v2/signupLogin/kpostIdExist @audit', () => {
   const META = {
     method: 'POST',
     path: AUTH_PATHS.kpostIdExist,
@@ -780,7 +780,7 @@ test.describe('Auth - POST /v2/signupLogin/kpostIdExist', () => {
  * POST /v2/signupLogin/kpostIDsuggestionList — public (security: [])
  * ===================================================================================== */
 
-test.describe('Auth - POST /v2/signupLogin/kpostIDsuggestionList', () => {
+test.describe('Auth - POST /v2/signupLogin/kpostIDsuggestionList @audit', () => {
   const META = {
     method: 'POST',
     path: AUTH_PATHS.kpostIDsuggestionList,
@@ -960,7 +960,7 @@ test.describe('Auth - POST /v2/signupLogin/kpostIDsuggestionList', () => {
  * POST /v2/signupLogin/getLoginHistory — secured
  * ===================================================================================== */
 
-test.describe('Auth - POST /v2/signupLogin/adminRegistration', () => {
+test.describe('Auth - POST /v2/signupLogin/adminRegistration @audit', () => {
   const META = {
     method: 'POST',
     path: AUTH_PATHS.adminRegistration,

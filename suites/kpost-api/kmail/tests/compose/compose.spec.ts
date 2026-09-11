@@ -55,7 +55,7 @@ const UTF8_STRING = 'ಕನ್ನಡ-日本語-🚀-Ñoño';
 /* =========================================================================================
  * POST /v2/sentMail/postMail
  * ====================================================================================== */
-test.describe('POST /v2/sentMail/postMail', () => {
+test.describe('POST /v2/sentMail/postMail @audit', () => {
   const META = {
     method: 'POST',
     path: SENT_MAIL_PATHS.postMail,
@@ -446,7 +446,7 @@ test.describe('POST /v2/sentMail/postMail', () => {
  * review both miss. Do not extend this describe with functional/contract depth — the Excel
  * says nobody is calling it — but do not delete the security cases either.
  * ====================================================================================== */
-test.describe('POST /v2/sentMail/postMailMultiPart/', () => {
+test.describe('POST /v2/sentMail/postMailMultiPart/ @audit', () => {
   const META = {
     method: 'POST',
     path: SENT_MAIL_PATHS.postMailMultiPart,
@@ -624,7 +624,7 @@ test.describe('POST /v2/sentMail/postMailMultiPart/', () => {
 /* =========================================================================================
  * POST /sentMail/postMailMultiPart/  — the unversioned duplicate
  * ====================================================================================== */
-test.describe('POST /sentMail/postMailMultiPart/ (legacy path)', () => {
+test.describe('POST /sentMail/postMailMultiPart/ (legacy path) @audit', () => {
   const META = {
     method: 'POST',
     path: LEGACY_PATHS.postMailMultiPart,
@@ -681,7 +681,7 @@ test.describe('POST /sentMail/postMailMultiPart/ (legacy path)', () => {
 /* =========================================================================================
  * POST /v2/sentMail/loadMail
  * ====================================================================================== */
-test.describe('POST /v2/sentMail/loadMail', () => {
+test.describe('POST /v2/sentMail/loadMail @audit', () => {
   const META = {
     method: 'POST',
     path: SENT_MAIL_PATHS.loadMail,
@@ -724,7 +724,7 @@ test.describe('POST /v2/sentMail/loadMail', () => {
 /* =========================================================================================
  * POST /v2/sentMail/getMailCredentials
  * ====================================================================================== */
-test.describe('POST /v2/sentMail/getMailCredentials', () => {
+test.describe('POST /v2/sentMail/getMailCredentials @audit', () => {
   const META = {
     method: 'POST',
     path: SENT_MAIL_PATHS.getMailCredentials,
@@ -845,7 +845,7 @@ test.describe('POST /v2/sentMail/getMailCredentials', () => {
 /* =========================================================================================
  * GET /v2/sentMail/loadOtherDomainMails
  * ====================================================================================== */
-test.describe('GET /v2/sentMail/loadOtherDomainMails', () => {
+test.describe('GET /v2/sentMail/loadOtherDomainMails @audit', () => {
   const META = {
     method: 'GET',
     path: SENT_MAIL_PATHS.loadOtherDomainMails,
@@ -919,7 +919,7 @@ test.describe('GET /v2/sentMail/loadOtherDomainMails', () => {
 /* =========================================================================================
  * Forward and reply semantics
  * ====================================================================================== */
-test.describe('Forward and reply disclosure', () => {
+test.describe('Forward and reply disclosure @audit', () => {
   const META = {
     method: 'POST',
     path: SENT_MAIL_PATHS.postMail,
@@ -997,7 +997,7 @@ test.describe('Forward and reply disclosure', () => {
 /* =========================================================================================
  * Group and external sends
  * ====================================================================================== */
-test.describe('Group and external recipients', () => {
+test.describe('Group and external recipients @audit', () => {
   const META = {
     method: 'POST',
     path: SENT_MAIL_PATHS.postMail,

@@ -34,7 +34,9 @@
     "audit:excel": "npm run audit:excel -w kpost-api",
     "audit:vectors": "npm run audit:vectors -w kpost-api",
     "audit:bugs": "npm run audit:bugs -w kpost-api",
-    "contract:parse": "npm run contract:parse -w kpost-api --"
+    "contract:parse": "npm run contract:parse -w kpost-api --",
+    "test:gate": "npm run test:gate -w kpost-api",
+    "audit:gate": "npm run audit:gate -w kpost-api"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

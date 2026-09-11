@@ -56,7 +56,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/kall/scheduledKall
  * ====================================================================================== */
-test.describe('POST /v2/kall/scheduledKall', () => {
+test.describe('POST /v2/kall/scheduledKall @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.scheduledKall,
@@ -358,7 +358,7 @@ test.describe('POST /v2/kall/scheduledKall', () => {
 /* =========================================================================================
  * POST /v2/kall/reScheduleKall
  * ====================================================================================== */
-test.describe('POST /v2/kall/reScheduleKall', () => {
+test.describe('POST /v2/kall/reScheduleKall @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.reScheduleKall,
@@ -678,7 +678,7 @@ test.describe('POST /v2/kall/reScheduleKall', () => {
 /* =========================================================================================
  * POST /v2/kall/scheduledRepeatKall
  * ====================================================================================== */
-test.describe('POST /v2/kall/scheduledRepeatKall', () => {
+test.describe('POST /v2/kall/scheduledRepeatKall @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.scheduledRepeatKall,
@@ -938,7 +938,7 @@ test.describe('POST /v2/kall/scheduledRepeatKall', () => {
 /* =========================================================================================
  * POST /v2/kall/fetchScheduledRepeatKall
  * ====================================================================================== */
-test.describe('POST /v2/kall/fetchScheduledRepeatKall', () => {
+test.describe('POST /v2/kall/fetchScheduledRepeatKall @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.fetchScheduledRepeatKall,
@@ -1145,7 +1145,7 @@ test.describe('POST /v2/kall/fetchScheduledRepeatKall', () => {
 /* =========================================================================================
  * POST /v2/kall/joinScheduleKall
  * ====================================================================================== */
-test.describe('POST /v2/kall/joinScheduleKall', () => {
+test.describe('POST /v2/kall/joinScheduleKall @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.joinScheduleKall,
@@ -1366,7 +1366,7 @@ test.describe('POST /v2/kall/joinScheduleKall', () => {
 /* =========================================================================================
  * GET /v2/kall/todayKoolKall
  * ====================================================================================== */
-test.describe('GET /v2/kall/todayKoolKall', () => {
+test.describe('GET /v2/kall/todayKoolKall @audit', () => {
   const META = {
     method: 'GET',
     path: KALL_V2_PATHS.todayKoolKall,

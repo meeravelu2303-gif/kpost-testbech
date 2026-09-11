@@ -59,7 +59,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/kall/addMembersToKall
  * ====================================================================================== */
-test.describe('POST /v2/kall/addMembersToKall', () => {
+test.describe('POST /v2/kall/addMembersToKall @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.addMembersToKall,
@@ -292,7 +292,7 @@ test.describe('POST /v2/kall/addMembersToKall', () => {
 /* =========================================================================================
  * POST /v2/kall/modifyKallMembers
  * ====================================================================================== */
-test.describe('POST /v2/kall/modifyKallMembers', () => {
+test.describe('POST /v2/kall/modifyKallMembers @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.modifyKallMembers,
@@ -517,7 +517,7 @@ test.describe('POST /v2/kall/modifyKallMembers', () => {
 /* =========================================================================================
  * POST /v2/kall/kallInfo
  * ====================================================================================== */
-test.describe('POST /v2/kall/kallInfo', () => {
+test.describe('POST /v2/kall/kallInfo @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.kallInfo,
@@ -737,7 +737,7 @@ test.describe('POST /v2/kall/kallInfo', () => {
 /* =========================================================================================
  * POST /v2/kall/contactInfo
  * ====================================================================================== */
-test.describe('POST /v2/kall/contactInfo', () => {
+test.describe('POST /v2/kall/contactInfo @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.contactInfo,
@@ -936,7 +936,7 @@ test.describe('POST /v2/kall/contactInfo', () => {
 /* =========================================================================================
  * POST /v2/kall/kallDashboard
  * ====================================================================================== */
-test.describe('POST /v2/kall/kallDashboard', () => {
+test.describe('POST /v2/kall/kallDashboard @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.kallDashboard,
@@ -1145,7 +1145,7 @@ test.describe('POST /v2/kall/kallDashboard', () => {
 /* =========================================================================================
  * GET /v2/kall/frequentKallContacts
  * ====================================================================================== */
-test.describe('GET /v2/kall/frequentKallContacts', () => {
+test.describe('GET /v2/kall/frequentKallContacts @audit', () => {
   const META = {
     method: 'GET',
     path: KALL_V2_PATHS.frequentKallContacts,
@@ -1340,7 +1340,7 @@ test.describe('GET /v2/kall/frequentKallContacts', () => {
 /* =========================================================================================
  * POST /v2/kall/clearKallBykallIds
  * ====================================================================================== */
-test.describe('POST /v2/kall/clearKallBykallIds', () => {
+test.describe('POST /v2/kall/clearKallBykallIds @audit', () => {
   const META = {
     method: 'POST',
     path: KALL_V2_PATHS.clearKallBykallIds,
@@ -1563,7 +1563,7 @@ test.describe('POST /v2/kall/clearKallBykallIds', () => {
  * There is no safe parameterisation, so the authenticated case asserts only the envelope
  * contract and the method-safety finding; it does not try to confirm the wipe.
  * ====================================================================================== */
-test.describe('GET /v2/kall/clearKallHistory', () => {
+test.describe('GET /v2/kall/clearKallHistory @audit', () => {
   const META = {
     method: 'GET',
     path: KALL_V2_PATHS.clearKallHistory,

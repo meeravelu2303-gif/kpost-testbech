@@ -58,7 +58,7 @@ const VICTIM_KPOST_ID = FOREIGN.victimKpostID;
 /* =========================================================================================
  * POST /kword/joinDocument
  * ====================================================================================== */
-test.describe('POST /kword/joinDocument', () => {
+test.describe('POST /kword/joinDocument @audit', () => {
   const META = {
     method: 'POST',
     path: KWORD_PATHS.joinDocument,
@@ -241,7 +241,7 @@ const DOC_ID_READS = [
 ];
 
 for (const route of DOC_ID_READS) {
-  test.describe(`GET /kword/${route.name}/{docId}`, () => {
+  test.describe(`GET /kword/${route.name}/{docId} @audit`, () => {
     const META = {
       method: 'GET',
       path: route.template,

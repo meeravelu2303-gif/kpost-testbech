@@ -58,7 +58,7 @@ const FOREIGN_COMPANY_ID = '1';
 /* =========================================================================================
  * POST /admin/updateBankAccountDetails
  * ====================================================================================== */
-test.describe('POST /admin/updateBankAccountDetails', () => {
+test.describe('POST /admin/updateBankAccountDetails @audit', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.updateBankAccountDetails,
@@ -371,7 +371,7 @@ test.describe('POST /admin/updateBankAccountDetails', () => {
 /* =========================================================================================
  * GET /admin/getBankAndCompanyDetails/{companyID}
  * ====================================================================================== */
-test.describe('GET /admin/getBankAndCompanyDetails/{companyID}', () => {
+test.describe('GET /admin/getBankAndCompanyDetails/{companyID} @audit', () => {
   const META = {
     method: 'GET',
     path: COMPANY_ADMIN_PATH_TEMPLATES.getBankAndCompanyDetails,
@@ -667,7 +667,7 @@ test.describe('GET /admin/getBankAndCompanyDetails/{companyID}', () => {
 /* =========================================================================================
  * POST /admin/updateCompanyDetails
  * ====================================================================================== */
-test.describe('POST /admin/updateCompanyDetails', () => {
+test.describe('POST /admin/updateCompanyDetails @audit', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.updateCompanyDetails,
@@ -956,7 +956,7 @@ test.describe('POST /admin/updateCompanyDetails', () => {
 /* =========================================================================================
  * POST /admin/removeCompanyLogo
  * ====================================================================================== */
-test.describe('POST /admin/removeCompanyLogo', () => {
+test.describe('POST /admin/removeCompanyLogo @audit', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.removeCompanyLogo,

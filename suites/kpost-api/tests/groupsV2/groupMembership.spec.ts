@@ -59,7 +59,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/group/addUserToGroup
  * ====================================================================================== */
-test.describe('POST /v2/group/addUserToGroup', () => {
+test.describe('POST /v2/group/addUserToGroup @audit', () => {
   const META = {
     method: 'POST',
     path: GROUPS_V2_PATHS.addUserToGroup,
@@ -410,7 +410,7 @@ test.describe('POST /v2/group/addUserToGroup', () => {
 /* =========================================================================================
  * POST /v2/group/removeGroupMember
  * ====================================================================================== */
-test.describe('POST /v2/group/removeGroupMember', () => {
+test.describe('POST /v2/group/removeGroupMember @audit', () => {
   const META = {
     method: 'POST',
     path: GROUPS_V2_PATHS.removeGroupMember,
@@ -679,7 +679,7 @@ test.describe('POST /v2/group/removeGroupMember', () => {
 /* =========================================================================================
  * POST /v2/group/leaveFromGroup
  * ====================================================================================== */
-test.describe('POST /v2/group/leaveFromGroup', () => {
+test.describe('POST /v2/group/leaveFromGroup @audit', () => {
   const META = {
     method: 'POST',
     path: GROUPS_V2_PATHS.leaveFromGroup,
@@ -922,7 +922,7 @@ test.describe('POST /v2/group/leaveFromGroup', () => {
 /* =========================================================================================
  * POST /v2/group/addOrRemoveAdminAccess
  * ====================================================================================== */
-test.describe('POST /v2/group/addOrRemoveAdminAccess', () => {
+test.describe('POST /v2/group/addOrRemoveAdminAccess @audit', () => {
   const META = {
     method: 'POST',
     path: GROUPS_V2_PATHS.addOrRemoveAdminAccess,

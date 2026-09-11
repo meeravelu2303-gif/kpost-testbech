@@ -51,7 +51,7 @@ const SQLI_PAYLOAD = `' OR '1'='1`;
 /* =========================================================================================
  * POST /v2/common/setKmailAsImportant
  * ====================================================================================== */
-test.describe('POST /v2/common/setKmailAsImportant', () => {
+test.describe('POST /v2/common/setKmailAsImportant @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.setKmailAsImportant,
@@ -255,7 +255,7 @@ test.describe('POST /v2/common/setKmailAsImportant', () => {
 /* =========================================================================================
  * POST /v2/common/deleteKmailWithDeletedBy
  * ====================================================================================== */
-test.describe('POST /v2/common/deleteKmailWithDeletedBy', () => {
+test.describe('POST /v2/common/deleteKmailWithDeletedBy @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.deleteKmailWithDeletedBy,
@@ -484,7 +484,7 @@ test.describe('POST /v2/common/deleteKmailWithDeletedBy', () => {
 /* =========================================================================================
  * Clear follow-up status
  * ====================================================================================== */
-test.describe('Clearing follow-up status', () => {
+test.describe('Clearing follow-up status @audit', () => {
   test('[clear] happy path: clearing selected mail satisfies the contract', async ({
     mailboxClient,
     token,
@@ -760,7 +760,7 @@ test.describe('Clearing follow-up status', () => {
 /* =========================================================================================
  * POST /v2/common/convertMailAsPDF
  * ====================================================================================== */
-test.describe('POST /v2/common/convertMailAsPDF', () => {
+test.describe('POST /v2/common/convertMailAsPDF @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.convertMailAsPDF,

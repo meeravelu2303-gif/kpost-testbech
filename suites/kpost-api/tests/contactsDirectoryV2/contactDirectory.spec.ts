@@ -54,7 +54,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/contacts/addContact
  * ====================================================================================== */
-test.describe('POST /v2/contacts/addContact', () => {
+test.describe('POST /v2/contacts/addContact @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.addContact,
@@ -362,7 +362,7 @@ test.describe('POST /v2/contacts/addContact', () => {
 /* =========================================================================================
  * POST /v2/contacts/addMultipleContact  — the request body is a JSON array
  * ====================================================================================== */
-test.describe('POST /v2/contacts/addMultipleContact', () => {
+test.describe('POST /v2/contacts/addMultipleContact @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.addMultipleContact,
@@ -633,7 +633,7 @@ test.describe('POST /v2/contacts/addMultipleContact', () => {
 /* =========================================================================================
  * POST /v2/contacts/addContactReference
  * ====================================================================================== */
-test.describe('POST /v2/contacts/addContactReference', () => {
+test.describe('POST /v2/contacts/addContactReference @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.addContactReference,
@@ -890,7 +890,7 @@ test.describe('POST /v2/contacts/addContactReference', () => {
 /* =========================================================================================
  * POST /v2/contacts/deleteContact
  * ====================================================================================== */
-test.describe('POST /v2/contacts/deleteContact', () => {
+test.describe('POST /v2/contacts/deleteContact @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.deleteContact,

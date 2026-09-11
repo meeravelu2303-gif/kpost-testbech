@@ -52,7 +52,7 @@ const VICTIM_KPOST_ID = FOREIGN.victimKpostID;
 /* =========================================================================================
  * GET /redbus/getTicket/
  * ====================================================================================== */
-test.describe('GET /redbus/getTicket/', () => {
+test.describe('GET /redbus/getTicket/ @audit', () => {
   const META = {
     method: 'GET',
     path: REDBUS_PATHS.getTicket,
@@ -259,7 +259,7 @@ test.describe('GET /redbus/getTicket/', () => {
 /* =========================================================================================
  * POST /redbus/checkBookedTicket/
  * ====================================================================================== */
-test.describe('POST /redbus/checkBookedTicket/', () => {
+test.describe('POST /redbus/checkBookedTicket/ @audit', () => {
   const META = {
     method: 'POST',
     path: REDBUS_PATHS.checkBookedTicket,
@@ -463,7 +463,7 @@ test.describe('POST /redbus/checkBookedTicket/', () => {
  * project's no-loop rule: each case must be individually named, individually reportable, and
  * individually skippable.
  * ====================================================================================== */
-test.describe('RedBus — bare @RequestMapping verb binding', () => {
+test.describe('RedBus — bare @RequestMapping verb binding @audit', () => {
   const META = {
     method: 'VERB',
     path: '/redbus/{bare-request-mapping-routes}',

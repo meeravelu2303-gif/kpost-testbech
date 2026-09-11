@@ -73,7 +73,7 @@ const VICTIM_KPOST_ID = FOREIGN.victimKpostID;
 /* =========================================================================================
  * POST /v2/profile/kmailPasswordPatchWork  — REFUSAL PATHS ONLY
  * ====================================================================================== */
-test.describe('POST /v2/profile/kmailPasswordPatchWork', () => {
+test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.kmailPasswordPatchWork,
@@ -316,7 +316,7 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork', () => {
 /* =========================================================================================
  * POST /v2/profile/getUserBasicDetailsUsingKpostID
  * ====================================================================================== */
-test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID', () => {
+test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.getUserBasicDetailsUsingKpostID,
@@ -580,7 +580,7 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID', () => {
 /* =========================================================================================
  * POST /v2/profile/getlanguages
  * ====================================================================================== */
-test.describe('POST /v2/profile/getlanguages', () => {
+test.describe('POST /v2/profile/getlanguages @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.getlanguages,
@@ -742,7 +742,7 @@ test.describe('POST /v2/profile/getlanguages', () => {
 /* =========================================================================================
  * POST /v2/profile/getDesignationOrProfession
  * ====================================================================================== */
-test.describe('POST /v2/profile/getDesignationOrProfession', () => {
+test.describe('POST /v2/profile/getDesignationOrProfession @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.getDesignationOrProfession,
@@ -952,7 +952,7 @@ test.describe('POST /v2/profile/getDesignationOrProfession', () => {
 /* =========================================================================================
  * GET /v2/profile/fetchUserDetails
  * ====================================================================================== */
-test.describe('GET /v2/profile/fetchUserDetails', () => {
+test.describe('GET /v2/profile/fetchUserDetails @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.fetchUserDetails,

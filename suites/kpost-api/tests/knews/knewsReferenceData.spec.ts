@@ -45,7 +45,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * GET /v2/knews/getAllCategories
  * ====================================================================================== */
-test.describe('GET /v2/knews/getAllCategories', () => {
+test.describe('GET /v2/knews/getAllCategories @audit', () => {
   const META = {
     method: 'GET',
     path: KNEWS_PATHS.getAllCategories,
@@ -254,7 +254,7 @@ test.describe('GET /v2/knews/getAllCategories', () => {
 /* =========================================================================================
  * GET /v2/knews/getAllNewsSource
  * ====================================================================================== */
-test.describe('GET /v2/knews/getAllNewsSource', () => {
+test.describe('GET /v2/knews/getAllNewsSource @audit', () => {
   const META = {
     method: 'GET',
     path: KNEWS_PATHS.getAllNewsSource,
@@ -460,7 +460,7 @@ test.describe('GET /v2/knews/getAllNewsSource', () => {
 /* =========================================================================================
  * POST /v2/knews/getSubCategoriesByCategoryId
  * ====================================================================================== */
-test.describe('POST /v2/knews/getSubCategoriesByCategoryId', () => {
+test.describe('POST /v2/knews/getSubCategoriesByCategoryId @audit', () => {
   const META = {
     method: 'POST',
     path: KNEWS_PATHS.getSubCategoriesByCategoryId,
@@ -760,7 +760,7 @@ test.describe('POST /v2/knews/getSubCategoriesByCategoryId', () => {
 /* =========================================================================================
  * POST /v2/knews/getPublicationByLanguageId
  * ====================================================================================== */
-test.describe('POST /v2/knews/getPublicationByLanguageId', () => {
+test.describe('POST /v2/knews/getPublicationByLanguageId @audit', () => {
   const META = {
     method: 'POST',
     path: KNEWS_PATHS.getPublicationByLanguageId,

@@ -36,7 +36,7 @@ import { FOREIGN } from '../../src/api/clients/generic.client';
 const wasAccepted = (status: number, json: unknown): boolean =>
   status === 200 && (json as { statusCode?: number })?.statusCode !== 500;
 
-test.describe('Cross-module platform rules', () => {
+test.describe('Cross-module platform rules @audit', () => {
   /*
    * A representative authenticated route from each major module. This is a **sweep, not a
    * duplicate** of the per-endpoint auth cases: those prove one route is guarded, this proves the

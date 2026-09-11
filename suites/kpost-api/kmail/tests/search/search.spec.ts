@@ -44,7 +44,7 @@ const UTF8_STRING = 'ಕನ್ನಡ-日本語-🚀-Ñoño';
 /* =========================================================================================
  * POST /v2/common/selectedContactMails
  * ====================================================================================== */
-test.describe('POST /v2/common/selectedContactMails', () => {
+test.describe('POST /v2/common/selectedContactMails @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.selectedContactMails,
@@ -475,7 +475,7 @@ test.describe('POST /v2/common/selectedContactMails', () => {
 /* =========================================================================================
  * POST /v2/common/mailSubjectSelectedContact
  * ====================================================================================== */
-test.describe('POST /v2/common/mailSubjectSelectedContact', () => {
+test.describe('POST /v2/common/mailSubjectSelectedContact @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.mailSubjectSelectedContact,
@@ -654,7 +654,7 @@ test.describe('POST /v2/common/mailSubjectSelectedContact', () => {
 /* =========================================================================================
  * Cross-cutting search properties
  * ====================================================================================== */
-test.describe('Search surface properties', () => {
+test.describe('Search surface properties @audit', () => {
   test('[1] the two search routes must agree about scoping', async ({ mailboxClient, token }) => {
     // Both routes take the same DTO and `selectedContact`, differing only in bodies vs subjects. A
     // wildcard escaped on one and not the other means the subject index leaks what the body does not.

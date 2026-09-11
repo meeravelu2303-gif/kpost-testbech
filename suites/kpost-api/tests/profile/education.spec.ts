@@ -51,7 +51,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/profile/saveOrUpdateSchoolDetails
  * ====================================================================================== */
-test.describe('POST /v2/profile/saveOrUpdateSchoolDetails', () => {
+test.describe('POST /v2/profile/saveOrUpdateSchoolDetails @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.saveOrUpdateSchoolDetails,
@@ -300,7 +300,7 @@ test.describe('POST /v2/profile/saveOrUpdateSchoolDetails', () => {
 /* =========================================================================================
  * POST /v2/profile/deleteSchoolDetail
  * ====================================================================================== */
-test.describe('POST /v2/profile/deleteSchoolDetail', () => {
+test.describe('POST /v2/profile/deleteSchoolDetail @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.deleteSchoolDetail,
@@ -523,7 +523,7 @@ test.describe('POST /v2/profile/deleteSchoolDetail', () => {
 /* =========================================================================================
  * POST /v2/profile/saveOrUpdateCollegeDetails
  * ====================================================================================== */
-test.describe('POST /v2/profile/saveOrUpdateCollegeDetails', () => {
+test.describe('POST /v2/profile/saveOrUpdateCollegeDetails @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.saveOrUpdateCollegeDetails,
@@ -744,7 +744,7 @@ test.describe('POST /v2/profile/saveOrUpdateCollegeDetails', () => {
 /* =========================================================================================
  * POST /v2/profile/deleteCollegeDetail
  * ====================================================================================== */
-test.describe('POST /v2/profile/deleteCollegeDetail', () => {
+test.describe('POST /v2/profile/deleteCollegeDetail @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.deleteCollegeDetail,
@@ -927,7 +927,7 @@ test.describe('POST /v2/profile/deleteCollegeDetail', () => {
 /* =========================================================================================
  * POST /v2/profile/saveOrUpdateUniversityDetails
  * ====================================================================================== */
-test.describe('POST /v2/profile/saveOrUpdateUniversityDetails', () => {
+test.describe('POST /v2/profile/saveOrUpdateUniversityDetails @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.saveOrUpdateUniversityDetails,
@@ -1135,7 +1135,7 @@ test.describe('POST /v2/profile/saveOrUpdateUniversityDetails', () => {
 /* =========================================================================================
  * POST /v2/profile/deleteUniversityDetail
  * ====================================================================================== */
-test.describe('POST /v2/profile/deleteUniversityDetail', () => {
+test.describe('POST /v2/profile/deleteUniversityDetail @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.deleteUniversityDetail,
@@ -1343,7 +1343,7 @@ test.describe('POST /v2/profile/deleteUniversityDetail', () => {
 /* =========================================================================================
  * POST /v2/profile/saveOrUpdateOtherActivity
  * ====================================================================================== */
-test.describe('POST /v2/profile/saveOrUpdateOtherActivity', () => {
+test.describe('POST /v2/profile/saveOrUpdateOtherActivity @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.saveOrUpdateOtherActivity,
@@ -1555,7 +1555,7 @@ test.describe('POST /v2/profile/saveOrUpdateOtherActivity', () => {
 /* =========================================================================================
  * POST /v2/profile/deleteOtherActivity
  * ====================================================================================== */
-test.describe('POST /v2/profile/deleteOtherActivity', () => {
+test.describe('POST /v2/profile/deleteOtherActivity @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.deleteOtherActivity,
@@ -1742,7 +1742,7 @@ test.describe('POST /v2/profile/deleteOtherActivity', () => {
 /* =========================================================================================
  * POST /v2/profile/updateAboutYourself
  * ====================================================================================== */
-test.describe('POST /v2/profile/updateAboutYourself', () => {
+test.describe('POST /v2/profile/updateAboutYourself @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.updateAboutYourself,

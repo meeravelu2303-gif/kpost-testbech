@@ -51,7 +51,7 @@ const MAX_LENGTH_STRING = 'a'.repeat(5000);
 /* =========================================================================================
  * POST /v2/readMail/sentAndInboxMailContent
  * ====================================================================================== */
-test.describe('POST /v2/readMail/sentAndInboxMailContent', () => {
+test.describe('POST /v2/readMail/sentAndInboxMailContent @audit', () => {
   const META = {
     method: 'POST',
     path: READ_MAIL_PATHS.sentAndInboxMailContent,
@@ -404,7 +404,7 @@ test.describe('POST /v2/readMail/sentAndInboxMailContent', () => {
 /* =========================================================================================
  * POST /v2/readMail/referenceMailContent
  * ====================================================================================== */
-test.describe('POST /v2/readMail/referenceMailContent', () => {
+test.describe('POST /v2/readMail/referenceMailContent @audit', () => {
   const META = {
     method: 'POST',
     path: READ_MAIL_PATHS.referenceMailContent,
@@ -531,7 +531,7 @@ test.describe('POST /v2/readMail/referenceMailContent', () => {
 /* =========================================================================================
  * POST /v2/readMail/getKmailDetailsUsingKmailID
  * ====================================================================================== */
-test.describe('POST /v2/readMail/getKmailDetailsUsingKmailID', () => {
+test.describe('POST /v2/readMail/getKmailDetailsUsingKmailID @audit', () => {
   const META = {
     method: 'POST',
     path: READ_MAIL_PATHS.getKmailDetailsUsingKmailID,
@@ -640,7 +640,7 @@ test.describe('POST /v2/readMail/getKmailDetailsUsingKmailID', () => {
 /* =========================================================================================
  * GET /v2/readMail/getCopiesInfo/{kmailID}
  * ====================================================================================== */
-test.describe('GET /v2/readMail/getCopiesInfo/{kmailID}', () => {
+test.describe('GET /v2/readMail/getCopiesInfo/{kmailID} @audit', () => {
   const META = {
     method: 'GET',
     path: PATH_TEMPLATES.getCopiesInfo,
@@ -769,7 +769,7 @@ test.describe('GET /v2/readMail/getCopiesInfo/{kmailID}', () => {
 /* =========================================================================================
  * Read-state semantics
  * ====================================================================================== */
-test.describe('Read-state side effects', () => {
+test.describe('Read-state side effects @audit', () => {
   test('[1] opening a mail must not be exploitable to mark another user\'s mail as read', async ({
     readMailClient,
     token,

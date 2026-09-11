@@ -39,7 +39,7 @@ const VICTIM_KPOST_ID = FOREIGN.victimKpostID;
 /* =========================================================================================
  * POST /v2/voice/translate
  * ====================================================================================== */
-test.describe('POST /v2/voice/translate', () => {
+test.describe('POST /v2/voice/translate @audit', () => {
   const META = {
     method: 'POST',
     path: INTEGRATION_PATHS.voiceTranslate,
@@ -255,7 +255,7 @@ test.describe('POST /v2/voice/translate', () => {
 /* =========================================================================================
  * POST /metaDee/aiMessage
  * ====================================================================================== */
-test.describe('POST /metaDee/aiMessage', () => {
+test.describe('POST /metaDee/aiMessage @audit', () => {
   const META = {
     method: 'POST',
     path: INTEGRATION_PATHS.metaDeeAiMessage,
@@ -458,7 +458,7 @@ test.describe('POST /metaDee/aiMessage', () => {
 /* =========================================================================================
  * GET /v2/firebase/notificationForKall
  * ====================================================================================== */
-test.describe('GET /v2/firebase/notificationForKall', () => {
+test.describe('GET /v2/firebase/notificationForKall @audit', () => {
   const META = {
     method: 'GET',
     path: INTEGRATION_PATHS.firebaseNotificationForKall,
@@ -618,7 +618,7 @@ test.describe('GET /v2/firebase/notificationForKall', () => {
 /* =========================================================================================
  * GET /v2/ecommerce/getEcommerceDetails
  * ====================================================================================== */
-test.describe('GET /v2/ecommerce/getEcommerceDetails', () => {
+test.describe('GET /v2/ecommerce/getEcommerceDetails @audit', () => {
   const META = {
     method: 'GET',
     path: INTEGRATION_PATHS.ecommerceGetDetails,
@@ -771,7 +771,7 @@ test.describe('GET /v2/ecommerce/getEcommerceDetails', () => {
 /* =========================================================================================
  * GET /v2/ecommerce/getAll
  * ====================================================================================== */
-test.describe('GET /v2/ecommerce/getAll', () => {
+test.describe('GET /v2/ecommerce/getAll @audit', () => {
   const META = {
     method: 'GET',
     path: INTEGRATION_PATHS.ecommerceGetAll,
@@ -941,7 +941,7 @@ test.describe('GET /v2/ecommerce/getAll', () => {
  * The one endpoint in this suite where an unauthenticated 200 is correct. Included so the
  * liveness contract is pinned and the suite records that it checked.
  * ====================================================================================== */
-test.describe('GET / (service root)', () => {
+test.describe('GET / (service root) @audit', () => {
   const META = {
     method: 'GET',
     path: INTEGRATION_PATHS.root,

@@ -55,7 +55,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/group/createUserGroup
  * ====================================================================================== */
-test.describe('POST /v2/group/createUserGroup', () => {
+test.describe('POST /v2/group/createUserGroup @audit', () => {
   const META = {
     method: 'POST',
     path: GROUPS_V2_PATHS.createUserGroup,
@@ -382,7 +382,7 @@ test.describe('POST /v2/group/createUserGroup', () => {
 /* =========================================================================================
  * POST /v2/group/editGroupName
  * ====================================================================================== */
-test.describe('POST /v2/group/editGroupName', () => {
+test.describe('POST /v2/group/editGroupName @audit', () => {
   const META = {
     method: 'POST',
     path: GROUPS_V2_PATHS.editGroupName,
@@ -635,7 +635,7 @@ test.describe('POST /v2/group/editGroupName', () => {
  * the only safe thing to exercise on a shared environment — and it is also where the
  * authorisation defect would be.
  * ====================================================================================== */
-test.describe('POST /v2/group/deleteGroup', () => {
+test.describe('POST /v2/group/deleteGroup @audit', () => {
   const META = {
     method: 'POST',
     path: GROUPS_V2_PATHS.deleteGroup,
@@ -897,7 +897,7 @@ test.describe('POST /v2/group/deleteGroup', () => {
 /* =========================================================================================
  * GET /v2/group/getGroupDetailsUsingGroupKpostID/{groupKpostID}
  * ====================================================================================== */
-test.describe('GET /v2/group/getGroupDetailsUsingGroupKpostID/{groupKpostID}', () => {
+test.describe('GET /v2/group/getGroupDetailsUsingGroupKpostID/{groupKpostID} @audit', () => {
   const META = {
     method: 'GET',
     path: GROUPS_V2_PATH_TEMPLATES.getGroupDetailsUsingGroupKpostID,

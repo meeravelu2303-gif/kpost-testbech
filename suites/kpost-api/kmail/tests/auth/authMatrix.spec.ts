@@ -32,7 +32,7 @@ import { nonExistentUuid } from '../../src/utils/safeTestData';
  *    are the only two, catching a route quietly joining them.
  */
 
-test.describe('Authentication matrix — every secured route, every invalid token', () => {
+test.describe('Authentication matrix — every secured route, every invalid token @audit', () => {
   for (const route of AUTHENTICATED_ROUTES) {
     for (const { label, token } of INVALID_TOKENS) {
       test(`[auth] ${route.method} ${route.path} refuses ${label}`, async ({ genericClient }) => {
@@ -49,7 +49,7 @@ test.describe('Authentication matrix — every secured route, every invalid toke
   }
 });
 
-test.describe('Documented anonymous routes', () => {
+test.describe('Documented anonymous routes @audit', () => {
   // These two are reachable without a token by design. The finding worth guarding against is that
   // the set has grown — caught by this file failing to compile against the route registry.
   test('[anon] the documented anonymous set is exactly two routes', () => {
@@ -78,7 +78,7 @@ test.describe('Documented anonymous routes', () => {
   }
 });
 
-test.describe('Auth filter behaviour', () => {
+test.describe('Auth filter behaviour @audit', () => {
   test('[filter] a rejection must not disclose why the token failed', async ({ genericClient }) => {
     // "Invalid signature" and "expired" are different answers to an attacker. A filter that
     // distinguishes them out loud is an oracle for token forgery.
@@ -158,7 +158,7 @@ test.describe('Auth filter behaviour', () => {
   });
 });
 
-test.describe('UUID-addressed attachment routes', () => {
+test.describe('UUID-addressed attachment routes @audit', () => {
   // These take no body and no owner key — the path UUID is the object's entire identity. If any
   // serves an anonymous caller, possession of a UUID is the only access control on the attachment
   // store, and UUIDs travel in every mail listing response.
@@ -229,7 +229,7 @@ test.describe('UUID-addressed attachment routes', () => {
   });
 });
 
-test.describe('Service root', () => {
+test.describe('Service root @audit', () => {
   // `GET /` is the Spring application root, not a KMail feature. Covered so every published
   // endpoint has an explicit test, and because a root route always reaches an unauthenticated
   // caller: it must answer plainly and not leak build, framework or environment detail.
@@ -251,7 +251,7 @@ test.describe('Service root', () => {
   });
 });
 
-test.describe('Verb enforcement', () => {
+test.describe('Verb enforcement @audit', () => {
   // Each route is declared with an explicit @PostMapping/@GetMapping. A route mapped with a bare
   // @RequestMapping answers every method, so a write could be triggered from a link or a prefetch
   // that only issues GETs.

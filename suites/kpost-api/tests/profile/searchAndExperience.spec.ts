@@ -78,7 +78,7 @@ const REJECTED = [400, 401, 403, 422];
 /* =========================================================================================
  * POST /v2/profile/advancedSearch
  * ====================================================================================== */
-test.describe('POST /v2/profile/advancedSearch', () => {
+test.describe('POST /v2/profile/advancedSearch @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.advancedSearch,
@@ -290,7 +290,7 @@ test.describe('POST /v2/profile/advancedSearch', () => {
 /* =========================================================================================
  * POST /v2/profile/autoSearchWithName
  * ====================================================================================== */
-test.describe('POST /v2/profile/autoSearchWithName', () => {
+test.describe('POST /v2/profile/autoSearchWithName @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.autoSearchWithName,
@@ -496,7 +496,7 @@ test.describe('POST /v2/profile/autoSearchWithName', () => {
 /* =========================================================================================
  * POST /v2/profile/saveOrUpdateExperienceDetails
  * ====================================================================================== */
-test.describe('POST /v2/profile/saveOrUpdateExperienceDetails', () => {
+test.describe('POST /v2/profile/saveOrUpdateExperienceDetails @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.saveOrUpdateExperienceDetails,
@@ -754,7 +754,7 @@ test.describe('POST /v2/profile/saveOrUpdateExperienceDetails', () => {
 /* =========================================================================================
  * POST /v2/profile/deleteExperienceDetail  — NON-EXISTENT IDS ONLY
  * ====================================================================================== */
-test.describe('POST /v2/profile/deleteExperienceDetail', () => {
+test.describe('POST /v2/profile/deleteExperienceDetail @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.deleteExperienceDetail,

@@ -49,7 +49,7 @@ const VICTIM_KPOST_ID = FOREIGN.victimKpostID;
 /* =========================================================================================
  * POST /v2/group/updateGroupProfileImage  (multipart)
  * ====================================================================================== */
-test.describe('POST /v2/group/updateGroupProfileImage', () => {
+test.describe('POST /v2/group/updateGroupProfileImage @audit', () => {
   const META = {
     method: 'POST',
     path: GROUPS_V2_PATHS.updateGroupProfileImage,
@@ -361,7 +361,7 @@ test.describe('POST /v2/group/updateGroupProfileImage', () => {
 /* =========================================================================================
  * POST /v2/group/removeGroupProfileImage
  * ====================================================================================== */
-test.describe('POST /v2/group/removeGroupProfileImage', () => {
+test.describe('POST /v2/group/removeGroupProfileImage @audit', () => {
   const META = {
     method: 'POST',
     path: GROUPS_V2_PATHS.removeGroupProfileImage,
@@ -639,7 +639,7 @@ test.describe('POST /v2/group/removeGroupProfileImage', () => {
 /* =========================================================================================
  * GET /v2/group/downloadGroupProfileImage/{groupKpostID}/{kpostID}   — public by design
  * ====================================================================================== */
-test.describe('GET /v2/group/downloadGroupProfileImage/{groupKpostID}/{kpostID}', () => {
+test.describe('GET /v2/group/downloadGroupProfileImage/{groupKpostID}/{kpostID} @audit', () => {
   const META = {
     method: 'GET',
     path: GROUPS_V2_PATH_TEMPLATES.downloadGroupProfileImage,
@@ -942,7 +942,7 @@ test.describe('GET /v2/group/downloadGroupProfileImage/{groupKpostID}/{kpostID}'
 /* =========================================================================================
  * GET /v2/group/downloadGroupFullProfileImage/{groupKpostID}/{kpostID}   — public by design
  * ====================================================================================== */
-test.describe('GET /v2/group/downloadGroupFullProfileImage/{groupKpostID}/{kpostID}', () => {
+test.describe('GET /v2/group/downloadGroupFullProfileImage/{groupKpostID}/{kpostID} @audit', () => {
   const META = {
     method: 'GET',
     path: GROUPS_V2_PATH_TEMPLATES.downloadGroupFullProfileImage,

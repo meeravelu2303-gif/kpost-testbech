@@ -11,7 +11,7 @@ import type { Role } from '../../src/engine';
  *
  * It does not replace the module specs: those carry the business rules a contract cannot express.
  */
-test.describe('API engine — centralized validation', () => {
+test.describe('API engine — centralized validation @audit', () => {
   test('[registry] engine coverage of the Excel contract', async () => {
     const coverage = registryCoverage();
     // eslint-disable-next-line no-console

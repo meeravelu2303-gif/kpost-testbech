@@ -74,7 +74,7 @@ const UUID_ROUTES = [
 /* =========================================================================================
  * POST /v2/readMail/downloadAttachment
  * ====================================================================================== */
-test.describe('POST /v2/readMail/downloadAttachment', () => {
+test.describe('POST /v2/readMail/downloadAttachment @audit', () => {
   const META = {
     method: 'POST',
     path: READ_MAIL_PATHS.downloadAttachment,
@@ -249,7 +249,7 @@ test.describe('POST /v2/readMail/downloadAttachment', () => {
 /* =========================================================================================
  * POST /v2/readMail/downloadODAttachment
  * ====================================================================================== */
-test.describe('POST /v2/readMail/downloadODAttachment', () => {
+test.describe('POST /v2/readMail/downloadODAttachment @audit', () => {
   const META = {
     method: 'POST',
     path: READ_MAIL_PATHS.downloadODAttachment,
@@ -359,7 +359,7 @@ test.describe('POST /v2/readMail/downloadODAttachment', () => {
 /* =========================================================================================
  * The UUID-addressed download routes
  * ====================================================================================== */
-test.describe('UUID-addressed downloads', () => {
+test.describe('UUID-addressed downloads @audit', () => {
   for (const route of UUID_ROUTES) {
     const META = {
       method: 'GET',
@@ -476,7 +476,7 @@ test.describe('UUID-addressed downloads', () => {
 /* =========================================================================================
  * Upload limits and content handling
  * ====================================================================================== */
-test.describe('Attachment upload limits', () => {
+test.describe('Attachment upload limits @audit', () => {
   const META = {
     method: 'POST',
     path: '/v2/sentMail/postMailMultiPart/',
@@ -660,7 +660,7 @@ test.describe('Attachment upload limits', () => {
 /* =========================================================================================
  * GET /v2/kmailData/getKloudUsedData
  * ====================================================================================== */
-test.describe('GET /v2/kmailData/getKloudUsedData', () => {
+test.describe('GET /v2/kmailData/getKloudUsedData @audit', () => {
   const META = {
     method: 'GET',
     path: '/v2/kmailData/getKloudUsedData',

@@ -80,10 +80,30 @@ export function buildPrivacySettingDetailsPayload(overrides: Record<string, unkn
  * this DTO). `kpostID` defaults to a synthetic, non-existent id so a successful change can never
  * overwrite the shared QA account.
  */
+/**
+ * The QA accounts' real password, as registered by `buildSignupPayload`.
+ *
+ * Exported so a test that genuinely needs a credential rotation can opt in — and so that
+ * opting in is visible at the call site. Pass it ONLY with a disposable identity.
+ */
+export const QA_CURRENT_PASSWORD = 'Qa@Passw0rd123';
+
+/**
+ * `oldPassword` is the REAL current-password field on this DTO (not `currentPassword`), and
+ * `confirmPassword` IS the new password. So a payload carrying the real `oldPassword` and a
+ * valid token performs a live credential change — whatever the test believed it was asserting.
+ *
+ * It therefore defaults to a value that cannot match. On 2026-09-11 the previous default (the
+ * real password) let four tests aimed at the SHARED session rotate the bench's own credential:
+ * `.env` stopped authenticating, and the KMail suite that ran next failed 479 of 496 cases for
+ * want of a token. Tests 5 and 13 had already been moved to throwaway identities after an
+ * earlier incident; patching call sites did not hold, so the default is now safe and the
+ * dangerous value is opt-in.
+ */
 export function buildChangePasswordPayload(overrides: Record<string, unknown> = {}) {
   return {
     kpostID: 'qa-nonexistent@kpostindia.com',
-    oldPassword: 'Qa@Passw0rd123',
+    oldPassword: 'not-the-current-password',
     confirmPassword: 'Qa@NewPassw0rd456',
     ...overrides,
   };
@@ -105,7 +125,10 @@ export function buildDeactivateAccountPayload(overrides: Record<string, unknown>
   };
 }
 
-export function buildKpostIdLookupPayload(kpostID: string, overrides: Record<string, unknown> = {}) {
+export function buildKpostIdLookupPayload(
+  kpostID: string,
+  overrides: Record<string, unknown> = {},
+) {
   return {
     kpostID,
     ...overrides,
@@ -161,7 +184,10 @@ export function buildExperienceDetailPayload(overrides: Record<string, unknown> 
 }
 
 // Excel spec: `{ contactID, userType }` (userType e.g. 'KnownContacts').
-export function buildDigitalCardPayload(contactID: string, overrides: Record<string, unknown> = {}) {
+export function buildDigitalCardPayload(
+  contactID: string,
+  overrides: Record<string, unknown> = {},
+) {
   return {
     contactID,
     userType: 'KnownContacts',
@@ -180,7 +206,7 @@ export function pngFileBuffer(): Buffer {
   // Minimal valid 1x1 transparent PNG.
   return Buffer.from(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
-    'base64'
+    'base64',
   );
 }
 
@@ -223,15 +249,15 @@ export function base64Png(): string {
  */
 export function buildSchoolDetailsPayload(overrides: Record<string, unknown> = {}) {
   const record = {
-        schoolID: '',
-        schoolName: qaLabel('school'),
-        standard: '11th to 12th',
-        course: 'Computer Science & Mathematics',
-        yearFrom: '2017',
-        yearTo: '2019',
-        logoPath: '',
-        about: 'QA automation placeholder',
-        attachmentPath: [],
+    schoolID: '',
+    schoolName: qaLabel('school'),
+    standard: '11th to 12th',
+    course: 'Computer Science & Mathematics',
+    yearFrom: '2017',
+    yearTo: '2019',
+    logoPath: '',
+    about: 'QA automation placeholder',
+    attachmentPath: [],
   };
   // Overriding the collection itself replaces the array (the structural fuzz cases); any other
   // override applies to the RECORD, because that is what a caller naming a field means.
@@ -243,16 +269,16 @@ export function buildSchoolDetailsPayload(overrides: Record<string, unknown> = {
 /** College history — `saveOrUpdateCollegeDetails`, Excel row 107. Nested shape; see school. */
 export function buildCollegeDetailsPayload(overrides: Record<string, unknown> = {}) {
   const record = {
-        collegeID: '',
-        collegeName: qaLabel('college'),
-        degree: 'B.E.',
-        course: 'Computer Application',
-        field: 'Computer Application',
-        yearFrom: '2019',
-        yearTo: '2022',
-        logoPath: '',
-        about: 'QA automation placeholder',
-        attachmentPath: [],
+    collegeID: '',
+    collegeName: qaLabel('college'),
+    degree: 'B.E.',
+    course: 'Computer Application',
+    field: 'Computer Application',
+    yearFrom: '2019',
+    yearTo: '2022',
+    logoPath: '',
+    about: 'QA automation placeholder',
+    attachmentPath: [],
   };
   // Overriding the collection itself replaces the array (the structural fuzz cases); any other
   // override applies to the RECORD, because that is what a caller naming a field means.
@@ -264,16 +290,16 @@ export function buildCollegeDetailsPayload(overrides: Record<string, unknown> = 
 /** University history — `saveOrUpdateUniversityDetails`, Excel row 109. Nested shape. */
 export function buildUniversityDetailsPayload(overrides: Record<string, unknown> = {}) {
   const record = {
-        universityID: '',
-        universityName: qaLabel('university'),
-        degree: 'M.Tech',
-        course: 'Computer Application',
-        field: 'Computer Application',
-        yearFrom: 2019,
-        yearTo: 2022,
-        logoPath: '',
-        about: 'QA automation placeholder',
-        attachmentPath: [],
+    universityID: '',
+    universityName: qaLabel('university'),
+    degree: 'M.Tech',
+    course: 'Computer Application',
+    field: 'Computer Application',
+    yearFrom: 2019,
+    yearTo: 2022,
+    logoPath: '',
+    about: 'QA automation placeholder',
+    attachmentPath: [],
   };
   // Overriding the collection itself replaces the array (the structural fuzz cases); any other
   // override applies to the RECORD, because that is what a caller naming a field means.
@@ -310,7 +336,7 @@ export function buildOtherActivityPayload(overrides: Record<string, unknown> = {
  */
 export function buildDeleteProfileRecordPayload(
   idField: string,
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ) {
   return {
     [idField]: faker.string.uuid(),

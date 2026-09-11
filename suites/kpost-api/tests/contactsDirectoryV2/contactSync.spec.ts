@@ -56,7 +56,7 @@ const FUTURE_CURSOR = '2999-12-31T23:59:59.000Z';
 /* =========================================================================================
  * POST /v2/contacts/myContacts
  * ====================================================================================== */
-test.describe('POST /v2/contacts/myContacts', () => {
+test.describe('POST /v2/contacts/myContacts @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.myContacts,
@@ -335,7 +335,7 @@ test.describe('POST /v2/contacts/myContacts', () => {
 /* =========================================================================================
  * POST /v2/contacts/myGroups
  * ====================================================================================== */
-test.describe('POST /v2/contacts/myGroups', () => {
+test.describe('POST /v2/contacts/myGroups @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.myGroups,
@@ -581,7 +581,7 @@ test.describe('POST /v2/contacts/myGroups', () => {
 /* =========================================================================================
  * POST /v2/contacts/myUnknownKatchupContacts
  * ====================================================================================== */
-test.describe('POST /v2/contacts/myUnknownKatchupContacts', () => {
+test.describe('POST /v2/contacts/myUnknownKatchupContacts @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.myUnknownKatchupContacts,
@@ -865,7 +865,7 @@ test.describe('POST /v2/contacts/myUnknownKatchupContacts', () => {
 /* =========================================================================================
  * POST /v2/contacts/myUnknownGroups
  * ====================================================================================== */
-test.describe('POST /v2/contacts/myUnknownGroups', () => {
+test.describe('POST /v2/contacts/myUnknownGroups @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.myUnknownGroups,

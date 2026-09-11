@@ -51,7 +51,7 @@ const VICTIM_KPOST_ID = FOREIGN.victimKpostID;
 /* =========================================================================================
  * POST /v2/katchup/searchKatchUpMessage
  * ====================================================================================== */
-test.describe('POST /v2/katchup/searchKatchUpMessage', () => {
+test.describe('POST /v2/katchup/searchKatchUpMessage @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.searchKatchUpMessage,
@@ -271,7 +271,7 @@ test.describe('POST /v2/katchup/searchKatchUpMessage', () => {
 /* =========================================================================================
  * POST /v2/katchup/searchKatchUpMessageSubject
  * ====================================================================================== */
-test.describe('POST /v2/katchup/searchKatchUpMessageSubject', () => {
+test.describe('POST /v2/katchup/searchKatchUpMessageSubject @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.searchKatchUpMessageSubject,
@@ -480,7 +480,7 @@ test.describe('POST /v2/katchup/searchKatchUpMessageSubject', () => {
 /* =========================================================================================
  * POST /v2/katchup/katchupSearch
  * ====================================================================================== */
-test.describe('POST /v2/katchup/katchupSearch', () => {
+test.describe('POST /v2/katchup/katchupSearch @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.katchupSearch,
@@ -715,7 +715,7 @@ test.describe('POST /v2/katchup/katchupSearch', () => {
 /* =========================================================================================
  * POST /v2/katchup/filterKatchUpMessage
  * ====================================================================================== */
-test.describe('POST /v2/katchup/filterKatchUpMessage', () => {
+test.describe('POST /v2/katchup/filterKatchUpMessage @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.filterKatchUpMessage,
@@ -916,7 +916,7 @@ test.describe('POST /v2/katchup/filterKatchUpMessage', () => {
 /* =========================================================================================
  * POST /v2/katchup/katchupMessagesForSelectedContactID
  * ====================================================================================== */
-test.describe('POST /v2/katchup/katchupMessagesForSelectedContactID', () => {
+test.describe('POST /v2/katchup/katchupMessagesForSelectedContactID @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.katchupMessagesForSelectedContactID,
@@ -1137,7 +1137,7 @@ test.describe('POST /v2/katchup/katchupMessagesForSelectedContactID', () => {
 /* =========================================================================================
  * GET /v2/katchup/getKatchupMessagesSubject/{selectedContact}
  * ====================================================================================== */
-test.describe('GET /v2/katchup/getKatchupMessagesSubject/{selectedContact}', () => {
+test.describe('GET /v2/katchup/getKatchupMessagesSubject/{selectedContact} @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATH_TEMPLATES.getKatchupMessagesSubject,
@@ -1358,7 +1358,7 @@ test.describe('GET /v2/katchup/getKatchupMessagesSubject/{selectedContact}', () 
 /* =========================================================================================
  * POST /v2/katchup/messageCountBetweenSenderAndReceiver
  * ====================================================================================== */
-test.describe('POST /v2/katchup/messageCountBetweenSenderAndReceiver', () => {
+test.describe('POST /v2/katchup/messageCountBetweenSenderAndReceiver @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.messageCountBetweenSenderAndReceiver,
@@ -1553,7 +1553,7 @@ test.describe('POST /v2/katchup/messageCountBetweenSenderAndReceiver', () => {
 /* =========================================================================================
  * GET /v2/katchup/frequentlyAccessContacts
  * ====================================================================================== */
-test.describe('GET /v2/katchup/frequentlyAccessContacts', () => {
+test.describe('GET /v2/katchup/frequentlyAccessContacts @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATHS.frequentlyAccessContacts,

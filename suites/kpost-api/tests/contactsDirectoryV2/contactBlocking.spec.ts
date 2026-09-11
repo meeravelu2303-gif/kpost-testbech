@@ -57,7 +57,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/contacts/blockOrUnBlockContact
  * ====================================================================================== */
-test.describe('POST /v2/contacts/blockOrUnBlockContact', () => {
+test.describe('POST /v2/contacts/blockOrUnBlockContact @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.blockOrUnBlockContact,
@@ -379,7 +379,7 @@ test.describe('POST /v2/contacts/blockOrUnBlockContact', () => {
 /* =========================================================================================
  * POST /v2/contacts/blockOrUnBlockMultipleContact
  * ====================================================================================== */
-test.describe('POST /v2/contacts/blockOrUnBlockMultipleContact', () => {
+test.describe('POST /v2/contacts/blockOrUnBlockMultipleContact @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.blockOrUnBlockMultipleContact,
@@ -703,7 +703,7 @@ test.describe('POST /v2/contacts/blockOrUnBlockMultipleContact', () => {
 /* =========================================================================================
  * GET /v2/contacts/getblockContactDetails
  * ====================================================================================== */
-test.describe('GET /v2/contacts/getblockContactDetails', () => {
+test.describe('GET /v2/contacts/getblockContactDetails @audit', () => {
   const META = {
     method: 'GET',
     path: CONTACTS_V2_PATHS.getblockContactDetails,

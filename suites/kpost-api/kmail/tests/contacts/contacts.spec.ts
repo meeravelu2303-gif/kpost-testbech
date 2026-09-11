@@ -77,7 +77,7 @@ async function createContact(
 /* =========================================================================================
  * POST /v2/common/addOtherDomainContacts
  * ====================================================================================== */
-test.describe('POST /v2/common/addOtherDomainContacts', () => {
+test.describe('POST /v2/common/addOtherDomainContacts @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.addOtherDomainContacts,
@@ -296,7 +296,7 @@ test.describe('POST /v2/common/addOtherDomainContacts', () => {
 /* =========================================================================================
  * POST /v2/common/editOtherDomainContactsDetails
  * ====================================================================================== */
-test.describe('POST /v2/common/editOtherDomainContactsDetails', () => {
+test.describe('POST /v2/common/editOtherDomainContactsDetails @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.editOtherDomainContactsDetails,
@@ -403,7 +403,7 @@ test.describe('POST /v2/common/editOtherDomainContactsDetails', () => {
 /* =========================================================================================
  * POST /v2/common/deleteOtherDomainContact
  * ====================================================================================== */
-test.describe('POST /v2/common/deleteOtherDomainContact', () => {
+test.describe('POST /v2/common/deleteOtherDomainContact @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.deleteOtherDomainContact,
@@ -489,7 +489,7 @@ test.describe('POST /v2/common/deleteOtherDomainContact', () => {
 /* =========================================================================================
  * POST /v2/common/knownPostBoxContacts  — contact sync
  * ====================================================================================== */
-test.describe('POST /v2/common/knownPostBoxContacts', () => {
+test.describe('POST /v2/common/knownPostBoxContacts @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.knownPostBoxContacts,
@@ -633,7 +633,7 @@ test.describe('POST /v2/common/knownPostBoxContacts', () => {
 /* =========================================================================================
  * Contact listings
  * ====================================================================================== */
-test.describe('Contact listings', () => {
+test.describe('Contact listings @audit', () => {
   test('[miscellaneousContacts] happy path satisfies the contract', async ({
     mailboxClient,
     token,
@@ -734,7 +734,7 @@ test.describe('Contact listings', () => {
 /* =========================================================================================
  * Reference data and infrastructure
  * ====================================================================================== */
-test.describe('Reference data', () => {
+test.describe('Reference data @audit', () => {
   test('[getSaluations] happy path satisfies the contract', async ({ mailboxClient, token }) => {
     const META = {
       method: 'GET',
@@ -827,7 +827,7 @@ test.describe('Reference data', () => {
 /* =========================================================================================
  * POST /v2/common/saveUnsubscriberDetails  — documented as unauthenticated
  * ====================================================================================== */
-test.describe('POST /v2/common/saveUnsubscriberDetails', () => {
+test.describe('POST /v2/common/saveUnsubscriberDetails @audit', () => {
   const META = {
     method: 'POST',
     path: MAILBOX_PATHS.saveUnsubscriberDetails,

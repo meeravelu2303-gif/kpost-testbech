@@ -26,7 +26,7 @@ import { dataEnvelopeSchema } from '../../src/api/schemas/envelope.schema';
  * Money-adjacent: everything here is about refusing to create orders the caller
  * should not be able to create, and never inventing an amount.
  * ===================================================================================== */
-test.describe('RazorPay - POST /razorPay/generateOrderId', () => {
+test.describe('RazorPay - POST /razorPay/generateOrderId @audit', () => {
   const META = {
     method: 'POST',
     path: RAZORPAY_PATHS.generateOrderId,
@@ -286,7 +286,7 @@ test.describe('RazorPay - POST /razorPay/generateOrderId', () => {
  * and records the payment. The signature check is the only thing standing between a
  * forged payment claim and a credited account, so most cases here attack it.
  * ===================================================================================== */
-test.describe('RazorPay - POST /razorPay/validateAndUpdateTransactionDetails', () => {
+test.describe('RazorPay - POST /razorPay/validateAndUpdateTransactionDetails @audit', () => {
   const META = {
     method: 'POST',
     path: RAZORPAY_PATHS.validateAndUpdateTransactionDetails,

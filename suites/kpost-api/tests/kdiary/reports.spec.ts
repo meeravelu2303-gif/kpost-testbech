@@ -45,7 +45,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /dairySchedule/saveReport
  * ====================================================================================== */
-test.describe('POST /dairySchedule/saveReport', () => {
+test.describe('POST /dairySchedule/saveReport @audit', () => {
   const META = {
     method: 'POST',
     path: KDIARY_PATHS.saveReport,
@@ -351,7 +351,7 @@ test.describe('POST /dairySchedule/saveReport', () => {
 /* =========================================================================================
  * POST /dairySchedule/editReport
  * ====================================================================================== */
-test.describe('POST /dairySchedule/editReport', () => {
+test.describe('POST /dairySchedule/editReport @audit', () => {
   const META = {
     method: 'POST',
     path: KDIARY_PATHS.editReport,
@@ -618,7 +618,7 @@ test.describe('POST /dairySchedule/editReport', () => {
 /* =========================================================================================
  * POST /dairySchedule/deleteReport
  * ====================================================================================== */
-test.describe('POST /dairySchedule/deleteReport', () => {
+test.describe('POST /dairySchedule/deleteReport @audit', () => {
   const META = {
     method: 'POST',
     path: KDIARY_PATHS.deleteReport,
@@ -879,7 +879,7 @@ test.describe('POST /dairySchedule/deleteReport', () => {
 /* =========================================================================================
  * GET /dairySchedule/getTodayReport
  * ====================================================================================== */
-test.describe('GET /dairySchedule/getTodayReport', () => {
+test.describe('GET /dairySchedule/getTodayReport @audit', () => {
   const META = {
     method: 'GET',
     path: KDIARY_PATHS.getTodayReport,

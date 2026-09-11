@@ -49,7 +49,7 @@ const UNASSIGNED_PIN = '999999';
 const REFUSED = [400, 401, 403, 422];
 const REJECTED = [400, 401, 403, 422];
 
-test.describe('Common - response envelope contract', () => {
+test.describe('Common - response envelope contract @audit', () => {
   test('status field uses the casing documented in swagger.json', async ({ commonClient }) => {
     const response = await commonClient.countries();
     const { json } = await readBody(response);
@@ -67,7 +67,7 @@ test.describe('Common - response envelope contract', () => {
  * Documented business rule: mobile length is country-specific (10 for India, 7-8 Malaysia).
  * ===================================================================================== */
 
-test.describe('Common - GET /v2/common/countries', () => {
+test.describe('Common - GET /v2/common/countries @audit', () => {
   const META = {
     method: 'GET',
     path: COMMON_PATHS.countries,
@@ -159,7 +159,7 @@ test.describe('Common - GET /v2/common/countries', () => {
   });
 });
 
-test.describe('Common - POST /v2/common/country', () => {
+test.describe('Common - POST /v2/common/country @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.country,
@@ -296,7 +296,7 @@ test.describe('Common - POST /v2/common/country', () => {
 
 });
 
-test.describe('Common - GET /v2/common/getStates', () => {
+test.describe('Common - GET /v2/common/getStates @audit', () => {
   const META = {
     method: 'GET',
     path: COMMON_PATHS.getStates,
@@ -400,7 +400,7 @@ test.describe('Common - GET /v2/common/getStates', () => {
   });
 });
 
-test.describe('Common - GET /v2/common/getProfession', () => {
+test.describe('Common - GET /v2/common/getProfession @audit', () => {
   const META = {
     method: 'GET',
     path: COMMON_PATHS.getProfession,
@@ -508,7 +508,7 @@ test.describe('Common - GET /v2/common/getProfession', () => {
  * nested `profession` object causes a NullPointerException — asserted directly below.
  * ===================================================================================== */
 
-test.describe('Common - POST /v2/common/getDesignation', () => {
+test.describe('Common - POST /v2/common/getDesignation @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.getDesignation,
@@ -689,7 +689,7 @@ test.describe('Common - POST /v2/common/getDesignation', () => {
 
 });
 
-test.describe('Common - POST /v2/common/getDesignationByProfessionId', () => {
+test.describe('Common - POST /v2/common/getDesignationByProfessionId @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.getDesignationByProfessionId,
@@ -856,7 +856,7 @@ test.describe('Common - POST /v2/common/getDesignationByProfessionId', () => {
  * Password recovery. These endpoints can dispatch SMS, so they are pinned to TEST_MOBILE.
  * ===================================================================================== */
 
-test.describe('POST /v2/common/getCitiesByRegionId', () => {
+test.describe('POST /v2/common/getCitiesByRegionId @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.getCitiesByRegionId,
@@ -974,7 +974,7 @@ test.describe('POST /v2/common/getCitiesByRegionId', () => {
  * POST /v2/common/languages  (and the duplicate mount at /common/languages)
  * ====================================================================================== */
 
-test.describe('POST /v2/common/languages', () => {
+test.describe('POST /v2/common/languages @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.languages,
@@ -1099,7 +1099,7 @@ test.describe('POST /v2/common/languages', () => {
  * POST /v2/common/getTotalCountByDate
  * ====================================================================================== */
 
-test.describe('POST /v2/common/pinCode', () => {
+test.describe('POST /v2/common/pinCode @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.pinCode,
@@ -1290,7 +1290,7 @@ test.describe('POST /v2/common/pinCode', () => {
  * POST /v2/common/postalPinCode
  * ====================================================================================== */
 
-test.describe('POST /v2/common/postalPinCode', () => {
+test.describe('POST /v2/common/postalPinCode @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.postalPinCode,

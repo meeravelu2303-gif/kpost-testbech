@@ -71,7 +71,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/katchup/sendMessage
  * ====================================================================================== */
-test.describe('POST /v2/katchup/sendMessage', () => {
+test.describe('POST /v2/katchup/sendMessage @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.sendMessage,
@@ -366,7 +366,7 @@ test.describe('POST /v2/katchup/sendMessage', () => {
 /* =========================================================================================
  * POST /v2/katchup/sendMessageForForwardSelectedAttachment
  * ====================================================================================== */
-test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => {
+test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.sendMessageForForwardSelectedAttachment,
@@ -598,7 +598,7 @@ test.describe('POST /v2/katchup/sendMessageForForwardSelectedAttachment', () => 
 /* =========================================================================================
  * POST /v2/katchup/sendBulkKatchupMsg
  * ====================================================================================== */
-test.describe('POST /v2/katchup/sendBulkKatchupMsg', () => {
+test.describe('POST /v2/katchup/sendBulkKatchupMsg @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.sendBulkKatchupMsg,
@@ -808,7 +808,7 @@ test.describe('POST /v2/katchup/sendBulkKatchupMsg', () => {
 /* =========================================================================================
  * POST /v2/katchup/saveKatchupMessages
  * ====================================================================================== */
-test.describe('POST /v2/katchup/saveKatchupMessages', () => {
+test.describe('POST /v2/katchup/saveKatchupMessages @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.saveKatchupMessages,
@@ -1022,7 +1022,7 @@ test.describe('POST /v2/katchup/saveKatchupMessages', () => {
 /* =========================================================================================
  * POST /v2/katchup/patchWorkForGroup
  * ====================================================================================== */
-test.describe('POST /v2/katchup/patchWorkForGroup', () => {
+test.describe('POST /v2/katchup/patchWorkForGroup @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.patchWorkForGroup,
@@ -1180,7 +1180,7 @@ test.describe('POST /v2/katchup/patchWorkForGroup', () => {
 /* =========================================================================================
  * POST /v2/katchup/changeCaption
  * ====================================================================================== */
-test.describe('POST /v2/katchup/changeCaption', () => {
+test.describe('POST /v2/katchup/changeCaption @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.changeCaption,

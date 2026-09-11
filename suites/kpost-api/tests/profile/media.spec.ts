@@ -48,7 +48,7 @@ const VICTIM_KPOST_ID = FOREIGN.victimKpostID;
 /* =========================================================================================
  * POST /v2/profile/uploadImageToS3
  * ====================================================================================== */
-test.describe('POST /v2/profile/uploadImageToS3', () => {
+test.describe('POST /v2/profile/uploadImageToS3 @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.uploadImageToS3,
@@ -265,7 +265,7 @@ test.describe('POST /v2/profile/uploadImageToS3', () => {
 /* =========================================================================================
  * POST /v2/profile/uploadProfileAttachments
  * ====================================================================================== */
-test.describe('POST /v2/profile/uploadProfileAttachments', () => {
+test.describe('POST /v2/profile/uploadProfileAttachments @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.uploadProfileAttachments,
@@ -483,7 +483,7 @@ test.describe('POST /v2/profile/uploadProfileAttachments', () => {
 /* =========================================================================================
  * POST /v2/profile/uploadCoverImage
  * ====================================================================================== */
-test.describe('POST /v2/profile/uploadCoverImage', () => {
+test.describe('POST /v2/profile/uploadCoverImage @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.uploadCoverImage,
@@ -654,7 +654,7 @@ test.describe('POST /v2/profile/uploadCoverImage', () => {
 /* =========================================================================================
  * GET /v2/profile/removeCoverImage
  * ====================================================================================== */
-test.describe('GET /v2/profile/removeCoverImage', () => {
+test.describe('GET /v2/profile/removeCoverImage @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.removeCoverImage,
@@ -792,7 +792,7 @@ test.describe('GET /v2/profile/removeCoverImage', () => {
 /* =========================================================================================
  * POST /v2/profile/updateSignatureImage
  * ====================================================================================== */
-test.describe('POST /v2/profile/updateSignatureImage', () => {
+test.describe('POST /v2/profile/updateSignatureImage @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.updateSignatureImage,
@@ -982,7 +982,7 @@ test.describe('POST /v2/profile/updateSignatureImage', () => {
 /* =========================================================================================
  * GET /v2/profile/getSignatureImage
  * ====================================================================================== */
-test.describe('GET /v2/profile/getSignatureImage', () => {
+test.describe('GET /v2/profile/getSignatureImage @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.getSignatureImage,
@@ -1135,7 +1135,7 @@ test.describe('GET /v2/profile/getSignatureImage', () => {
 /* =========================================================================================
  * POST /v2/profile/convertBase64ToImage
  * ====================================================================================== */
-test.describe('POST /v2/profile/convertBase64ToImage', () => {
+test.describe('POST /v2/profile/convertBase64ToImage @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.convertBase64ToImage,
@@ -1358,7 +1358,7 @@ test.describe('POST /v2/profile/convertBase64ToImage', () => {
 /* =========================================================================================
  * GET /v2/profile/getStorageDetails
  * ====================================================================================== */
-test.describe('GET /v2/profile/getStorageDetails', () => {
+test.describe('GET /v2/profile/getStorageDetails @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.getStorageDetails,

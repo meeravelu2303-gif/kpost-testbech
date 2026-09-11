@@ -60,7 +60,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * GET /redbus/updatecitylist
  * ====================================================================================== */
-test.describe('GET /redbus/updatecitylist', () => {
+test.describe('GET /redbus/updatecitylist @audit', () => {
   const META = {
     method: 'GET',
     path: REDBUS_PATHS.updatecitylist,
@@ -221,7 +221,7 @@ test.describe('GET /redbus/updatecitylist', () => {
 /* =========================================================================================
  * GET /redbus/citysuggestion/{cityname}
  * ====================================================================================== */
-test.describe('GET /redbus/citysuggestion/{cityname}', () => {
+test.describe('GET /redbus/citysuggestion/{cityname} @audit', () => {
   const META = {
     method: 'GET',
     path: REDBUS_PATH_TEMPLATES.citysuggestion,
@@ -480,7 +480,7 @@ test.describe('GET /redbus/citysuggestion/{cityname}', () => {
 /* =========================================================================================
  * POST /redbus/destinations/
  * ====================================================================================== */
-test.describe('POST /redbus/destinations/', () => {
+test.describe('POST /redbus/destinations/ @audit', () => {
   const META = {
     method: 'POST',
     path: REDBUS_PATHS.destinations,
@@ -702,7 +702,7 @@ test.describe('POST /redbus/destinations/', () => {
 /* =========================================================================================
  * POST /redbus/availabletrips/
  * ====================================================================================== */
-test.describe('POST /redbus/availabletrips/', () => {
+test.describe('POST /redbus/availabletrips/ @audit', () => {
   const META = {
     method: 'POST',
     path: REDBUS_PATHS.availabletrips,
@@ -952,7 +952,7 @@ test.describe('POST /redbus/availabletrips/', () => {
 /* =========================================================================================
  * POST /redbus/tripdetails/
  * ====================================================================================== */
-test.describe('POST /redbus/tripdetails/', () => {
+test.describe('POST /redbus/tripdetails/ @audit', () => {
   const META = {
     method: 'POST',
     path: REDBUS_PATHS.tripdetails,
@@ -1152,7 +1152,7 @@ test.describe('POST /redbus/tripdetails/', () => {
 /* =========================================================================================
  * POST /redbus/tripdetailsV2/
  * ====================================================================================== */
-test.describe('POST /redbus/tripdetailsV2/', () => {
+test.describe('POST /redbus/tripdetailsV2/ @audit', () => {
   const META = {
     method: 'POST',
     path: REDBUS_PATHS.tripdetailsV2,
@@ -1367,7 +1367,7 @@ test.describe('POST /redbus/tripdetailsV2/', () => {
 /* =========================================================================================
  * POST /redbus/seatLayout/
  * ====================================================================================== */
-test.describe('POST /redbus/seatLayout/', () => {
+test.describe('POST /redbus/seatLayout/ @audit', () => {
   const META = {
     method: 'POST',
     path: REDBUS_PATHS.seatLayout,
@@ -1569,7 +1569,7 @@ test.describe('POST /redbus/seatLayout/', () => {
  * Verb-binding for this route is covered in tickets.spec.ts, alongside the other two bare
  * @RequestMapping routes.
  * ====================================================================================== */
-test.describe('POST /redbus/boardingPoint/', () => {
+test.describe('POST /redbus/boardingPoint/ @audit', () => {
   const META = {
     method: 'POST',
     path: REDBUS_PATHS.boardingPoint,

@@ -68,7 +68,7 @@ const MAX_LENGTH_STRING = 'a'.repeat(5000);
 /* =========================================================================================
  * POST /taWallet/createHash
  * ====================================================================================== */
-test.describe('POST /taWallet/createHash', () => {
+test.describe('POST /taWallet/createHash @audit', () => {
   const META = {
     method: 'POST',
     path: INTEGRATION_PATHS.taWalletCreateHash,
@@ -308,7 +308,7 @@ test.describe('POST /taWallet/createHash', () => {
 /* =========================================================================================
  * POST /taWallet/paymentRequest  (form-encoded gateway callback)
  * ====================================================================================== */
-test.describe('POST /taWallet/paymentRequest', () => {
+test.describe('POST /taWallet/paymentRequest @audit', () => {
   const META = {
     method: 'POST',
     path: INTEGRATION_PATHS.taWalletPaymentRequest,
@@ -524,7 +524,7 @@ test.describe('POST /taWallet/paymentRequest', () => {
 /* =========================================================================================
  * POST /taWallet/fetchTransactionDetailsByOrderId
  * ====================================================================================== */
-test.describe('POST /taWallet/fetchTransactionDetailsByOrderId', () => {
+test.describe('POST /taWallet/fetchTransactionDetailsByOrderId @audit', () => {
   const META = {
     method: 'POST',
     path: INTEGRATION_PATHS.taWalletFetchTransaction,
@@ -745,7 +745,7 @@ test.describe('POST /taWallet/fetchTransactionDetailsByOrderId', () => {
 /* =========================================================================================
  * POST /taWallet/sendCommunicationMessage
  * ====================================================================================== */
-test.describe('POST /taWallet/sendCommunicationMessage', () => {
+test.describe('POST /taWallet/sendCommunicationMessage @audit', () => {
   const META = {
     method: 'POST',
     path: INTEGRATION_PATHS.taWalletSendCommunication,

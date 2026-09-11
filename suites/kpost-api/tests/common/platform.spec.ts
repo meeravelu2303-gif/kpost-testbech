@@ -43,7 +43,7 @@ const TRAVERSAL = '../../../../etc/passwd';
 const MAX_LENGTH_STRING = 'a'.repeat(5000);
 const ALLOWLISTED_ACCOUNT = 'manohar@kpost.in';
 
-test.describe('Common - GET /v2/common/msStatus', () => {
+test.describe('Common - GET /v2/common/msStatus @audit', () => {
   const META = {
     method: 'GET',
     path: COMMON_PATHS.msStatus,
@@ -153,7 +153,7 @@ test.describe('Common - GET /v2/common/msStatus', () => {
  * POST /v2/common/saveEnquiryDetails — persists a sales lead.
  * ===================================================================================== */
 
-test.describe('Common - POST /v2/common/saveEnquiryDetails', () => {
+test.describe('Common - POST /v2/common/saveEnquiryDetails @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.saveEnquiryDetails,
@@ -356,7 +356,7 @@ test.describe('Common - POST /v2/common/saveEnquiryDetails', () => {
  * Records an unsubscribe request. Excel payload: { sender, receiver, reason, createdBy }.
  * Public write (permitAll) — synthetic identities only; no token/auth assertions.
  * ====================================================================================== */
-test.describe('POST /v2/common/saveUnsubscriberDetails', () => {
+test.describe('POST /v2/common/saveUnsubscriberDetails @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.saveUnsubscriberDetails,
@@ -484,7 +484,7 @@ test.describe('POST /v2/common/saveUnsubscriberDetails', () => {
   });
 });
 
-test.describe('POST /v2/common/getTotalCountByDate', () => {
+test.describe('POST /v2/common/getTotalCountByDate @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.getTotalCountByDate,
@@ -654,7 +654,7 @@ test.describe('POST /v2/common/getTotalCountByDate', () => {
 
 });
 
-test.describe('GET /v2/common/downloadCompanyLogo/{companyID}', () => {
+test.describe('GET /v2/common/downloadCompanyLogo/{companyID} @audit', () => {
   const META = {
     method: 'GET',
     path: COMMON_PATHS.downloadCompanyLogo,
@@ -862,7 +862,7 @@ test.describe('GET /v2/common/downloadCompanyLogo/{companyID}', () => {
 
 });
 
-test.describe('POST /v2/common/sendMessage', () => {
+test.describe('POST /v2/common/sendMessage @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.sendMessage,
@@ -1035,7 +1035,7 @@ test.describe('POST /v2/common/sendMessage', () => {
  * POST /v2/common/updateFlutterAppVersion  — REFUSAL PATHS ONLY
  * ====================================================================================== */
 
-test.describe('POST /v2/common/updateFlutterAppVersion', () => {
+test.describe('POST /v2/common/updateFlutterAppVersion @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.updateFlutterAppVersion,
@@ -1192,7 +1192,7 @@ test.describe('POST /v2/common/updateFlutterAppVersion', () => {
  * GET /v2/common/getFlutterAppVersion
  * ====================================================================================== */
 
-test.describe('GET /v2/common/getFlutterAppVersion', () => {
+test.describe('GET /v2/common/getFlutterAppVersion @audit', () => {
   const META = {
     method: 'GET',
     path: COMMON_PATHS.getFlutterAppVersion,
@@ -1315,7 +1315,7 @@ test.describe('GET /v2/common/getFlutterAppVersion', () => {
  * POST /v2/common/updateCompanyLogo
  * ====================================================================================== */
 
-test.describe('POST /v2/common/updateCompanyLogo', () => {
+test.describe('POST /v2/common/updateCompanyLogo @audit', () => {
   const META = {
     method: 'POST',
     path: COMMON_PATHS.updateCompanyLogo,

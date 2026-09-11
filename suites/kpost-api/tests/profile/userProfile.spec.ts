@@ -23,6 +23,7 @@ import {
   buildDeactivateAccountPayload,
   buildDigitalCardPayload,
   buildKpostIdLookupPayload,
+  QA_CURRENT_PASSWORD,
   pngFileBuffer,
 } from '../../src/api/payloads/profile.payload';
 import { FOREIGN } from '../../src/api/clients/generic.client';
@@ -34,7 +35,7 @@ const FORGED_ALG_NONE_JWT =
 /* ========================================================================================
  * GET /v2/profile/getUserProfile — the caller's own profile.
  * ===================================================================================== */
-test.describe('Profile - GET /v2/profile/getUserProfile', () => {
+test.describe('Profile - GET /v2/profile/getUserProfile @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.getUserProfile,
@@ -97,12 +98,12 @@ test.describe('Profile - GET /v2/profile/getUserProfile', () => {
     requireAuthToken();
     const own = await readBody(await profileClient.getUserProfile({ token: authToken }));
     const impersonated = await readBody(
-      await profileClient.getUserProfile({ token: authToken, params: { kpostID: 'admin' } })
+      await profileClient.getUserProfile({ token: authToken, params: { kpostID: 'admin' } }),
     );
 
     expect(
       comparableBody(impersonated.text),
-      'a query-supplied kpostID changed whose profile was returned — the profile is not scoped to the token identity'
+      'a query-supplied kpostID changed whose profile was returned — the profile is not scoped to the token identity',
     ).toBe(comparableBody(own.text));
   });
 
@@ -115,7 +116,7 @@ test.describe('Profile - GET /v2/profile/getUserProfile', () => {
     const { text } = await readBody(await profileClient.getUserProfile({ token: authToken }));
 
     expect(text, 'the profile response exposed password material').not.toMatch(
-      /"(password|kmailPassword|accessCode)"\s*:\s*"[^"]+"/i
+      /"(password|kmailPassword|accessCode)"\s*:\s*"[^"]+"/i,
     );
   });
 
@@ -142,7 +143,7 @@ test.describe('Profile - GET /v2/profile/getUserProfile', () => {
           ...META,
           repro: `await profileClient.getUserProfile({ token, params: { kpostID: ${JSON.stringify(payload)} } });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -154,7 +155,7 @@ test.describe('Profile - GET /v2/profile/getUserProfile', () => {
     ]);
     expect(
       new Set(responses.map((r) => r.status())).size,
-      'concurrent profile reads returned different statuses'
+      'concurrent profile reads returned different statuses',
     ).toBe(1);
   });
 
@@ -162,7 +163,7 @@ test.describe('Profile - GET /v2/profile/getUserProfile', () => {
     await assertStatusCodeParity(await profileClient.getUserProfile({ token: staticToken }), META);
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -174,14 +175,18 @@ test.describe('Profile - GET /v2/profile/getUserProfile', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('GET', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'GET',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 });
 
 /* ========================================================================================
@@ -205,7 +210,7 @@ test.describe('Profile - GET /v2/profile/getUserProfile', () => {
 /* ========================================================================================
  * POST /v2/profile/changePassword — credential change, throwaway identities only.
  * ===================================================================================== */
-test.describe('Profile - POST /v2/profile/changePassword', () => {
+test.describe('Profile - POST /v2/profile/changePassword @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.changePassword,
@@ -234,7 +239,7 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
     test.skip(
       disposableToken === null,
       'no disposable account could be registered - refusing to aim a credential change at the ' +
-        'shared QA identity (see the signup suite for why registration failed)'
+        'shared QA identity (see the signup suite for why registration failed)',
     );
     const response = await profileClient.changePassword(buildChangePasswordPayload(), {
       token: disposableToken,
@@ -272,21 +277,24 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
     // wrong value here is what actually exercises the refusal path.
     test.skip(
       disposableToken === null,
-      'no disposable account could be registered - refusing to aim a credential change at the shared QA identity'
+      'no disposable account could be registered - refusing to aim a credential change at the shared QA identity',
     );
     const response = await profileClient.changePassword(
       buildChangePasswordPayload({ oldPassword: 'definitely-not-the-password' }),
-      { token: disposableToken }
+      { token: disposableToken },
     );
     const { json } = await readBody(response);
 
     expect(
       json && json.statusCode === 200,
-      'the password was changed without presenting the correct current password — session theft becomes full account takeover'
+      'the password was changed without presenting the correct current password — session theft becomes full account takeover',
     ).toBeFalsy();
   });
 
-  test('5. missing current password must be rejected', async ({ profileClient, disposableToken }) => {
+  test('5. missing current password must be rejected', async ({
+    profileClient,
+    disposableToken,
+  }) => {
     /*
      * Throwaway identity: the payload still carries `forgotPassword`, so if the API does not
      * reject it - which is exactly what this asserts, and exactly what it does - the password
@@ -295,7 +303,7 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
      */
     test.skip(
       disposableToken === null,
-      'no disposable account could be registered - refusing to aim a credential change at the shared QA identity'
+      'no disposable account could be registered - refusing to aim a credential change at the shared QA identity',
     );
     const payload = buildChangePasswordPayload();
     delete (payload as Record<string, unknown>).currentPassword;
@@ -309,7 +317,7 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
         scenario: 'changePassword without the current password',
         repro: `const p = buildChangePasswordPayload(); delete p.currentPassword; await profileClient.changePassword(p, { token });`,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -320,11 +328,11 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
     // change rewrites the token's own credential.
     test.skip(
       disposableToken === null,
-      'no disposable account could be registered - refusing to aim a credential change at the shared QA identity'
+      'no disposable account could be registered - refusing to aim a credential change at the shared QA identity',
     );
     const response = await profileClient.changePassword(
       buildChangePasswordPayload({ confirmPassword: '' }),
-      { token: disposableToken }
+      { token: disposableToken },
     );
     await assertRejectsInvalidInput(
       response,
@@ -333,7 +341,7 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
         scenario: 'changePassword with a blank new password',
         repro: `await profileClient.changePassword(buildChangePasswordPayload({ confirmPassword: '' }), { token });`,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -344,7 +352,7 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
     for (const weak of ['1', 'a', '123456', 'password']) {
       const response = await profileClient.changePassword(
         buildChangePasswordPayload({ forgotPassword: weak, confirmPassword: weak }),
-        { token: staticToken }
+        { token: staticToken },
       );
       await assertRejectsInvalidInput(
         response,
@@ -353,7 +361,7 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
           scenario: `changePassword with the weak password "${weak}"`,
           repro: `await profileClient.changePassword(buildChangePasswordPayload({ forgotPassword: '${weak}' }), { token });`,
         },
-        [400, 401, 403, 422]
+        [400, 401, 403, 422],
       );
     }
   });
@@ -362,7 +370,7 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
     for (const value of [null, '', ' ']) {
       const response = await profileClient.changePassword(
         buildChangePasswordPayload({ forgotPassword: value, confirmPassword: value }),
-        { token: staticToken }
+        { token: staticToken },
       );
       await assertRejectsInvalidInput(
         response,
@@ -371,27 +379,41 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
           scenario: `changePassword with forgotPassword=${JSON.stringify(value)}`,
           repro: `await profileClient.changePassword(buildChangePasswordPayload({ forgotPassword: ${JSON.stringify(value)} }), { token });`,
         },
-        [400, 401, 403, 422]
+        [400, 401, 403, 422],
       );
     }
   });
 
-  test('9. IDOR: a body-supplied kpostID must not change another account\'s password', async ({
+  test("9. IDOR: a body-supplied kpostID must not change another account's password", async ({
     profileClient,
-    authToken,
-    requireAuthToken,
+    disposableToken,
   }) => {
-    requireAuthToken();
-    const response = await profileClient.changePassword(
-      buildChangePasswordPayload({ kpostID: 'admin' }),
-      { token: authToken }
+    /*
+     * Throwaway identity, and judged on ACKNOWLEDGEMENT rather than on the change being refused.
+     *
+     * Both halves matter. This route keys off the TOKEN, so a correct implementation ignores the
+     * body's kpostID and rotates the CALLER's own password — answering 200, indistinguishable by
+     * status from an ordinary change. Demanding a refusal therefore filed a phantom "critical
+     * account takeover"; and because the old payload also carried the real current password, the
+     * rotation it provoked landed on the shared QA account and broke the bench's credential.
+     * The foreign id reaching the lookup is the only unsafe outcome, so that is what is asserted.
+     */
+    test.skip(
+      disposableToken === null,
+      'no disposable account could be registered - refusing to aim a credential change at the shared QA identity',
     );
-    const { json } = await readBody(response);
+    const response = await profileClient.changePassword(
+      buildChangePasswordPayload({ kpostID: FOREIGN.kpostID, oldPassword: QA_CURRENT_PASSWORD }),
+      { token: disposableToken as string },
+    );
 
-    expect(
-      json && json.statusCode === 200,
-      "a body-supplied kpostID changed another account's password — critical account takeover"
-    ).toBeFalsy();
+    await assertNoForeignAcknowledgement(response, {
+      ...META,
+      what: 'body kpostID',
+      foreignValue: FOREIGN.kpostID,
+      title: 'A body-supplied kpostID is acknowledged on a credential change',
+      severity: 'Critical',
+    });
   });
 
   test('10. no password material is echoed back', async ({ profileClient, staticToken }) => {
@@ -400,12 +422,12 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
         forgotPassword: 'Qa@Uniqu3Echo!',
         confirmPassword: 'Qa@Uniqu3Echo!',
       }),
-      { token: staticToken }
+      { token: staticToken },
     );
     const { text } = await readBody(response);
 
     expect(text, 'the submitted password was echoed in the response').not.toContain(
-      'Qa@Uniqu3Echo!'
+      'Qa@Uniqu3Echo!',
     );
   });
 
@@ -413,7 +435,7 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
     for (const payload of SQLI.slice(0, 3)) {
       const response = await profileClient.changePassword(
         buildChangePasswordPayload({ currentPassword: payload }),
-        { token: staticToken }
+        { token: staticToken },
       );
       await assertNoInternalLeak(
         response,
@@ -421,7 +443,7 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
           ...META,
           repro: `await profileClient.changePassword(buildChangePasswordPayload({ currentPassword: ${JSON.stringify(payload)} }), { token });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -432,16 +454,15 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
   }) => {
     const responses = await Promise.all(
       Array.from({ length: 10 }, (_, i) =>
-        profileClient.changePassword(
-          buildChangePasswordPayload({ currentPassword: `wrong-${i}` }),
-          { token: staticToken }
-        )
-      )
+        profileClient.changePassword(buildChangePasswordPayload({ oldPassword: `wrong-${i}` }), {
+          token: staticToken,
+        }),
+      ),
     );
 
     expect(
       responses.some((r) => r.status() === 429),
-      '10 rapid wrong-password attempts were all processed with no 429 — the current password can be brute-forced through this endpoint'
+      '10 rapid wrong-password attempts were all processed with no 429 — the current password can be brute-forced through this endpoint',
     ).toBe(true);
   });
 
@@ -453,15 +474,15 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
      */
     test.skip(
       disposableToken === null,
-      'no disposable account could be registered - refusing to aim a credential change at the shared QA identity'
+      'no disposable account could be registered - refusing to aim a credential change at the shared QA identity',
     );
     await assertStatusCodeParity(
       await profileClient.changePassword(buildChangePasswordPayload(), { token: disposableToken }),
-      META
+      META,
     );
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -473,14 +494,18 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -519,17 +544,19 @@ test.describe('Profile - POST /v2/profile/changePassword', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* ========================================================================================
  * POST /v2/profile/changeOrForgotAccessCode
  * ===================================================================================== */
-test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
+test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.changeOrForgotAccessCode,
@@ -557,7 +584,7 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
     for (const token of [EXPIRED_TOKEN, FORGED_ALG_NONE_JWT]) {
       const response = await profileClient.changeOrForgotAccessCode(
         buildChangeAccessCodePayload(),
-        { token }
+        { token },
       );
       await assertUnauthorized(response, {
         ...META,
@@ -574,13 +601,13 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
     requireAuthToken();
     const response = await profileClient.changeOrForgotAccessCode(
       buildChangeAccessCodePayload({ currentPassword: 'definitely-not-the-password' }),
-      { token: authToken }
+      { token: authToken },
     );
     const { json } = await readBody(response);
 
     expect(
       json && json.statusCode === 200,
-      'the access code was changed without the correct current password'
+      'the access code was changed without the correct current password',
     ).toBeFalsy();
   });
 
@@ -596,7 +623,7 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
         scenario: 'changeOrForgotAccessCode without an accessCode',
         repro: `const p = buildChangeAccessCodePayload(); delete p.accessCode; await profileClient.changeOrForgotAccessCode(p, { token });`,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -604,7 +631,7 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
     for (const value of [null, '', ' ']) {
       const response = await profileClient.changeOrForgotAccessCode(
         buildChangeAccessCodePayload({ accessCode: value }),
-        { token: staticToken }
+        { token: staticToken },
       );
       await assertRejectsInvalidInput(
         response,
@@ -613,7 +640,7 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
           scenario: `changeOrForgotAccessCode with accessCode=${JSON.stringify(value)}`,
           repro: `await profileClient.changeOrForgotAccessCode(buildChangeAccessCodePayload({ accessCode: ${JSON.stringify(value)} }), { token });`,
         },
-        [400, 401, 403, 422]
+        [400, 401, 403, 422],
       );
     }
   });
@@ -625,7 +652,7 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
     for (const accessCode of ['1', '0000', '000000', '123456']) {
       const response = await profileClient.changeOrForgotAccessCode(
         buildChangeAccessCodePayload({ accessCode }),
-        { token: staticToken }
+        { token: staticToken },
       );
       await assertRejectsInvalidInput(
         response,
@@ -634,7 +661,7 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
           scenario: `changeOrForgotAccessCode with the weak code "${accessCode}"`,
           repro: `await profileClient.changeOrForgotAccessCode(buildChangeAccessCodePayload({ accessCode: '${accessCode}' }), { token });`,
         },
-        [400, 401, 403, 422]
+        [400, 401, 403, 422],
       );
     }
   });
@@ -643,16 +670,16 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
     for (const value of [123456, ['123456'], {}]) {
       const response = await profileClient.changeOrForgotAccessCode(
         buildChangeAccessCodePayload({ accessCode: value }),
-        { token: staticToken }
+        { token: staticToken },
       );
       expect(
         response.status(),
-        `accessCode=${JSON.stringify(value)} caused a server error`
+        `accessCode=${JSON.stringify(value)} caused a server error`,
       ).toBeLessThan(500);
     }
   });
 
-  test('9. IDOR: a body-supplied kpostID must not change another account\'s code', async ({
+  test("9. IDOR: a body-supplied kpostID must not change another account's code", async ({
     profileClient,
     authToken,
     requireAuthToken,
@@ -660,20 +687,20 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
     requireAuthToken();
     const response = await profileClient.changeOrForgotAccessCode(
       buildChangeAccessCodePayload({ kpostID: 'admin' }),
-      { token: authToken }
+      { token: authToken },
     );
     const { json } = await readBody(response);
 
     expect(
       json && json.statusCode === 200,
-      "a body-supplied kpostID changed another account's access code"
+      "a body-supplied kpostID changed another account's access code",
     ).toBeFalsy();
   });
 
   test('10. the access code is never echoed back', async ({ profileClient, staticToken }) => {
     const response = await profileClient.changeOrForgotAccessCode(
       buildChangeAccessCodePayload({ accessCode: '918273' }),
-      { token: staticToken }
+      { token: staticToken },
     );
     const { text } = await readBody(response);
 
@@ -684,7 +711,7 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
     for (const payload of SQLI.slice(0, 3)) {
       const response = await profileClient.changeOrForgotAccessCode(
         buildChangeAccessCodePayload({ accessCode: payload }),
-        { token: staticToken }
+        { token: staticToken },
       );
       await assertNoInternalLeak(
         response,
@@ -692,7 +719,7 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
           ...META,
           repro: `await profileClient.changeOrForgotAccessCode(buildChangeAccessCodePayload({ accessCode: ${JSON.stringify(payload)} }), { token });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -702,11 +729,11 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
       await profileClient.changeOrForgotAccessCode(buildChangeAccessCodePayload(), {
         token: staticToken,
       }),
-      META
+      META,
     );
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -718,14 +745,18 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -764,18 +795,20 @@ test.describe('Profile - POST /v2/profile/changeOrForgotAccessCode', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* ========================================================================================
  * POST /v2/profile/deactivateAccount — destructive; happy path is deliberately never run
  * against a real identity. Only refusal paths are exercised.
  * ===================================================================================== */
-test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
+test.describe('Profile - POST /v2/profile/deactivateAccount @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.deactivateAccount,
@@ -824,7 +857,10 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
     });
   });
 
-  test('5. deactivation without an OTP must be refused', async ({ profileClient, disposableToken }) => {
+  test('5. deactivation without an OTP must be refused', async ({
+    profileClient,
+    disposableToken,
+  }) => {
     /*
      * Fired at a THROWAWAY account, never the shared QA identity.
      *
@@ -836,7 +872,7 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
     test.skip(
       disposableToken === null,
       'no disposable account could be registered - refusing to aim a destructive call at the ' +
-        'shared QA identity (see the signup suite for why registration failed)'
+        'shared QA identity (see the signup suite for why registration failed)',
     );
     const response = await profileClient.deactivateAccount(buildDeactivateAccountPayload(), {
       token: disposableToken,
@@ -845,7 +881,7 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
 
     expect(
       json && json.statusCode === 200,
-      `an account was deactivated with no OTP confirmation — a stolen session could destroy the account outright. Body: ${text.slice(0, 200)}`
+      `an account was deactivated with no OTP confirmation — a stolen session could destroy the account outright. Body: ${text.slice(0, 200)}`,
     ).toBeFalsy();
   });
 
@@ -861,7 +897,7 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
     test.skip(
       disposableToken === null,
       'no disposable account could be registered - refusing to aim a destructive call at the ' +
-        'shared QA identity (see the signup suite for why registration failed)'
+        'shared QA identity (see the signup suite for why registration failed)',
     );
     // Non-mock OTPs only: 000000/123456 are the developers' test-bench bypass (accepting them is
     // expected), so testing them here would false-fire. A NON-mock OTP completing a deactivation
@@ -869,13 +905,13 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
     for (const otp of ['999999', '111111']) {
       const response = await profileClient.deactivateAccount(
         buildDeactivateAccountPayload({ otp }),
-        { token: disposableToken }
+        { token: disposableToken },
       );
       const { json } = await readBody(response);
 
       expect(
         json && json.statusCode === 200,
-        `deactivation succeeded with an unissued OTP "${otp}"`
+        `deactivation succeeded with an unissued OTP "${otp}"`,
       ).toBeFalsy();
     }
   });
@@ -895,17 +931,17 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
     test.skip(
       disposableToken === null,
       'no disposable account could be registered - refusing to aim a destructive call at the ' +
-        'shared QA identity (see the signup suite for why registration failed)'
+        'shared QA identity (see the signup suite for why registration failed)',
     );
     const response = await profileClient.deactivateAccount(
       buildDeactivateAccountPayload({ kpostID: 'admin' }),
-      { token: disposableToken }
+      { token: disposableToken },
     );
     const { json } = await readBody(response);
 
     expect(
       json && json.statusCode === 200,
-      'a body-supplied kpostID deactivated another account — destructive IDOR'
+      'a body-supplied kpostID deactivated another account — destructive IDOR',
     ).toBeFalsy();
   });
 
@@ -924,17 +960,17 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
     test.skip(
       disposableToken === null,
       'no disposable account could be registered - refusing to aim a destructive call at the ' +
-        'shared QA identity (see the signup suite for why registration failed)'
+        'shared QA identity (see the signup suite for why registration failed)',
     );
     const response = await profileClient.deactivateAccount(
       buildDeactivateAccountPayload({ id: 1 }),
-      { token: disposableToken }
+      { token: disposableToken },
     );
     const { json } = await readBody(response);
 
     expect(
       json && json.statusCode === 200,
-      'a caller-supplied row id was honoured on a destructive operation'
+      'a caller-supplied row id was honoured on a destructive operation',
     ).toBeFalsy();
   });
 
@@ -953,13 +989,13 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
     test.skip(
       disposableToken === null,
       'no disposable account could be registered - refusing to aim a destructive call at the ' +
-        'shared QA identity (see the signup suite for why registration failed)'
+        'shared QA identity (see the signup suite for why registration failed)',
     );
     for (const payload of [{}, { reason: null }, { reason: 12345 }, { id: 'not-a-number' }]) {
       const response = await profileClient.deactivateAccount(payload, { token: disposableToken });
       expect(
         response.status(),
-        `payload ${JSON.stringify(payload)} caused a server error`
+        `payload ${JSON.stringify(payload)} caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -976,12 +1012,12 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
     test.skip(
       disposableToken === null,
       'no disposable account could be registered - refusing to aim a destructive call at the ' +
-        'shared QA identity (see the signup suite for why registration failed)'
+        'shared QA identity (see the signup suite for why registration failed)',
     );
     for (const payload of SQLI.slice(0, 3)) {
       const response = await profileClient.deactivateAccount(
         buildDeactivateAccountPayload({ reason: payload, kpostID: payload }),
-        { token: disposableToken }
+        { token: disposableToken },
       );
       await assertNoInternalLeak(
         response,
@@ -989,7 +1025,7 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
           ...META,
           repro: `await profileClient.deactivateAccount(buildDeactivateAccountPayload({ reason: ${JSON.stringify(payload)} }), { token });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -1006,7 +1042,7 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
     test.skip(
       disposableToken === null,
       'no disposable account could be registered - refusing to aim a destructive call at the ' +
-        'shared QA identity (see the signup suite for why registration failed)'
+        'shared QA identity (see the signup suite for why registration failed)',
     );
     for (const body of MALFORMED_JSON_STRINGS.slice(0, 2)) {
       const response = await profileClient.postRawTo(PROFILE_PATHS.deactivateAccount, body, {
@@ -1014,7 +1050,7 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
       });
       expect(
         response.status(),
-        `malformed JSON ${JSON.stringify(body)} caused a server error`
+        `malformed JSON ${JSON.stringify(body)} caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -1031,17 +1067,17 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
     test.skip(
       disposableToken === null,
       'no disposable account could be registered - refusing to aim a destructive call at the ' +
-        'shared QA identity (see the signup suite for why registration failed)'
+        'shared QA identity (see the signup suite for why registration failed)',
     );
     await assertStatusCodeParity(
       await profileClient.deactivateAccount(buildDeactivateAccountPayload(), {
         token: disposableToken,
       }),
-      META
+      META,
     );
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     disposableToken,
   }) => {
@@ -1056,7 +1092,7 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
     test.skip(
       disposableToken === null,
       'no disposable account could be registered - refusing to aim a destructive call at the ' +
-        'shared QA identity (see the signup suite for why registration failed)'
+        'shared QA identity (see the signup suite for why registration failed)',
     );
     /*
      * Ownership is asserted on **acknowledgement**, not on the status code.
@@ -1066,14 +1102,18 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: disposableToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: disposableToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 
   test('[contract] the response must satisfy the platform envelope', async ({
     genericClient,
@@ -1090,7 +1130,7 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
     test.skip(
       disposableToken === null,
       'no disposable account could be registered - refusing to aim a destructive call at the ' +
-        'shared QA identity (see the signup suite for why registration failed)'
+        'shared QA identity (see the signup suite for why registration failed)',
     );
     /*
      * Validates the *documented* envelope, which is the point: several tags on this API do not
@@ -1100,17 +1140,19 @@ test.describe('Profile - POST /v2/profile/deactivateAccount', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: disposableToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* ========================================================================================
  * POST /v2/profile/getUserProfileUsingKpostID — the primary IDOR / privacy surface.
  * ===================================================================================== */
-test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
+test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.getUserProfileUsingKpostID,
@@ -1120,7 +1162,7 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
   test('1. baseline returns a documented status', async ({ profileClient, staticToken }) => {
     const response = await profileClient.getUserProfileUsingKpostID(
       buildKpostIdLookupPayload('someuser'),
-      { token: staticToken }
+      { token: staticToken },
     );
     await assertStatus(response, [200, 400, 401, 403], META);
   });
@@ -1128,7 +1170,7 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
   test('2. no token: must be 401/403', async ({ profileClient }) => {
     const response = await profileClient.getUserProfileUsingKpostID(
       buildKpostIdLookupPayload('someuser'),
-      { token: null }
+      { token: null },
     );
     await assertUnauthorized(response, {
       ...META,
@@ -1140,7 +1182,7 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
     for (const token of [EXPIRED_TOKEN, FORGED_ALG_NONE_JWT]) {
       const response = await profileClient.getUserProfileUsingKpostID(
         buildKpostIdLookupPayload('someuser'),
-        { token }
+        { token },
       );
       await assertUnauthorized(response, {
         ...META,
@@ -1149,7 +1191,7 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
     }
   });
 
-  test('4. privacy: a lookup must not return another user\'s private contact details', async ({
+  test("4. privacy: a lookup must not return another user's private contact details", async ({
     profileClient,
     authToken,
     requireAuthToken,
@@ -1158,12 +1200,12 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
     const { text } = await readBody(
       await profileClient.getUserProfileUsingKpostID(buildKpostIdLookupPayload('admin'), {
         token: authToken,
-      })
+      }),
     );
 
     expect(
       text,
-      "another user's profile lookup exposed private contact fields (aadhaar/PAN/password) — privacy settings are not enforced"
+      "another user's profile lookup exposed private contact fields (aadhaar/PAN/password) — privacy settings are not enforced",
     ).not.toMatch(/"(aadhaarNumber|panNumber|password|kmailPassword|accessCode)"\s*:\s*"[^"]+"/i);
   });
 
@@ -1176,7 +1218,7 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
         scenario: 'getUserProfileUsingKpostID with an empty body',
         repro: `await profileClient.getUserProfileUsingKpostID({}, { token });`,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1184,7 +1226,7 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
     for (const value of [null, '', ' ']) {
       const response = await profileClient.getUserProfileUsingKpostID(
         { kpostID: value },
-        { token: staticToken }
+        { token: staticToken },
       );
       await assertRejectsInvalidInput(
         response,
@@ -1193,7 +1235,7 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
           scenario: `getUserProfileUsingKpostID with kpostID=${JSON.stringify(value)}`,
           repro: `await profileClient.getUserProfileUsingKpostID({ kpostID: ${JSON.stringify(value)} }, { token });`,
         },
-        [400, 401, 403, 422]
+        [400, 401, 403, 422],
       );
     }
   });
@@ -1202,11 +1244,11 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
     for (const value of [12345, ['a'], {}]) {
       const response = await profileClient.getUserProfileUsingKpostID(
         { kpostID: value },
-        { token: staticToken }
+        { token: staticToken },
       );
       expect(
         response.status(),
-        `kpostID=${JSON.stringify(value)} caused a server error`
+        `kpostID=${JSON.stringify(value)} caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -1218,14 +1260,14 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
     for (const wildcard of ['%', '*', '_']) {
       const response = await profileClient.getUserProfileUsingKpostID(
         buildKpostIdLookupPayload(wildcard),
-        { token: staticToken }
+        { token: staticToken },
       );
       const { json } = await readBody(response);
       const rows = Array.isArray(json?.data) ? (json.data as unknown[]) : [];
 
       expect(
         rows.length,
-        `a "${wildcard}" lookup returned ${rows.length} profiles — a wildcard is reaching the query unescaped and dumps the directory`
+        `a "${wildcard}" lookup returned ${rows.length} profiles — a wildcard is reaching the query unescaped and dumps the directory`,
       ).toBeLessThan(50);
     }
   });
@@ -1234,7 +1276,7 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
     for (const payload of SQLI) {
       const response = await profileClient.getUserProfileUsingKpostID(
         buildKpostIdLookupPayload(payload),
-        { token: staticToken }
+        { token: staticToken },
       );
       await assertNoInternalLeak(
         response,
@@ -1242,7 +1284,7 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
           ...META,
           repro: `await profileClient.getUserProfileUsingKpostID(buildKpostIdLookupPayload(${JSON.stringify(payload)}), { token });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -1251,7 +1293,7 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
     for (const payload of XSS.slice(0, 3)) {
       const response = await profileClient.getUserProfileUsingKpostID(
         buildKpostIdLookupPayload(payload),
-        { token: staticToken }
+        { token: staticToken },
       );
       await assertNoReflectedScript(
         response,
@@ -1259,7 +1301,7 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
           ...META,
           repro: `await profileClient.getUserProfileUsingKpostID(buildKpostIdLookupPayload(${JSON.stringify(payload)}), { token });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -1272,13 +1314,13 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
       Array.from({ length: 15 }, (_, i) =>
         profileClient.getUserProfileUsingKpostID(buildKpostIdLookupPayload(`probe${i}`), {
           token: staticToken,
-        })
-      )
+        }),
+      ),
     );
 
     expect(
       responses.some((r) => r.status() === 429),
-      '15 rapid directory lookups were all served with no 429 — the user directory can be scraped'
+      '15 rapid directory lookups were all served with no 429 — the user directory can be scraped',
     ).toBe(true);
   });
 
@@ -1287,11 +1329,11 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
       await profileClient.getUserProfileUsingKpostID(buildKpostIdLookupPayload('someuser'), {
         token: staticToken,
       }),
-      META
+      META,
     );
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1303,14 +1345,18 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -1349,11 +1395,13 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* ========================================================================================
@@ -1371,7 +1419,7 @@ test.describe('Profile - POST /v2/profile/getUserProfileUsingKpostID', () => {
 /* ========================================================================================
  * Profile image: POST updateProfileImage (multipart) and GET removeProfileImage.
  * ===================================================================================== */
-test.describe('Profile - POST /v2/profile/updateProfileImage', () => {
+test.describe('Profile - POST /v2/profile/updateProfileImage @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.updateProfileImage,
@@ -1412,7 +1460,7 @@ test.describe('Profile - POST /v2/profile/updateProfileImage', () => {
         scenario: 'updateProfileImage with no file part',
         repro: `await profileClient.updateProfileImageJson({}, { token });`,
       },
-      [400, 401, 403, 415, 422]
+      [400, 401, 403, 415, 422],
     );
   });
 
@@ -1427,13 +1475,13 @@ test.describe('Profile - POST /v2/profile/updateProfileImage', () => {
         // PE executable magic bytes wearing a .png name and image/png content type.
         buffer: Buffer.from('4d5a90000300000004000000ffff0000', 'hex'),
       },
-      { token: staticToken }
+      { token: staticToken },
     );
     const { json, text } = await readBody(response);
 
     expect(
       json && json.statusCode === 200,
-      `an executable payload was accepted as a profile image — content type is trusted without inspecting the bytes. Body: ${text.slice(0, 200)}`
+      `an executable payload was accepted as a profile image — content type is trusted without inspecting the bytes. Body: ${text.slice(0, 200)}`,
     ).toBeFalsy();
   });
 
@@ -1445,15 +1493,17 @@ test.describe('Profile - POST /v2/profile/updateProfileImage', () => {
       {
         name: 'xss.svg',
         mimeType: 'image/svg+xml',
-        buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'),
+        buffer: Buffer.from(
+          '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+        ),
       },
-      { token: staticToken }
+      { token: staticToken },
     );
     const { json } = await readBody(response);
 
     expect(
       json && json.statusCode === 200,
-      'a scriptable SVG was accepted as a profile image — stored XSS for anyone viewing the avatar'
+      'a scriptable SVG was accepted as a profile image — stored XSS for anyone viewing the avatar',
     ).toBeFalsy();
   });
 
@@ -1467,13 +1517,13 @@ test.describe('Profile - POST /v2/profile/updateProfileImage', () => {
         mimeType: 'image/png',
         buffer: pngFileBuffer(),
       },
-      { token: staticToken }
+      { token: staticToken },
     );
     const { text } = await readBody(response);
 
     expect(
       text,
-      'the traversal filename was echoed back unsanitised — files may be written outside the upload directory'
+      'the traversal filename was echoed back unsanitised — files may be written outside the upload directory',
     ).not.toContain('../../../../etc/passwd');
   });
 
@@ -1483,19 +1533,19 @@ test.describe('Profile - POST /v2/profile/updateProfileImage', () => {
   }) => {
     const response = await profileClient.updateProfileImage(
       { name: 'huge.png', mimeType: 'image/png', buffer: Buffer.alloc(12 * 1024 * 1024, 1) },
-      { token: staticToken }
+      { token: staticToken },
     );
 
     expect(
       response.status(),
-      'a 12MB upload caused a server error instead of a clean size-limit rejection'
+      'a 12MB upload caused a server error instead of a clean size-limit rejection',
     ).toBeLessThan(500);
   });
 
   test('9. a zero-byte file must be rejected', async ({ profileClient, staticToken }) => {
     const response = await profileClient.updateProfileImage(
       { name: 'empty.png', mimeType: 'image/png', buffer: Buffer.alloc(0) },
-      { token: staticToken }
+      { token: staticToken },
     );
     await assertRejectsInvalidInput(
       response,
@@ -1504,7 +1554,7 @@ test.describe('Profile - POST /v2/profile/updateProfileImage', () => {
         scenario: 'updateProfileImage with a zero-byte file',
         repro: `await profileClient.updateProfileImage({ name: 'empty.png', mimeType: 'image/png', buffer: Buffer.alloc(0) }, { token });`,
       },
-      [400, 401, 403, 415, 422]
+      [400, 401, 403, 415, 422],
     );
   });
 
@@ -1515,7 +1565,7 @@ test.describe('Profile - POST /v2/profile/updateProfileImage', () => {
     for (const payload of SQLI.slice(0, 3)) {
       const response = await profileClient.updateProfileImage(
         { name: `${payload}.png`, mimeType: 'image/png', buffer: pngFileBuffer() },
-        { token: staticToken }
+        { token: staticToken },
       );
       await assertNoInternalLeak(
         response,
@@ -1523,7 +1573,7 @@ test.describe('Profile - POST /v2/profile/updateProfileImage', () => {
           ...META,
           repro: `await profileClient.updateProfileImage({ name: ${JSON.stringify(`${payload}.png`)}, ... }, { token });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -1536,18 +1586,18 @@ test.describe('Profile - POST /v2/profile/updateProfileImage', () => {
 
     expect(
       new Set(responses.map((r) => r.status())).size,
-      'concurrent identical uploads returned different statuses'
+      'concurrent identical uploads returned different statuses',
     ).toBe(1);
   });
 
   test('12. envelope parity', async ({ profileClient, staticToken }) => {
     await assertStatusCodeParity(
       await profileClient.updateProfileImage(pngFile(), { token: staticToken }),
-      META
+      META,
     );
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1559,14 +1609,18 @@ test.describe('Profile - POST /v2/profile/updateProfileImage', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -1605,14 +1659,16 @@ test.describe('Profile - POST /v2/profile/updateProfileImage', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
-test.describe('Profile - GET /v2/profile/removeProfileImage', () => {
+test.describe('Profile - GET /v2/profile/removeProfileImage @audit', () => {
   const META = {
     method: 'GET',
     path: PROFILE_PATHS.removeProfileImage,
@@ -1656,7 +1712,7 @@ test.describe('Profile - GET /v2/profile/removeProfileImage', () => {
     });
   });
 
-  test('6. IDOR: a query-supplied kpostID must not delete another user\'s image', async ({
+  test("6. IDOR: a query-supplied kpostID must not delete another user's image", async ({
     profileClient,
     authToken,
     requireAuthToken,
@@ -1670,7 +1726,7 @@ test.describe('Profile - GET /v2/profile/removeProfileImage', () => {
 
     expect(
       json && json.statusCode === 200,
-      "a query-supplied kpostID deleted another user's profile image — destructive IDOR"
+      "a query-supplied kpostID deleted another user's profile image — destructive IDOR",
     ).toBeFalsy();
   });
 
@@ -1682,7 +1738,7 @@ test.describe('Profile - GET /v2/profile/removeProfileImage', () => {
 
     expect(
       new Set(responses.map((r) => r.status())).size,
-      'concurrent removals returned different statuses — the operation is not idempotent'
+      'concurrent removals returned different statuses — the operation is not idempotent',
     ).toBe(1);
   });
 
@@ -1709,7 +1765,7 @@ test.describe('Profile - GET /v2/profile/removeProfileImage', () => {
           ...META,
           repro: `await profileClient.removeProfileImage({ token, params: { kpostID: ${JSON.stringify(payload)} } });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -1729,7 +1785,7 @@ test.describe('Profile - GET /v2/profile/removeProfileImage', () => {
           ...META,
           repro: `await profileClient.removeProfileImage({ token, params: { cb: ${JSON.stringify(payload)} } });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -1737,11 +1793,11 @@ test.describe('Profile - GET /v2/profile/removeProfileImage', () => {
   test('11. envelope parity', async ({ profileClient, staticToken }) => {
     await assertStatusCodeParity(
       await profileClient.removeProfileImage({ token: staticToken }),
-      META
+      META,
     );
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1753,14 +1809,18 @@ test.describe('Profile - GET /v2/profile/removeProfileImage', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('GET', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'GET',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 
   test('[contract] the response must satisfy the platform envelope', async ({
     genericClient,
@@ -1774,17 +1834,19 @@ test.describe('Profile - GET /v2/profile/removeProfileImage', () => {
      */
     const response = await genericClient.send('GET', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* ========================================================================================
  * POST /v2/profile/getDigitalCard
  * ===================================================================================== */
-test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
+test.describe('Profile - POST /v2/profile/getDigitalCard @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.getDigitalCard,
@@ -1820,7 +1882,7 @@ test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
     }
   });
 
-  test('4. IDOR: cards must only be returned for the caller\'s own contacts', async ({
+  test("4. IDOR: cards must only be returned for the caller's own contacts", async ({
     profileClient,
     authToken,
     requireAuthToken,
@@ -1828,14 +1890,14 @@ test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
     requireAuthToken();
     const response = await profileClient.getDigitalCard(
       buildDigitalCardPayload('contact-1', { kpostID: 'admin' }),
-      { token: authToken }
+      { token: authToken },
     );
     const { json, text } = await readBody(response);
     const rows = Array.isArray(json?.data) ? (json.data as unknown[]) : [];
 
     expect(
       rows.length,
-      `digital cards were returned for a body-supplied kpostID ("admin") — another user's contact book is exposed. Body: ${text.slice(0, 200)}`
+      `digital cards were returned for a body-supplied kpostID ("admin") — another user's contact book is exposed. Body: ${text.slice(0, 200)}`,
     ).toBe(0);
   });
 
@@ -1848,7 +1910,7 @@ test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
         scenario: 'getDigitalCard with an empty body',
         repro: `await profileClient.getDigitalCard({}, { token });`,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -1856,7 +1918,7 @@ test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
     for (const value of [null, '', ' ']) {
       const response = await profileClient.getDigitalCard(
         { contactID: value },
-        { token: staticToken }
+        { token: staticToken },
       );
       await assertRejectsInvalidInput(
         response,
@@ -1865,7 +1927,7 @@ test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
           scenario: `getDigitalCard with contactID=${JSON.stringify(value)}`,
           repro: `await profileClient.getDigitalCard({ contactID: ${JSON.stringify(value)} }, { token });`,
         },
-        [400, 401, 403, 422]
+        [400, 401, 403, 422],
       );
     }
   });
@@ -1874,11 +1936,11 @@ test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
     for (const value of [12345, ['a'], {}]) {
       const response = await profileClient.getDigitalCard(
         { contactID: value },
-        { token: staticToken }
+        { token: staticToken },
       );
       expect(
         response.status(),
-        `contactID=${JSON.stringify(value)} caused a server error`
+        `contactID=${JSON.stringify(value)} caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -1892,7 +1954,7 @@ test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
 
     expect(
       rows.length,
-      `a "%" contactID returned ${rows.length} cards — a wildcard is reaching the query unescaped`
+      `a "%" contactID returned ${rows.length} cards — a wildcard is reaching the query unescaped`,
     ).toBeLessThan(50);
   });
 
@@ -1907,7 +1969,7 @@ test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
           ...META,
           repro: `await profileClient.getDigitalCard(buildDigitalCardPayload(${JSON.stringify(payload)}), { token });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -1923,7 +1985,7 @@ test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
           ...META,
           repro: `await profileClient.getDigitalCard(buildDigitalCardPayload(${JSON.stringify(payload)}), { token });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -1933,11 +1995,11 @@ test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
       await profileClient.getDigitalCard(buildDigitalCardPayload('contact-1'), {
         token: staticToken,
       }),
-      META
+      META,
     );
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1949,14 +2011,18 @@ test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -1995,17 +2061,19 @@ test.describe('Profile - POST /v2/profile/getDigitalCard', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* ========================================================================================
  * POST /v2/profile/shareUserDetails — public (security: []), a public profile link.
  * ===================================================================================== */
-test.describe('Profile - POST /v2/profile/shareUserDetails', () => {
+test.describe('Profile - POST /v2/profile/shareUserDetails @audit', () => {
   const META = {
     method: 'POST',
     path: PROFILE_PATHS.shareUserDetails,
@@ -2023,10 +2091,7 @@ test.describe('Profile - POST /v2/profile/shareUserDetails', () => {
   test('2. public endpoint: must not be gated behind a token', async ({ profileClient }) => {
     // security: [] — a public profile share link is opened by people with no KPost account,
     // so a token gate turns every shared link into a 401 for its intended audience.
-    const response = await profileClient.shareUserDetails(
-      { kpostID: 'someuser' },
-      { token: null }
-    );
+    const response = await profileClient.shareUserDetails({ kpostID: 'someuser' }, { token: null });
     await assertPublicRouteReachable(response, {
       ...META,
       body: { kpostID: 'someuser' },
@@ -2038,12 +2103,12 @@ test.describe('Profile - POST /v2/profile/shareUserDetails', () => {
     profileClient,
   }) => {
     const { text } = await readBody(
-      await profileClient.shareUserDetails({ kpostID: 'admin' }, { token: null })
+      await profileClient.shareUserDetails({ kpostID: 'admin' }, { token: null }),
     );
 
     expect(
       text,
-      'the public share endpoint exposed private identity fields (aadhaar/PAN/password) to an unauthenticated caller'
+      'the public share endpoint exposed private identity fields (aadhaar/PAN/password) to an unauthenticated caller',
     ).not.toMatch(/"(aadhaarNumber|panNumber|password|kmailPassword|accessCode)"\s*:\s*"[^"]+"/i);
   });
 
@@ -2072,7 +2137,7 @@ test.describe('Profile - POST /v2/profile/shareUserDetails', () => {
       const response = await profileClient.shareUserDetails({ kpostID: value });
       expect(
         response.status(),
-        `kpostID=${JSON.stringify(value)} caused a server error`
+        `kpostID=${JSON.stringify(value)} caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -2085,7 +2150,7 @@ test.describe('Profile - POST /v2/profile/shareUserDetails', () => {
 
       expect(
         rows.length,
-        `a "${wildcard}" share lookup returned ${rows.length} profiles to an unauthenticated caller`
+        `a "${wildcard}" share lookup returned ${rows.length} profiles to an unauthenticated caller`,
       ).toBeLessThan(50);
     }
   });
@@ -2099,7 +2164,7 @@ test.describe('Profile - POST /v2/profile/shareUserDetails', () => {
           ...META,
           repro: `await profileClient.shareUserDetails({ kpostID: ${JSON.stringify(payload)} });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -2113,7 +2178,7 @@ test.describe('Profile - POST /v2/profile/shareUserDetails', () => {
           ...META,
           repro: `await profileClient.shareUserDetails({ kpostID: ${JSON.stringify(payload)} });`,
         },
-        payload
+        payload,
       );
     }
   });
@@ -2122,12 +2187,14 @@ test.describe('Profile - POST /v2/profile/shareUserDetails', () => {
     profileClient,
   }) => {
     const responses = await Promise.all(
-      Array.from({ length: 15 }, (_, i) => profileClient.shareUserDetails({ kpostID: `probe${i}` }))
+      Array.from({ length: 15 }, (_, i) =>
+        profileClient.shareUserDetails({ kpostID: `probe${i}` }),
+      ),
     );
 
     expect(
       responses.some((r) => r.status() === 429),
-      '15 rapid unauthenticated share lookups were all served with no 429 — the directory can be scraped without an account'
+      '15 rapid unauthenticated share lookups were all served with no 429 — the directory can be scraped without an account',
     ).toBe(true);
   });
 
@@ -2136,7 +2203,7 @@ test.describe('Profile - POST /v2/profile/shareUserDetails', () => {
       const response = await profileClient.postRawTo(PROFILE_PATHS.shareUserDetails, body);
       expect(
         response.status(),
-        `malformed JSON ${JSON.stringify(body)} caused a server error`
+        `malformed JSON ${JSON.stringify(body)} caused a server error`,
       ).toBeLessThan(500);
     }
   });
@@ -2144,11 +2211,11 @@ test.describe('Profile - POST /v2/profile/shareUserDetails', () => {
   test('12. envelope parity', async ({ profileClient }) => {
     await assertStatusCodeParity(
       await profileClient.shareUserDetails({ kpostID: 'someuser' }),
-      META
+      META,
     );
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -2160,12 +2227,16 @@ test.describe('Profile - POST /v2/profile/shareUserDetails', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 });

@@ -60,7 +60,7 @@ const VICTIM_KPOST_ID = FOREIGN.victimKpostID;
 /* =========================================================================================
  * POST /ai/messageAssist
  * ====================================================================================== */
-test.describe('POST /ai/messageAssist', () => {
+test.describe('POST /ai/messageAssist @audit', () => {
   const META = {
     method: 'POST',
     path: INTEGRATION_PATHS.aiMessageAssist,
@@ -285,7 +285,7 @@ test.describe('POST /ai/messageAssist', () => {
 /* =========================================================================================
  * POST /ai/messageAssistStream
  * ====================================================================================== */
-test.describe('POST /ai/messageAssistStream', () => {
+test.describe('POST /ai/messageAssistStream @audit', () => {
   const META = {
     method: 'POST',
     path: INTEGRATION_PATHS.aiMessageAssistStream,
@@ -518,7 +518,7 @@ test.describe('POST /ai/messageAssistStream', () => {
 /* =========================================================================================
  * POST /ai/chatResponse
  * ====================================================================================== */
-test.describe('POST /ai/chatResponse', () => {
+test.describe('POST /ai/chatResponse @audit', () => {
   const META = {
     method: 'POST',
     path: INTEGRATION_PATHS.aiChatResponse,
@@ -708,7 +708,7 @@ test.describe('POST /ai/chatResponse', () => {
 /* =========================================================================================
  * GET /ai/sessions
  * ====================================================================================== */
-test.describe('GET /ai/sessions', () => {
+test.describe('GET /ai/sessions @audit', () => {
   const META = {
     method: 'GET',
     path: INTEGRATION_PATHS.aiSessions,
@@ -875,7 +875,7 @@ test.describe('GET /ai/sessions', () => {
 /* =========================================================================================
  * GET /ai/sessions/{aiType}
  * ====================================================================================== */
-test.describe('GET /ai/sessions/{aiType}', () => {
+test.describe('GET /ai/sessions/{aiType} @audit', () => {
   const META = {
     method: 'GET',
     path: INTEGRATION_PATH_TEMPLATES.aiSessionsByType,
@@ -1037,7 +1037,7 @@ test.describe('GET /ai/sessions/{aiType}', () => {
 /* =========================================================================================
  * GET /ai/messages/{sessionId}
  * ====================================================================================== */
-test.describe('GET /ai/messages/{sessionId}', () => {
+test.describe('GET /ai/messages/{sessionId} @audit', () => {
   const META = {
     method: 'GET',
     path: INTEGRATION_PATH_TEMPLATES.aiMessages,

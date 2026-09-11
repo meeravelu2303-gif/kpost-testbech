@@ -230,6 +230,18 @@ export default class BugSafetyNetReporter implements Reporter {
     let skipped = 0;
 
     for (const test of failed) {
+      /*
+       * A @gate failure is a red build, not a ticket.
+       *
+       * The gate pins behaviour the audit sweep has ALREADY reported — the confirmed stored
+       * XSS, the confidential-copy disclosure, the internals leak. Filing a gate failure too
+       * would put one fault in the report twice, which is the rule this bench is built on.
+       */
+      if (test.titlePath().some((part) => part.includes('@gate'))) {
+        skipped += 1;
+        continue;
+      }
+
       if (alreadyFiled.has(test.id)) {
         skipped += 1;
         continue;

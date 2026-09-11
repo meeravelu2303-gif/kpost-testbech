@@ -55,7 +55,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /generalSetting/kmailNotification
  * ====================================================================================== */
-test.describe('POST /generalSetting/kmailNotification', () => {
+test.describe('POST /generalSetting/kmailNotification @audit', () => {
   const META = {
     method: 'POST',
     path: GENERAL_SETTINGS_PATHS.kmailNotification,
@@ -390,7 +390,7 @@ test.describe('POST /generalSetting/kmailNotification', () => {
 /* =========================================================================================
  * POST /generalSetting/katchupNotification
  * ====================================================================================== */
-test.describe('POST /generalSetting/katchupNotification', () => {
+test.describe('POST /generalSetting/katchupNotification @audit', () => {
   const META = {
     method: 'POST',
     path: GENERAL_SETTINGS_PATHS.katchupNotification,
@@ -685,7 +685,7 @@ test.describe('POST /generalSetting/katchupNotification', () => {
 /* =========================================================================================
  * POST /generalSetting/kallNotification
  * ====================================================================================== */
-test.describe('POST /generalSetting/kallNotification', () => {
+test.describe('POST /generalSetting/kallNotification @audit', () => {
   const META = {
     method: 'POST',
     path: GENERAL_SETTINGS_PATHS.kallNotification,
@@ -979,7 +979,7 @@ test.describe('POST /generalSetting/kallNotification', () => {
 /* =========================================================================================
  * GET /generalSetting/getAllNotification
  * ====================================================================================== */
-test.describe('GET /generalSetting/getAllNotification', () => {
+test.describe('GET /generalSetting/getAllNotification @audit', () => {
   const META = {
     method: 'GET',
     path: GENERAL_SETTINGS_PATHS.getAllNotification,

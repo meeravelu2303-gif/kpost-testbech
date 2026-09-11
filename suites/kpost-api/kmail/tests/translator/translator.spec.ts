@@ -40,7 +40,7 @@ const MAX_LENGTH_STRING = 'a'.repeat(5000);
 /* =========================================================================================
  * POST /v2/translator/translation
  * ====================================================================================== */
-test.describe('POST /v2/translator/translation', () => {
+test.describe('POST /v2/translator/translation @audit', () => {
   const META = {
     method: 'POST',
     path: TRANSLATOR_PATHS.translation,
@@ -375,7 +375,7 @@ test.describe('POST /v2/translator/translation', () => {
 /* =========================================================================================
  * POST /v2/translator/postMail — the second send path
  * ====================================================================================== */
-test.describe('POST /v2/translator/postMail', () => {
+test.describe('POST /v2/translator/postMail @audit', () => {
   const META = {
     method: 'POST',
     path: TRANSLATOR_PATHS.postMail,
@@ -533,7 +533,7 @@ test.describe('POST /v2/translator/postMail', () => {
 /* =========================================================================================
  * POST /v2/translator/unusedpostMail — [Dead Code], still mapped
  * ====================================================================================== */
-test.describe('POST /v2/translator/unusedpostMail (dead code)', () => {
+test.describe('POST /v2/translator/unusedpostMail (dead code) @audit', () => {
   const META = {
     method: 'POST',
     path: RETIRED_PATHS.translatorUnusedPostMail,
@@ -607,7 +607,7 @@ test.describe('POST /v2/translator/unusedpostMail (dead code)', () => {
 /* =========================================================================================
  * Send-path consistency
  * ====================================================================================== */
-test.describe('Send-path consistency', () => {
+test.describe('Send-path consistency @audit', () => {
   test('[1] all four send paths must agree about authentication', async ({
     sentMailClient,
     translatorClient,

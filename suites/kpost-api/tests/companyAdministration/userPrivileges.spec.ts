@@ -58,7 +58,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /admin/updateRole
  * ====================================================================================== */
-test.describe('POST /admin/updateRole', () => {
+test.describe('POST /admin/updateRole @audit', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.updateRole,
@@ -330,7 +330,7 @@ test.describe('POST /admin/updateRole', () => {
 /* =========================================================================================
  * POST /admin/createOrRemoveBackupAdmin
  * ====================================================================================== */
-test.describe('POST /admin/createOrRemoveBackupAdmin', () => {
+test.describe('POST /admin/createOrRemoveBackupAdmin @audit', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.createOrRemoveBackupAdmin,
@@ -655,7 +655,7 @@ test.describe('POST /admin/createOrRemoveBackupAdmin', () => {
 /* =========================================================================================
  * POST /admin/holdOrRelease
  * ====================================================================================== */
-test.describe('POST /admin/holdOrRelease', () => {
+test.describe('POST /admin/holdOrRelease @audit', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.holdOrRelease,
@@ -942,7 +942,7 @@ test.describe('POST /admin/holdOrRelease', () => {
  * payload targets a non-existent identity — the refusal path is the only safe thing to
  * exercise, and it is where the authorisation defect would be.
  * ====================================================================================== */
-test.describe('POST /admin/terminateUser', () => {
+test.describe('POST /admin/terminateUser @audit', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.terminateUser,
@@ -1212,7 +1212,7 @@ test.describe('POST /admin/terminateUser', () => {
  * Overwrites a credential irrecoverably and typically dispatches the new one. Every payload
  * targets a non-existent identity and routes its mobile number through safeTestMobile().
  * ====================================================================================== */
-test.describe('POST /admin/resetPassword', () => {
+test.describe('POST /admin/resetPassword @audit', () => {
   const META = {
     method: 'POST',
     path: COMPANY_ADMIN_PATHS.resetPassword,

@@ -58,7 +58,7 @@ const VICTIM_KPOST_ID = FOREIGN.victimKpostID;
 /* =========================================================================================
  * POST /signupLoginForMediumAndLarge/signup
  * ====================================================================================== */
-test.describe('POST /signupLoginForMediumAndLarge/signup', () => {
+test.describe('POST /signupLoginForMediumAndLarge/signup @audit', () => {
   const META = {
     method: 'POST',
     path: '/signupLoginForMediumAndLarge/signup',
@@ -261,7 +261,7 @@ test.describe('POST /signupLoginForMediumAndLarge/signup', () => {
 /* =========================================================================================
  * POST /signupLoginForMediumAndLarge/adminUserLogin
  * ====================================================================================== */
-test.describe('POST /signupLoginForMediumAndLarge/adminUserLogin', () => {
+test.describe('POST /signupLoginForMediumAndLarge/adminUserLogin @audit', () => {
   const META = {
     method: 'POST',
     path: '/signupLoginForMediumAndLarge/adminUserLogin',
@@ -447,7 +447,7 @@ test.describe('POST /signupLoginForMediumAndLarge/adminUserLogin', () => {
 /* =========================================================================================
  * POST /signupLoginForMediumAndLarge/addingUserByAdmin
  * ====================================================================================== */
-test.describe('POST /signupLoginForMediumAndLarge/addingUserByAdmin', () => {
+test.describe('POST /signupLoginForMediumAndLarge/addingUserByAdmin @audit', () => {
   const META = {
     method: 'POST',
     path: '/signupLoginForMediumAndLarge/addingUserByAdmin',

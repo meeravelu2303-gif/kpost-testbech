@@ -22,7 +22,7 @@ const META = {
  * GET /crypto/public-key — the RSA key clients use to encrypt request payloads.
  * Declared `security: []` in swagger.json, so it must serve without a token.
  */
-test.describe('Crypto - GET /crypto/public-key', () => {
+test.describe('Crypto - GET /crypto/public-key @audit', () => {
   test('1. baseline: returns 200 with a usable public key', async ({ cryptoClient }) => {
     const response = await cryptoClient.getPublicKey();
     await assertStatus(response, [200], META);

@@ -67,7 +67,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/katchup/forwardKatchupMessage
  * ====================================================================================== */
-test.describe('POST /v2/katchup/forwardKatchupMessage', () => {
+test.describe('POST /v2/katchup/forwardKatchupMessage @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.forwardKatchupMessage,
@@ -434,7 +434,7 @@ test.describe('POST /v2/katchup/forwardKatchupMessage', () => {
 /* =========================================================================================
  * POST /v2/katchup/forwardKatchupMessageNew
  * ====================================================================================== */
-test.describe('POST /v2/katchup/forwardKatchupMessageNew', () => {
+test.describe('POST /v2/katchup/forwardKatchupMessageNew @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.forwardKatchupMessageNew,
@@ -678,7 +678,7 @@ test.describe('POST /v2/katchup/forwardKatchupMessageNew', () => {
 /* =========================================================================================
  * POST /v2/katchup/forwardKatchupMultipleMsgs
  * ====================================================================================== */
-test.describe('POST /v2/katchup/forwardKatchupMultipleMsgs', () => {
+test.describe('POST /v2/katchup/forwardKatchupMultipleMsgs @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.forwardKatchupMultipleMsgs,
@@ -918,7 +918,7 @@ test.describe('POST /v2/katchup/forwardKatchupMultipleMsgs', () => {
 /* =========================================================================================
  * POST /v2/katchup/forwardMessageBacktrackByMsgID
  * ====================================================================================== */
-test.describe('POST /v2/katchup/forwardMessageBacktrackByMsgID', () => {
+test.describe('POST /v2/katchup/forwardMessageBacktrackByMsgID @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.forwardMessageBacktrackByMsgID,
@@ -1143,7 +1143,7 @@ test.describe('POST /v2/katchup/forwardMessageBacktrackByMsgID', () => {
 /* =========================================================================================
  * POST /v2/katchup/getSharedMessageInfo
  * ====================================================================================== */
-test.describe('POST /v2/katchup/getSharedMessageInfo', () => {
+test.describe('POST /v2/katchup/getSharedMessageInfo @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.getSharedMessageInfo,
@@ -1313,7 +1313,7 @@ test.describe('POST /v2/katchup/getSharedMessageInfo', () => {
 /* =========================================================================================
  * GET /v2/katchup/getSharedMessageDetails/{msgID}
  * ====================================================================================== */
-test.describe('GET /v2/katchup/getSharedMessageDetails/{msgID}', () => {
+test.describe('GET /v2/katchup/getSharedMessageDetails/{msgID} @audit', () => {
   const META = {
     method: 'GET',
     path: KATCHUP_PATH_TEMPLATES.getSharedMessageDetails,
@@ -1543,7 +1543,7 @@ test.describe('GET /v2/katchup/getSharedMessageDetails/{msgID}', () => {
 /* =========================================================================================
  * POST /v2/katchup/getBulkMessageInfo
  * ====================================================================================== */
-test.describe('POST /v2/katchup/getBulkMessageInfo', () => {
+test.describe('POST /v2/katchup/getBulkMessageInfo @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.getBulkMessageInfo,
@@ -1727,7 +1727,7 @@ test.describe('POST /v2/katchup/getBulkMessageInfo', () => {
 /* =========================================================================================
  * POST /v2/katchup/getReferenceMessagesDetails
  * ====================================================================================== */
-test.describe('POST /v2/katchup/getReferenceMessagesDetails', () => {
+test.describe('POST /v2/katchup/getReferenceMessagesDetails @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.getReferenceMessagesDetails,
@@ -1957,7 +1957,7 @@ test.describe('POST /v2/katchup/getReferenceMessagesDetails', () => {
 /* =========================================================================================
  * POST /v2/katchup/getReferenceMSGDetails
  * ====================================================================================== */
-test.describe('POST /v2/katchup/getReferenceMSGDetails', () => {
+test.describe('POST /v2/katchup/getReferenceMSGDetails @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.getReferenceMSGDetails,
@@ -2145,7 +2145,7 @@ test.describe('POST /v2/katchup/getReferenceMSGDetails', () => {
 /* =========================================================================================
  * POST /v2/katchup/getMessagesByReferenceMessageList
  * ====================================================================================== */
-test.describe('POST /v2/katchup/getMessagesByReferenceMessageList', () => {
+test.describe('POST /v2/katchup/getMessagesByReferenceMessageList @audit', () => {
   const META = {
     method: 'POST',
     path: KATCHUP_PATHS.getMessagesByReferenceMessageList,

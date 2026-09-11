@@ -60,7 +60,7 @@ const PLAUSIBLE_RESULT_CAP = 500;
 /* =========================================================================================
  * POST /v2/contacts/globalSearch
  * ====================================================================================== */
-test.describe('POST /v2/contacts/globalSearch', () => {
+test.describe('POST /v2/contacts/globalSearch @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.globalSearch,
@@ -424,7 +424,7 @@ test.describe('POST /v2/contacts/globalSearch', () => {
  * The documented gap: no HttpServletRequest reaches the service, so the caller's identity is
  * unavailable and the result set cannot be scoped to them by the framework.
  * ====================================================================================== */
-test.describe('POST /v2/contacts/getSearchDetails', () => {
+test.describe('POST /v2/contacts/getSearchDetails @audit', () => {
   const META = {
     method: 'POST',
     path: CONTACTS_V2_PATHS.getSearchDetails,

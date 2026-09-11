@@ -181,3 +181,50 @@ the earlier hand-rolled probes died at the binding layer and read as "not confir
 `BUG-API-31BA6D` was the eighth and is **FALSE**: the server overwrites the spoofed `sender`, so
 the forward is attributed correctly. `tests/katchupV2/forwarding.spec.ts` now asserts on
 attribution in the recipient's own fetch rather than on the call succeeding.
+
+---
+
+# Incident — 2026-09-11: the bench rotated its own QA password
+
+**What happened.** `tests/profile/userProfile.spec.ts` test 9 ("a body-supplied kpostID must not
+change another account's password") called `changePassword` on the **shared session**
+(`authToken`) with `buildChangePasswordPayload({ kpostID: 'admin' })`. On this DTO `oldPassword`
+is the real current-password field and `confirmPassword` **is the new password**, and the builder
+hard-coded both. The route keys off the token and correctly ignores the body's `kpostID`, so it
+rotated `meera960@kpostindia.com` to `Qa@NewPassw0rd456`. `.env` then answered
+`Invalid Credential`.
+
+**Blast radius.** The KMail suite ran next, could not reuse the cached token, re-authenticated
+into a 429 left by the API run, and failed **479 of 496** cases on "running WITHOUT a session".
+Only ~13 KMail failures were real. An earlier dead run (929 tests / 0 passed / 26 ms against
+`192.168.1.38`) was the same class of fault and likewise reported **zero defects** rather than an
+error.
+
+**It had happened before.** Tests 5 and 13 already carry comments about "the shared session that
+silently rewrote the bench's own credential" — a previous session patched those two call sites and
+left tests 9, 10, 11 and 12 doing the same thing. Patching call sites did not hold.
+
+**Fix — at the builder, not the call sites.** `buildChangePasswordPayload` now defaults
+`oldPassword` to `'not-the-current-password'`, which cannot match, so no call rotates anything
+unless it opts in. The real value is exported as `QA_CURRENT_PASSWORD` so opting in is visible at
+the call site, and is only legitimate with a disposable identity. Also fixed:
+
+- **test 9** — moved to `disposableToken` and judged on **acknowledgement** via
+  `assertNoForeignAcknowledgement`. Same false-positive shape as `D82D41`: a correct
+  implementation ignores the foreign id and rotates the caller's own password, answering 200,
+  so demanding a refusal filed a phantom `BUG-API-F3058C` "critical account takeover".
+- **test 12** — fuzzed `currentPassword`, a field this DTO does not have, leaving `oldPassword`
+  valid; it was performing ten real rotations per run. Now fuzzes `oldPassword`.
+
+**Repair.** `scripts/restore-qa-credential.spec.ts` (run deliberately with
+`--config=scripts/verify-findings.config.ts`, never part of a suite) logs in with the rotated
+password and puts it back. Ran 2026-09-11: `Password Changed Successfully`, and the `.env`
+password issues a token again.
+
+**Two follow-ups still open.**
+
+1. KMail's `authSession` treats a 429 on login as fatal. Running `test:api` immediately before
+   `test:kmail` leaves the auth service throttled, so the second suite cannot start. It needs the
+   same backoff the API bench's BR-S01 test already uses.
+2. A suite that fails to authenticate writes a report with `"defects": []`. A total execution
+   failure must not be indistinguishable from a clean run.

@@ -29,6 +29,7 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const SPEC_ROOTS = [
+  'suites/kpost-api/gate',
   'suites/kpost-api/tests',
   'suites/kpost-api/kmail/tests',
   'suites/kpost-api/admin/tests',
@@ -89,20 +90,38 @@ const unknownTags = [...hits.keys()].filter((id) => !known.has(id));
 
 const pct = ((traced.length / automatable.length) * 100).toFixed(1);
 
+/*
+ * DEPTH, not just presence.
+ *
+ * A requirement traced by exactly one test is traced on paper only: one test proves one path,
+ * and the negative and state-transition cases — the ones a defect actually hides in — are not
+ * covered by it. A percentage hides that completely, which is why this reports tests-per-
+ * requirement and calls out the thin ones by name.
+ */
+const DEPTH_TARGET = 3;
+const depthOf = (r) => (hits.get(r.id) ?? []).length;
+const highPriority = automatable.filter((r) => r.priority === 'High');
+const thinHigh = highPriority.filter((r) => depthOf(r) > 0 && depthOf(r) < DEPTH_TARGET);
+const meanHigh = highPriority.length
+  ? (highPriority.reduce((sum, r) => sum + depthOf(r), 0) / highPriority.length).toFixed(1)
+  : '0';
+
 if (process.argv.includes('--markdown')) {
   console.log(`# Requirement traceability\n`);
   console.log(`${traced.length} of ${automatable.length} automatable requirements traced (${pct}%).\n`);
-  console.log('| ID | Module | Pri | Requirement | Traced to |');
-  console.log('| --- | --- | --- | --- | --- |');
+  console.log('| ID | Module | Pri | Tests | Requirement | Traced to |');
+  console.log('| --- | --- | --- | --- | --- | --- |');
   for (const r of automatable) {
     const where = (hits.get(r.id) ?? []).map((h) => `${h.file}:${h.line}`).join('<br>') || '—';
-    console.log(`| ${r.id} | ${r.module} | ${r.priority} | ${r.text} | ${where} |`);
+    console.log(`| ${r.id} | ${r.module} | ${r.priority} | ${(hits.get(r.id) ?? []).length} | ${r.text} | ${where} |`);
   }
 } else {
   console.log(`\nRequirement traceability — ${specCount} spec files scanned\n`);
   console.log(`  automatable requirements : ${automatable.length}`);
   console.log(`  traced to a tagged test  : ${traced.length}  (${pct}%)`);
   console.log(`  untraced                 : ${untraced.length}`);
+  console.log(`  High-priority, 1-2 tests : ${thinHigh.length} of ${highPriority.length}  (target ${DEPTH_TARGET}+)`);
+  console.log(`  mean tests per High req  : ${meanHigh}`);
   console.log(`  out of automation scope  : ${outOfScope.length} (manual/client-native)\n`);
 
   if (untraced.length) {
@@ -127,7 +146,23 @@ if (process.argv.includes('--markdown')) {
     }
     console.log('');
   }
-}
 
+  console.log('TESTS PER REQUIREMENT — High priority\n');
+  console.log(`  ${'ID'.padEnd(11)}${'MODULE'.padEnd(17)}TESTS  DEPTH`);
+  for (const r of highPriority) {
+    const n = depthOf(r);
+    const bar = n === 0 ? '(untraced)' : n < DEPTH_TARGET ? '#'.repeat(n) + '  <- thin' : '#'.repeat(Math.min(n, 12));
+    console.log(`  ${r.id.padEnd(11)}${String(r.module).padEnd(17)}${String(n).padStart(5)}  ${bar}`);
+  }
+  console.log('');
+
+  if (thinHigh.length) {
+    console.log(`THIN — a High-priority requirement with fewer than ${DEPTH_TARGET} tests proves one path only:`);
+    for (const r of thinHigh) {
+      console.log(`  ${r.id.padEnd(10)} ${String(depthOf(r)).padStart(2)} test(s)  ${r.text.slice(0, 74)}`);
+    }
+    console.log('');
+  }
+}
 if (unknownTags.length) process.exit(1);
 if (process.argv.includes('--strict') && untraced.length) process.exit(1);

@@ -149,5 +149,18 @@ export default defineConfig({
      * grows by declaration rather than by new spec files.
      */
     { name: 'engine', testDir: './tests/engine' },
+    /*
+     * The GATE suite — behaviour that has been agreed and must never regress.
+     *
+     * Every other project above is @audit: it surveys a live system whose behaviour is still
+     * being settled, so tolerant assertions and acquire-or-skip guards are the right call there.
+     * The gate is the opposite contract — one expected outcome, no skips, no tolerance, and a
+     * requirement id on every test. `npm run audit:gate` enforces that offline, in CI.
+     *
+     * It lives in its own directory so a gate test cannot also run as part of the audit sweep
+     * and file the same finding twice. `retries: 0` because a gate test that needs a retry is
+     * not pinning anything.
+     */
+    { name: 'gate', testDir: './gate', retries: 0 },
   ],
 });

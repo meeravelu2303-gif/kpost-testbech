@@ -51,7 +51,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /v2/dashboard/katchupDashboardMsg
  * ====================================================================================== */
-test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
+test.describe('POST /v2/dashboard/katchupDashboardMsg @audit', () => {
   const META = {
     method: 'POST',
     path: DASHBOARD_V2_PATHS.katchupDashboardMsg,
@@ -381,7 +381,7 @@ test.describe('POST /v2/dashboard/katchupDashboardMsg', () => {
 /* =========================================================================================
  * POST /v2/dashboard/kallDashboard
  * ====================================================================================== */
-test.describe('POST /v2/dashboard/kallDashboard', () => {
+test.describe('POST /v2/dashboard/kallDashboard @audit', () => {
   const META = {
     method: 'POST',
     path: DASHBOARD_V2_PATHS.kallDashboard,
@@ -679,7 +679,7 @@ test.describe('POST /v2/dashboard/kallDashboard', () => {
 /* =========================================================================================
  * POST /v2/dashboard/homeDashboardMsgs
  * ====================================================================================== */
-test.describe('POST /v2/dashboard/homeDashboardMsgs', () => {
+test.describe('POST /v2/dashboard/homeDashboardMsgs @audit', () => {
   const META = {
     method: 'POST',
     path: DASHBOARD_V2_PATHS.homeDashboardMsgs,
@@ -944,7 +944,7 @@ test.describe('POST /v2/dashboard/homeDashboardMsgs', () => {
 /* =========================================================================================
  * POST /v2/dashboard/homeDashboardNewMsgs
  * ====================================================================================== */
-test.describe('POST /v2/dashboard/homeDashboardNewMsgs', () => {
+test.describe('POST /v2/dashboard/homeDashboardNewMsgs @audit', () => {
   const META = {
     method: 'POST',
     path: DASHBOARD_V2_PATHS.homeDashboardNewMsgs,
@@ -1238,7 +1238,7 @@ test.describe('POST /v2/dashboard/homeDashboardNewMsgs', () => {
 /* =========================================================================================
  * POST /v2/dashboard/getKmailDashboardMsg
  * ====================================================================================== */
-test.describe('POST /v2/dashboard/getKmailDashboardMsg', () => {
+test.describe('POST /v2/dashboard/getKmailDashboardMsg @audit', () => {
   const META = {
     method: 'POST',
     path: DASHBOARD_V2_PATHS.getKmailDashboardMsg,

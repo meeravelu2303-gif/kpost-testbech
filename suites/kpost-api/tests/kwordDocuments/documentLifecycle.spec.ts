@@ -58,7 +58,7 @@ const INT32_OVERFLOW = 2147483648;
 /* =========================================================================================
  * POST /kword/create
  * ====================================================================================== */
-test.describe('POST /kword/create', () => {
+test.describe('POST /kword/create @audit', () => {
   const META = {
     method: 'POST',
     path: KWORD_PATHS.create,
@@ -373,7 +373,7 @@ test.describe('POST /kword/create', () => {
 /* =========================================================================================
  * POST /kword/update
  * ====================================================================================== */
-test.describe('POST /kword/update', () => {
+test.describe('POST /kword/update @audit', () => {
   const META = {
     method: 'POST',
     path: KWORD_PATHS.update,
@@ -627,7 +627,7 @@ test.describe('POST /kword/update', () => {
 /* =========================================================================================
  * POST /kword/saveContent
  * ====================================================================================== */
-test.describe('POST /kword/saveContent', () => {
+test.describe('POST /kword/saveContent @audit', () => {
   const META = {
     method: 'POST',
     path: KWORD_PATHS.saveContent,
@@ -933,7 +933,7 @@ test.describe('POST /kword/saveContent', () => {
 /* =========================================================================================
  * POST /kword/isConvertToKad — the handler that does NOT stamp kpostID from the token
  * ====================================================================================== */
-test.describe('POST /kword/isConvertToKad', () => {
+test.describe('POST /kword/isConvertToKad @audit', () => {
   const META = {
     method: 'POST',
     path: KWORD_PATHS.isConvertToKad,
@@ -1233,7 +1233,7 @@ test.describe('POST /kword/isConvertToKad', () => {
 /* =========================================================================================
  * POST /kword/delete
  * ====================================================================================== */
-test.describe('POST /kword/delete', () => {
+test.describe('POST /kword/delete @audit', () => {
   const META = {
     method: 'POST',
     path: KWORD_PATHS.delete,
@@ -1498,7 +1498,7 @@ test.describe('POST /kword/delete', () => {
 /* =========================================================================================
  * POST /kword/deleteHeading
  * ====================================================================================== */
-test.describe('POST /kword/deleteHeading', () => {
+test.describe('POST /kword/deleteHeading @audit', () => {
   const META = {
     method: 'POST',
     path: KWORD_PATHS.deleteHeading,

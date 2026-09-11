@@ -64,6 +64,12 @@ jobs:
         run: npm run audit:excel -w kpost-api
 
       # Offline unit tests for the bench's own reporting code (Bugzilla payloads, dedup).
+      # The assertion-quality gate: @gate tests pin behaviour that has been agreed, so they may
+      # not skip, may not accept a tolerant status, and must carry a requirement id. @audit tests
+      # are deliberately NOT judged — there the tolerance is correct. Offline: it reads the specs.
+      - name: Gate-quality audit — KPost API
+        run: npm run audit:gate -w kpost-api
+
       - name: Unit tests — reporter internals
         run: npm run test:unit -w kpost-api
 
