@@ -94,7 +94,7 @@ async function conversation(
 /* =========================================================================================
  * FR-K07 — record and display a read receipt per recipient, with exact open date/time
  * ====================================================================================== */
-test.describe('FR-K07 — read receipts, per recipient @audit', () => {
+test.describe('POST /v2/katchup/sendMessage — FR-K07 read receipts, per recipient @audit', () => {
   test('[FR-K07] an unopened message must not claim a read time', async ({
     katchupClient,
     staticToken,
@@ -272,7 +272,7 @@ test.describe('FR-K07 — read receipts, per recipient @audit', () => {
 /* =========================================================================================
  * FR-K08 — the sender can Edit a previously sent message
  * ====================================================================================== */
-test.describe('FR-K08 — editing a sent message @audit', () => {
+test.describe('POST /v2/katchup/sendMessage — FR-K08 editing a sent message @audit', () => {
   test('[FR-K08] the edited body must be what a later read returns', async ({
     katchupClient,
     staticToken,
@@ -343,7 +343,7 @@ test.describe('FR-K08 — editing a sent message @audit', () => {
 /* =========================================================================================
  * FR-K10 — the sender can Recall a sent message
  * ====================================================================================== */
-test.describe('FR-K10 — recalling a sent message @audit', () => {
+test.describe('POST /v2/katchup/recallMessage — FR-K10 recalling a sent message @audit', () => {
   test("[FR-K10] a recalled message must leave the RECIPIENT's conversation", async ({
     katchupClient,
     authClient,
@@ -451,7 +451,7 @@ test.describe('FR-K10 — recalling a sent message @audit', () => {
 /* =========================================================================================
  * BR-K03 — an edited message keeps a visible edit indicator; a recalled message is removed
  * ====================================================================================== */
-test.describe('BR-K03 — edit indicator and recall removal @audit', () => {
+test.describe('POST /v2/katchup/sendMessage — BR-K03 edit indicator and recall removal @audit', () => {
   /** Anything on the row that says "this was edited" — a type, a flag, a timestamp, a reference. */
   function carriesEditMarker(row: Record<string, unknown>): boolean {
     if (Number(row.messageType ?? -1) === 6) return true;

@@ -1,4 +1,10 @@
-import { test, expect, EXPIRED_TOKEN, FORGED_ALG_NONE_JWT, MALFORMED_TOKEN } from '../../src/fixtures/api.fixture';
+import {
+  test,
+  expect,
+  EXPIRED_TOKEN,
+  FORGED_ALG_NONE_JWT,
+  MALFORMED_TOKEN,
+} from '../../src/fixtures/api.fixture';
 import { PROFILE_PATHS } from '../../src/api/clients/profile.client';
 import { profileMutationResponseSchema } from '../../src/api/schemas/profile.schema';
 import {
@@ -109,7 +115,7 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
 
     expect(
       String(json?.status).toUpperCase() === 'SUCCESS' && json?.data === undefined,
-      `the job reported SUCCESS with no indication of how many accounts were affected. The handler has no try/catch and never inspects the service result — it returns a hardcoded success whatever happened, so an operator cannot tell a completed run from a silent failure. Body: ${text.slice(0, 200)}`
+      `the job reported SUCCESS with no indication of how many accounts were affected. The handler has no try/catch and never inspects the service result — it returns a hardcoded success whatever happened, so an operator cannot tell a completed run from a silent failure. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -122,7 +128,7 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: {}, scenario: 'a password patch job with no accounts named' },
-      [400, 401, 403, 404, 422]
+      [400, 401, 403, 404, 422],
     );
   });
 
@@ -140,7 +146,7 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
         body: payload,
         scenario: 'kpostIDs null on a bulk password reset — a null list must never mean all users',
       },
-      [400, 401, 403, 404, 422]
+      [400, 401, 403, 404, 422],
     );
   });
 
@@ -158,7 +164,7 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
         body: payload,
         scenario: 'an empty account list — an empty IN() must not become an unfiltered UPDATE',
       },
-      [400, 401, 403, 404, 422]
+      [400, 401, 403, 404, 422],
     );
   });
 
@@ -174,7 +180,7 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
 
     expect(
       response.status() < 400,
-      `a kpostIDs entry of "%" was accepted on a bulk password reset. If the value reaches a LIKE unescaped, one request resets every Kmail password on the platform. Body: ${text.slice(0, 200)}`
+      `a kpostIDs entry of "%" was accepted on a bulk password reset. If the value reaches a LIKE unescaped, one request resets every Kmail password on the platform. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -197,7 +203,7 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
 
     expect(
       response.status(),
-      `kpostIDs was sent as a bare string rather than a list and produced HTTP ${response.status()}.`
+      `kpostIDs was sent as a bare string rather than a list and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -238,7 +244,7 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
 
     expect(
       response.status() < 400,
-      `a 1000-account password reset was accepted. Even for an operator this needs a batch cap and an audit record; with no identity check on the route it is a denial-of-service against the whole user base.`
+      `a 1000-account password reset was accepted. Even for an operator this needs a batch cap and an audit record; with no identity check on the route it is a denial-of-service against the whole user base.`,
     ).toBe(false);
   });
 
@@ -246,7 +252,16 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
     profileClient,
     staticToken,
   }) => {
-    // `resultMap` is an instance field on this singleton controller, reassigned per request.
+    /*
+     * `resultMap` is an instance field on this singleton controller, reassigned per request, so
+     * two concurrent callers could in principle read each other's result.
+     *
+     * POSITIVE CONTROL FIRST. Without it this test concluded "shared state" from two responses
+     * that were byte-identical because BOTH were `401 "Authentication is required"` — two
+     * identical refusals are what correct gating looks like under load, not a leak. It filed
+     * BUG-API-727AA4 on that evidence. Both calls must reach the handler before their bodies
+     * mean anything.
+     */
     const [a, b] = await Promise.all([
       profileClient.kmailPasswordPatchWork(buildKmailPatchPayload(), { token: staticToken }),
       profileClient.getStorageDetails({ token: staticToken }),
@@ -254,15 +269,21 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
     const first = await readBody(a);
     const second = await readBody(b);
 
+    const refused = [401, 403, 404, 405];
+    test.skip(
+      refused.includes(a.status()) || refused.includes(b.status()),
+      `one of the two calls was refused (HTTP ${a.status()} and ${b.status()}), so their bodies cannot evidence shared state`,
+    );
+
     test.skip(first.json === null || second.json === null, 'responses were not JSON');
 
     expect(
       first.text === second.text && first.text.length > 40,
-      `a patch-job call and a concurrent storage read returned byte-identical bodies, which points at the shared resultMap instance field on this controller. Body: ${first.text.slice(0, 200)}`
+      `a patch-job call and a concurrent storage read returned byte-identical bodies, which points at the shared resultMap instance field on this controller. Body: ${first.text.slice(0, 200)}`,
     ).toBe(false);
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -274,7 +295,12 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
@@ -293,7 +319,6 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
     await assertStatusCodeParity(response, META);
   });
 
-
   test('[contract] the response must satisfy the platform envelope', async ({
     genericClient,
     staticToken,
@@ -306,11 +331,13 @@ test.describe('POST /v2/profile/kmailPasswordPatchWork @audit', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* =========================================================================================
@@ -336,7 +363,7 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
       response,
       profileMutationResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -357,9 +384,9 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
 
     expect(
       /"(mobileNumber|email|otherEmail|dateOfBirth|presentAddress|permanentAddress)"\s*:\s*"[^"]{3,}"/i.test(
-        text
+        text,
       ),
-      `a lookup for "${VICTIM_KPOST_ID}" returned contact or identity fields to ${authSession.kpostID ?? 'a different user'}. "Basic details" for a cross-product integration should be a display name at most — a phone number or address turns any valid token into a directory-scraping tool. Body: ${text.slice(0, 300)}`
+      `a lookup for "${VICTIM_KPOST_ID}" returned contact or identity fields to ${authSession.kpostID ?? 'a different user'}. "Basic details" for a cross-product integration should be a display name at most — a phone number or address turns any valid token into a directory-scraping tool. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -378,7 +405,7 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
     const message = String(json?.message ?? '');
     expect(
       String(json?.status).toUpperCase() === 'SUCCESS' && /invalid/i.test(message),
-      `the route answered status SUCCESS with statusCode 200 while the message says "${message}". Both branches of the handler return the same success envelope, so a client cannot distinguish "found" from "no such user" without string-matching the message. Body: ${text.slice(0, 200)}`
+      `the route answered status SUCCESS with statusCode 200 while the message says "${message}". Both branches of the handler return the same success envelope, so a client cannot distinguish "found" from "no such user" without string-matching the message. Body: ${text.slice(0, 200)}`,
     ).toBe(false);
   });
 
@@ -398,7 +425,7 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
     const count = Array.isArray(data) ? data.length : 0;
     expect(
       count,
-      `a kpostID of "%" returned ${count} users. A single-user lookup must never become an enumeration endpoint. Body: ${text.slice(0, 300)}`
+      `a kpostID of "%" returned ${count} users. A single-user lookup must never become an enumeration endpoint. Body: ${text.slice(0, 300)}`,
     ).toBeLessThanOrEqual(1);
   });
 
@@ -406,9 +433,12 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
     profileClient,
     staticToken,
   }) => {
-    const response = await profileClient.getUserBasicDetailsUsingKpostID({}, {
-      token: staticToken,
-    });
+    const response = await profileClient.getUserBasicDetailsUsingKpostID(
+      {},
+      {
+        token: staticToken,
+      },
+    );
 
     await assertRejectsInvalidInput(
       response,
@@ -418,7 +448,7 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
         scenario: 'a user lookup naming no user',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -439,7 +469,7 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
         scenario: 'field "kpostID" set to null',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -496,7 +526,7 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
 
     expect(
       response.status(),
-      `a 5000-character kpostID produced HTTP ${response.status()}.`
+      `a 5000-character kpostID produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -508,17 +538,17 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
       Array.from({ length: 10 }, () =>
         profileClient.getUserBasicDetailsUsingKpostID(buildBasicDetailsLookupPayload(), {
           token: staticToken,
-        })
-      )
+        }),
+      ),
     );
 
     expect(
       responses.every((response) => response.status() < 500),
-      `ten rapid user lookups returned ${responses.map((r) => r.status()).join(', ')}. An unthrottled by-identifier lookup is how a directory gets enumerated; the route must survive the load and ideally rate-limit it.`
+      `ten rapid user lookups returned ${responses.map((r) => r.status()).join(', ')}. An unthrottled by-identifier lookup is how a directory gets enumerated; the route must survive the load and ideally rate-limit it.`,
     ).toBe(true);
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -530,7 +560,12 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
@@ -548,7 +583,6 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
 
     await assertStatusCodeParity(response, META);
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -574,7 +608,6 @@ test.describe('POST /v2/profile/getUserBasicDetailsUsingKpostID @audit', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });
 
 /* =========================================================================================
@@ -598,7 +631,7 @@ test.describe('POST /v2/profile/getlanguages @audit', () => {
       response,
       profileMutationResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -625,7 +658,7 @@ test.describe('POST /v2/profile/getlanguages @audit', () => {
 
     expect(
       response.status(),
-      `an empty language lookup produced HTTP ${response.status()}. Either it returns every language or it is a clean 400.`
+      `an empty language lookup produced HTTP ${response.status()}. Either it returns every language or it is a clean 400.`,
     ).toBeLessThan(500);
   });
 
@@ -636,10 +669,9 @@ test.describe('POST /v2/profile/getlanguages @audit', () => {
     const payload = buildLanguageLookupPayload({ countryID: null });
     const response = await profileClient.getlanguages(payload, { token: staticToken });
 
-    expect(
-      response.status(),
-      `countryID null produced HTTP ${response.status()}.`
-    ).toBeLessThan(500);
+    expect(response.status(), `countryID null produced HTTP ${response.status()}.`).toBeLessThan(
+      500,
+    );
   });
 
   test('[5] type mismatch: a string countryID must be refused', async ({
@@ -651,7 +683,7 @@ test.describe('POST /v2/profile/getlanguages @audit', () => {
 
     expect(
       response.status(),
-      `countryID was sent as the string "India" and produced HTTP ${response.status()}.`
+      `countryID was sent as the string "India" and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -682,9 +714,7 @@ test.describe('POST /v2/profile/getlanguages @audit', () => {
     await assertUnauthorized(response, { ...META, body: payload });
   });
 
-  test('[8b] auth: a malformed token must not return reference data', async ({
-    profileClient,
-  }) => {
+  test('[8b] auth: a malformed token must not return reference data', async ({ profileClient }) => {
     const payload = buildLanguageLookupPayload();
     const response = await profileClient.getlanguages(payload, { token: MALFORMED_TOKEN });
 
@@ -713,11 +743,11 @@ test.describe('POST /v2/profile/getlanguages @audit', () => {
 
     expect(
       first.status(),
-      `two identical reference lookups returned ${first.status()} and ${second.status()}.`
+      `two identical reference lookups returned ${first.status()} and ${second.status()}.`,
     ).toBe(second.status());
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -729,14 +759,18 @@ test.describe('POST /v2/profile/getlanguages @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -762,7 +796,7 @@ test.describe('POST /v2/profile/getDesignationOrProfession @audit', () => {
       response,
       profileMutationResponseSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403]
+      [200, 400, 401, 403],
     );
   });
 
@@ -783,7 +817,7 @@ test.describe('POST /v2/profile/getDesignationOrProfession @audit', () => {
         scenario: 'requestType is outside the DESIGNATION/PROFESSION set',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -801,7 +835,7 @@ test.describe('POST /v2/profile/getDesignationOrProfession @audit', () => {
         scenario: 'no requestType — the route cannot know which list to return',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -822,7 +856,7 @@ test.describe('POST /v2/profile/getDesignationOrProfession @audit', () => {
         scenario: 'field "requestType" set to null',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -837,7 +871,7 @@ test.describe('POST /v2/profile/getDesignationOrProfession @audit', () => {
 
     expect(
       response.status(),
-      `requestType was sent as a number and produced HTTP ${response.status()}.`
+      `requestType was sent as a number and produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -854,7 +888,7 @@ test.describe('POST /v2/profile/getDesignationOrProfession @audit', () => {
 
     expect(
       response.status(),
-      `a flat payload produced HTTP ${response.status()}. Its sibling getDesignationByProfessionId NPEs on exactly this shape, so the same defect is worth ruling out here.`
+      `a flat payload produced HTTP ${response.status()}. Its sibling getDesignationByProfessionId NPEs on exactly this shape, so the same defect is worth ruling out here.`,
     ).toBeLessThan(500);
   });
 
@@ -917,7 +951,7 @@ test.describe('POST /v2/profile/getDesignationOrProfession @audit', () => {
     const response = await profileClient.postRawTo(
       PROFILE_PATHS.getDesignationOrProfession,
       '{"requestType":',
-      { token: staticToken }
+      { token: staticToken },
     );
 
     await assertStatus(response, [400, 401, 403, 415], {
@@ -927,7 +961,7 @@ test.describe('POST /v2/profile/getDesignationOrProfession @audit', () => {
     });
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -939,14 +973,18 @@ test.describe('POST /v2/profile/getDesignationOrProfession @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
       foreignValue: FOREIGN.kpostID,
     });
   });
-
 });
 
 /* =========================================================================================
@@ -959,18 +997,13 @@ test.describe('GET /v2/profile/fetchUserDetails @audit', () => {
     repro: `await profileClient.fetchUserDetails({ token });`,
   };
 
-  test('[1] happy path: the caller\'s details satisfy the Zod contract', async ({
+  test("[1] happy path: the caller's details satisfy the Zod contract", async ({
     profileClient,
     staticToken,
   }) => {
     const response = await profileClient.fetchUserDetails({ token: staticToken });
 
-    await expectValidContract(
-      response,
-      profileMutationResponseSchema,
-      META,
-      [200, 400, 401, 403]
-    );
+    await expectValidContract(response, profileMutationResponseSchema, META, [200, 400, 401, 403]);
   });
 
   test('[2] contract: the response must identify the caller', async ({
@@ -986,7 +1019,7 @@ test.describe('GET /v2/profile/fetchUserDetails @audit', () => {
 
     expect(
       text.includes(authSession.kpostID as string),
-      `fetchUserDetails did not return the authenticated caller's own kpostID (${authSession.kpostID}). The route derives identity from the token, so the record it returns must be theirs. Body: ${text.slice(0, 200)}`
+      `fetchUserDetails did not return the authenticated caller's own kpostID (${authSession.kpostID}). The route derives identity from the token, so the record it returns must be theirs. Body: ${text.slice(0, 200)}`,
     ).toBe(true);
   });
 
@@ -1031,7 +1064,7 @@ test.describe('GET /v2/profile/fetchUserDetails @audit', () => {
 
     expect(
       text.includes(`"kpostID":"${VICTIM_KPOST_ID}"`),
-      `?kpostID=${VICTIM_KPOST_ID} returned that user's details while the caller was ${authSession.kpostID ?? 'a different identity'}. Body: ${text.slice(0, 300)}`
+      `?kpostID=${VICTIM_KPOST_ID} returned that user's details while the caller was ${authSession.kpostID ?? 'a different identity'}. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1046,7 +1079,7 @@ test.describe('GET /v2/profile/fetchUserDetails @audit', () => {
 
     expect(
       /"(password|kmailPassword|accessCode)"\s*:\s*"[^"]{3,}"/i.test(text),
-      `the user record carried a credential field with a value. Even the caller's own password hash must never leave the server — it is offline-crackable and often reused. Body: ${text.slice(0, 300)}`
+      `the user record carried a credential field with a value. Even the caller's own password hash must never leave the server — it is offline-crackable and often reused. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -1073,11 +1106,11 @@ test.describe('GET /v2/profile/fetchUserDetails @audit', () => {
 
     expect(
       first.status(),
-      `two identical reads returned ${first.status()} and ${second.status()}.`
+      `two identical reads returned ${first.status()} and ${second.status()}.`,
     ).toBe(second.status());
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -1089,7 +1122,12 @@ test.describe('GET /v2/profile/fetchUserDetails @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('GET', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'GET',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
@@ -1107,5 +1145,4 @@ test.describe('GET /v2/profile/fetchUserDetails @audit', () => {
 
     await assertStatusCodeParity(response, META);
   });
-
 });

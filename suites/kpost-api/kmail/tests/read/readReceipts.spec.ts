@@ -66,7 +66,7 @@ function openTimestamp(row: Record<string, unknown>): unknown {
   return undefined;
 }
 
-test.describe('FR-M04 — read receipts are recorded per mail @audit', () => {
+test.describe('POST /v2/common/sentMailNotOpened — FR-M04 read receipts per mail @audit', () => {
   test('[FR-M04] the unopened-mail read must answer, not fault', async ({
     mailboxClient,
     token,
@@ -211,7 +211,7 @@ test.describe('FR-M04 — read receipts are recorded per mail @audit', () => {
   });
 });
 
-test.describe('BR-M01 — receipt data exists for mail that was sent @audit', () => {
+test.describe('POST /v2/common/statusOfKmailsContactsWithCount — BR-M01 receipt data exists @audit', () => {
   test('[BR-M01] every sent mail must be accounted for in the receipt store', async ({
     mailboxClient,
     token,

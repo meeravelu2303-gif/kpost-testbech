@@ -1,4 +1,10 @@
-import { test, expect, EXPIRED_TOKEN, FORGED_ALG_NONE_JWT, MALFORMED_TOKEN } from '../../src/fixtures/api.fixture';
+import {
+  test,
+  expect,
+  EXPIRED_TOKEN,
+  FORGED_ALG_NONE_JWT,
+  MALFORMED_TOKEN,
+} from '../../src/fixtures/api.fixture';
 import { INTEGRATION_PATHS } from '../../src/api/clients/integrations.client';
 import { dataEnvelopeSchema } from '../../src/api/schemas/envelope.schema';
 import {
@@ -98,11 +104,12 @@ test.describe('POST /taWallet/createHash @audit', () => {
     test.skip(json === null, 'response was not JSON');
 
     const signed = Object.entries(json ?? {}).some(
-      ([key, value]) => /hash|signature/i.test(key) && typeof value === 'string' && value.length > 16
+      ([key, value]) =>
+        /hash|signature/i.test(key) && typeof value === 'string' && value.length > 16,
     );
     expect(
       signed,
-      `the endpoint returned a gateway signature over caller-supplied order fields. The hash exists to prove the merchant authorised this exact amount; if the caller picks the amount, a shopper can pay 1.00 for a 5,000.00 order and the gateway will accept it because the signature is real. Body: ${text.slice(0, 300)}`
+      `the endpoint returned a gateway signature over caller-supplied order fields. The hash exists to prove the merchant authorised this exact amount; if the caller picks the amount, a shopper can pay 1.00 for a 5,000.00 order and the gateway will accept it because the signature is real. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -116,7 +123,7 @@ test.describe('POST /taWallet/createHash @audit', () => {
 
     expect(
       /"(salt|apiKey|api_key|secret)"\s*:/i.test(text),
-      `the signing response echoed a key named like a secret. The salt and apiKey are the merchant's credentials — leaking either turns every future signature into something anyone can forge offline. Body: ${text.slice(0, 300)}`
+      `the signing response echoed a key named like a secret. The salt and apiKey are the merchant's credentials — leaking either turns every future signature into something anyone can forge offline. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -133,7 +140,7 @@ test.describe('POST /taWallet/createHash @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'email omitted — the handler dereferences it unchecked' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -149,7 +156,7 @@ test.describe('POST /taWallet/createHash @audit', () => {
 
     expect(
       /imported phone Contacts/i.test(text),
-      `a payment-signing failure reported "Exception occurred while saving imported phone Contacts" — copy-pasted from a contacts importer. An operator triaging a payment incident is told to look in the wrong subsystem. Body: ${text.slice(0, 250)}`
+      `a payment-signing failure reported "Exception occurred while saving imported phone Contacts" — copy-pasted from a contacts importer. An operator triaging a payment incident is told to look in the wrong subsystem. Body: ${text.slice(0, 250)}`,
     ).toBe(false);
   });
 
@@ -163,7 +170,7 @@ test.describe('POST /taWallet/createHash @audit', () => {
     await assertRejectsInvalidInput(
       response,
       { ...META, body: payload, scenario: 'field "amount" set to null on a signing request' },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -181,7 +188,7 @@ test.describe('POST /taWallet/createHash @audit', () => {
         body: payload,
         scenario: 'a negative order amount — a signed refund in the shape of a purchase',
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -225,11 +232,11 @@ test.describe('POST /taWallet/createHash @audit', () => {
 
     expect(
       first.text === second.text && first.text.length > 40,
-      `two concurrent signing requests for different orders returned byte-identical bodies. The controller stores its result in a shared instance field, so one caller can receive another caller's payment signature. Body: ${first.text.slice(0, 200)}`
+      `two concurrent signing requests for different orders returned byte-identical bodies. The controller stores its result in a shared instance field, so one caller can receive another caller's payment signature. Body: ${first.text.slice(0, 200)}`,
     ).toBe(false);
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -241,7 +248,12 @@ test.describe('POST /taWallet/createHash @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
@@ -259,7 +271,6 @@ test.describe('POST /taWallet/createHash @audit', () => {
 
     await assertStatusCodeParity(response, META);
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -298,11 +309,13 @@ test.describe('POST /taWallet/createHash @audit', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* =========================================================================================
@@ -326,18 +339,35 @@ test.describe('POST /taWallet/paymentRequest @audit', () => {
 
     expect(
       response.status() < 400 && /success|paid|complete/i.test(text),
-      `a forged callback declaring response_code=1 was accepted. This route decides whether an order counts as paid; it must verify the gateway's signature over the form fields before persisting, or a buyer can mark their own basket paid by POSTing to it. Body: ${text.slice(0, 250)}`
+      `a forged callback declaring response_code=1 was accepted. This route decides whether an order counts as paid; it must verify the gateway's signature over the form fields before persisting, or a buyer can mark their own basket paid by POSTing to it. Body: ${text.slice(0, 250)}`,
     ).toBe(false);
   });
 
   test('[auth] the gateway callback must remain reachable without a token', async ({
     integrationsClient,
+    staticToken,
   }) => {
-    // The payment gateway POSTs its verdict here with no KPost bearer token — that is the
-    // route's normal caller. Authenticity is the gateway's signature over the form (asserted
-    // in [1]), not a token, so requiring one would break every payment confirmation. This
-    // verifies the auth filter does not gate the route; an invalid form keeps the probe from
-    // persisting a verdict.
+    /*
+     * The payment gateway POSTs its verdict here with no KPost bearer token — that is the
+     * route's normal caller. Authenticity is the gateway's signature over the form (asserted in
+     * [1]), not a token, so requiring one would break every payment confirmation.
+     *
+     * POSITIVE CONTROL FIRST (trap #2). This API runs its auth filter BEFORE routing, so a 401
+     * is also what a path that does not exist returns. Without proving the route is live, the
+     * anonymous 401 cannot tell "wrongly gated" from "not deployed" — and this finding is filed
+     * as a Critical payment blockade, which is not a claim to make on an ambiguous status.
+     *
+     * An authenticated call reaching application code (any status that is not 404/405) is the
+     * proof. A 415 counts: the route rejected the media type, which means it routed.
+     */
+    const reachability = await integrationsClient.taWalletPaymentRequest('order_id=', {
+      token: staticToken,
+    });
+    test.skip(
+      [404, 405].includes(reachability.status()),
+      `the callback route answered HTTP ${reachability.status()} to an authenticated caller, so it is not deployed here and an anonymous 401 proves nothing about its gating`,
+    );
+
     const response = await integrationsClient.taWalletPaymentRequest('order_id=', { token: null });
     await assertPublicRouteReachable(response, {
       ...META,
@@ -357,7 +387,7 @@ test.describe('POST /taWallet/paymentRequest @audit', () => {
 
     expect(
       /json/i.test(contentType) || /html/i.test(contentType) || contentType === '',
-      `the browser-facing callback answered content-type "${contentType}". It is documented as returning an HTML document for the user's browser; anything else breaks the redirect-back experience.`
+      `the browser-facing callback answered content-type "${contentType}". It is documented as returning an HTML document for the user's browser; anything else breaks the redirect-back experience.`,
     ).toBe(true);
   });
 
@@ -368,7 +398,7 @@ test.describe('POST /taWallet/paymentRequest @audit', () => {
 
     expect(
       response.status(),
-      `a callback with no order_id produced HTTP ${response.status()}. It must be refused cleanly — a verdict with nothing to attach it to should never reach persistence.`
+      `a callback with no order_id produced HTTP ${response.status()}. It must be refused cleanly — a verdict with nothing to attach it to should never reach persistence.`,
     ).toBeLessThan(500);
   });
 
@@ -382,7 +412,7 @@ test.describe('POST /taWallet/paymentRequest @audit', () => {
 
     expect(
       /success/i.test(text) && !/not found|invalid|unknown/i.test(text),
-      `a callback for order ${orderId}, which does not exist, was reported as successful. The documentation notes the handler persists the verdict for *every* outcome — including orders it has never seen. Body: ${text.slice(0, 250)}`
+      `a callback for order ${orderId}, which does not exist, was reported as successful. The documentation notes the handler persists the verdict for *every* outcome — including orders it has never seen. Body: ${text.slice(0, 250)}`,
     ).toBe(false);
   });
 
@@ -391,7 +421,7 @@ test.describe('POST /taWallet/paymentRequest @audit', () => {
   }) => {
     const response = await integrationsClient.sendRaw(
       INTEGRATION_PATHS.taWalletPaymentRequest,
-      JSON.stringify({ order_id: nonExistentOrderId(), response_code: '1' })
+      JSON.stringify({ order_id: nonExistentOrderId(), response_code: '1' }),
     );
 
     await assertStatus(response, [400, 401, 403, 415], {
@@ -408,7 +438,7 @@ test.describe('POST /taWallet/paymentRequest @audit', () => {
 
     expect(
       response.status(),
-      `a 5000-character order_id produced HTTP ${response.status()}.`
+      `a 5000-character order_id produced HTTP ${response.status()}.`,
     ).toBeLessThan(500);
   });
 
@@ -441,11 +471,11 @@ test.describe('POST /taWallet/paymentRequest @audit', () => {
 
     expect(
       first.status(),
-      `the same callback posted twice returned ${first.status()} then ${second.status()}. Gateways retry callbacks by design, so this route must be idempotent or a single payment is recorded twice.`
+      `the same callback posted twice returned ${first.status()} then ${second.status()}. Gateways retry callbacks by design, so this route must be idempotent or a single payment is recorded twice.`,
     ).toBe(second.status());
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -457,7 +487,12 @@ test.describe('POST /taWallet/paymentRequest @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
@@ -475,7 +510,6 @@ test.describe('POST /taWallet/paymentRequest @audit', () => {
 
     await assertStatusCodeParity(response, META);
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -514,11 +548,13 @@ test.describe('POST /taWallet/paymentRequest @audit', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });
 
 /* =========================================================================================
@@ -544,7 +580,7 @@ test.describe('POST /taWallet/fetchTransactionDetailsByOrderId @audit', () => {
       response,
       dataEnvelopeSchema,
       { ...META, body: payload },
-      [200, 400, 401, 403, 404]
+      [200, 400, 401, 403, 404],
     );
   });
 
@@ -561,7 +597,7 @@ test.describe('POST /taWallet/fetchTransactionDetailsByOrderId @audit', () => {
 
     expect(
       /"(amount|email|phone|cardMask|payerName)"\s*:\s*"?[^",]{2,}/i.test(text),
-      `a transaction lookup keyed only on order_id returned payment details to ${authSession.kpostID ?? 'the caller'}. Order ids are short, shared in emails and often sequential; they must not be the sole key to what someone paid and how. Body: ${text.slice(0, 300)}`
+      `a transaction lookup keyed only on order_id returned payment details to ${authSession.kpostID ?? 'the caller'}. Order ids are short, shared in emails and often sequential; they must not be the sole key to what someone paid and how. Body: ${text.slice(0, 300)}`,
     ).toBe(false);
   });
 
@@ -597,7 +633,7 @@ test.describe('POST /taWallet/fetchTransactionDetailsByOrderId @audit', () => {
         scenario: 'a transaction lookup with no order id',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -617,7 +653,7 @@ test.describe('POST /taWallet/fetchTransactionDetailsByOrderId @audit', () => {
     const count = Array.isArray(data) ? data.length : 0;
     expect(
       count,
-      `an order_id of "%" returned ${count} transactions. A payment ledger must never be enumerable. Body: ${text.slice(0, 300)}`
+      `an order_id of "%" returned ${count} transactions. A payment ledger must never be enumerable. Body: ${text.slice(0, 300)}`,
     ).toBeLessThanOrEqual(1);
   });
 
@@ -638,7 +674,7 @@ test.describe('POST /taWallet/fetchTransactionDetailsByOrderId @audit', () => {
         scenario: 'field "order_id" set to null',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -683,7 +719,7 @@ test.describe('POST /taWallet/fetchTransactionDetailsByOrderId @audit', () => {
     });
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -695,7 +731,12 @@ test.describe('POST /taWallet/fetchTransactionDetailsByOrderId @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
@@ -713,7 +754,6 @@ test.describe('POST /taWallet/fetchTransactionDetailsByOrderId @audit', () => {
 
     await assertStatusCodeParity(response, META);
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -739,7 +779,6 @@ test.describe('POST /taWallet/fetchTransactionDetailsByOrderId @audit', () => {
       title: 'Malformed JSON is not rejected with a clean 400',
     });
   });
-
 });
 
 /* =========================================================================================
@@ -776,11 +815,24 @@ test.describe('POST /taWallet/sendCommunicationMessage @audit', () => {
     });
     const { json, text } = await readBody(response);
 
+    /*
+     * The assertion below is "the envelope did not say SUCCESS", which ANY refusal satisfies —
+     * including a 429 from the rate-limiting case a few tests down, which shares this endpoint
+     * and runs in the same worker. On one run that race made this test pass while the defect
+     * was live: a caller-supplied mobile still answered `200 {"status":"SUCCESS"}` when probed
+     * directly, and the Critical silently dropped out of the report.
+     *
+     * So the call must be seen to reach the handler before its verdict counts.
+     */
     test.skip(json === null, 'response was not JSON');
+    test.skip(
+      response.status() === 429 || /too many requests/i.test(text),
+      'the endpoint was throttled, so this response cannot say whether a foreign recipient is accepted',
+    );
 
     expect(
       String(json?.status).toUpperCase() === 'SUCCESS',
-      `a caller-supplied mobile number was accepted as the destination for a wallet notification. A callback bridge should notify the party on the transaction, not an arbitrary number — otherwise it is an SMS relay. Body: ${text.slice(0, 250)}`
+      `a caller-supplied mobile number was accepted as the destination for a wallet notification. A callback bridge should notify the party on the transaction, not an arbitrary number — otherwise it is an SMS relay. Body: ${text.slice(0, 250)}`,
     ).toBe(false);
   });
 
@@ -797,8 +849,13 @@ test.describe('POST /taWallet/sendCommunicationMessage @audit', () => {
 
     await assertRejectsInvalidInput(
       response,
-      { ...META, body: payload, scenario: 'a notification with no message', severity: 'Major' as const },
-      [400, 401, 403, 422]
+      {
+        ...META,
+        body: payload,
+        scenario: 'a notification with no message',
+        severity: 'Major' as const,
+      },
+      [400, 401, 403, 422],
     );
   });
 
@@ -819,7 +876,7 @@ test.describe('POST /taWallet/sendCommunicationMessage @audit', () => {
         scenario: 'field "mobileNumber" set to null',
         severity: 'Major' as const,
       },
-      [400, 401, 403, 422]
+      [400, 401, 403, 422],
     );
   });
 
@@ -834,7 +891,7 @@ test.describe('POST /taWallet/sendCommunicationMessage @audit', () => {
 
     expect(
       response.status(),
-      `a 5000-character message produced HTTP ${response.status()}. SMS is billed per segment; an unbounded message is unbounded spend.`
+      `a 5000-character message produced HTTP ${response.status()}. SMS is billed per segment; an unbounded message is unbounded spend.`,
     ).toBeLessThan(500);
   });
 
@@ -846,13 +903,13 @@ test.describe('POST /taWallet/sendCommunicationMessage @audit', () => {
       Array.from({ length: 5 }, () =>
         integrationsClient.taWalletSendCommunication(buildWalletCommunicationPayload(), {
           token: staticToken,
-        })
-      )
+        }),
+      ),
     );
 
     expect(
       responses.every((r) => r.status() < 500),
-      `five concurrent dispatches returned ${responses.map((r) => r.status()).join(', ')}. A message-dispatch bridge must survive concurrency and ideally throttle it.`
+      `five concurrent dispatches returned ${responses.map((r) => r.status()).join(', ')}. A message-dispatch bridge must survive concurrency and ideally throttle it.`,
     ).toBe(true);
   });
 
@@ -900,7 +957,7 @@ test.describe('POST /taWallet/sendCommunicationMessage @audit', () => {
     await assertUnauthorized(response, { ...META, body: payload });
   });
 
-  test('[IDOR] a foreign kpostID must not reach another owner\'s record', async ({
+  test("[IDOR] a foreign kpostID must not reach another owner's record", async ({
     genericClient,
     staticToken,
   }) => {
@@ -912,7 +969,12 @@ test.describe('POST /taWallet/sendCommunicationMessage @audit', () => {
      * third case as a defect when nothing is wrong. What is never safe is the response coming
      * back carrying the foreign identifier, because that means the value reached the lookup.
      */
-    const response = await genericClient.send('POST', META.path, { kpostID: FOREIGN.kpostID }, { token: staticToken });
+    const response = await genericClient.send(
+      'POST',
+      META.path,
+      { kpostID: FOREIGN.kpostID },
+      { token: staticToken },
+    );
     await assertNoForeignAcknowledgement(response, {
       ...META,
       what: 'kpostID',
@@ -930,7 +992,6 @@ test.describe('POST /taWallet/sendCommunicationMessage @audit', () => {
 
     await assertStatusCodeParity(response, META);
   });
-
 
   test('[typefuzz] a syntactically malformed body must be a clean HTTP 400', async ({
     genericClient,
@@ -969,9 +1030,11 @@ test.describe('POST /taWallet/sendCommunicationMessage @audit', () => {
      */
     const response = await genericClient.send('POST', META.path, {}, { token: staticToken });
 
-    await expectValidContract(response, dataEnvelopeSchema, META, [
-      200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500,
-    ]);
+    await expectValidContract(
+      response,
+      dataEnvelopeSchema,
+      META,
+      [200, 201, 204, 400, 401, 403, 404, 405, 415, 422, 500],
+    );
   });
-
 });

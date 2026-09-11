@@ -97,7 +97,7 @@ passes and the number is honest.
 | **6 — UI parity** ◐ | Same declare-don't-code model for screens | screen engine live: 8 validators, screens declared in `src/screens/` |
 | **7 — Quality gates** ◐ | CI blocks regressions | 10/10 CI gates green; Excel 100%, vectors 100%, traceability 87.5% |
 
-**Current phase: 5 and 6 in parallel.** Both engines work end to end; the remaining work is
+**Current phase: 5 and 6 in parallel**, with a recorded backlog — see [Known gaps](#known-gaps--the-backlog). Both engines work end to end; the remaining work is
 declaring endpoints and screens onto them.
 
 The UI half mirrors the API half exactly:
@@ -124,6 +124,8 @@ blank page, which is the UI equivalent of a 404 satisfying "must not be 2xx".
 3. **Verify before you trust.** Hosts change and developers reset the database. A note naming a
    host, account or endpoint may be stale; check it lives.
 4. **If you find yourself copying an assertion, stop.** It belongs in a validator.
+5. **Read [Known gaps](#known-gaps--the-backlog) before planning work.** It records what is
+   deliberately unfinished and why, so nobody re-discovers it or assumes a number is clean.
 
 ---
 
@@ -236,6 +238,154 @@ Each cost real time and each is now guarded. Read these before writing an assert
 
 ---
 
+---
+
+## Known gaps — the backlog
+
+**Status: recorded 2026-09-11, deliberately not yet fixed.** The team is running the suite and
+filing the current findings in Bugzilla first; this list is what we come back to afterwards. Every
+number here came from a real run, not an estimate. Re-measure with `npm run trace`,
+`npm run audit:gate` and `npm run collect` before trusting any of it — these move.
+
+**Admin module (`suites/kpost-api/admin/`) is OUT OF SCOPE.** Do not run it, fix it or report on
+it. Everything below is `kpost-api`, `kmail` and `kpost-ui` only.
+
+### Where the numbers stand
+
+```
+automatable requirements : 68
+traced to a tagged test  : 51  (75.0%)
+untraced                 : 12
+blocked (never ran)      : 5
+tolerant assertion       : 14 requirement(s)
+High-priority, 1-2 tests : 28 of 41  (target 3+)
+collect: api 4795 · kmail 936 · ui 332 tests
+```
+
+75.0% is the honest number after removing six wrongly-tagged requirements and separating out the
+blocked ones. It went **down** from 88.2% as the measurement got stricter. That is the intended
+direction.
+
+### 1. Tolerant assertions — 14 requirements (Step 6)
+
+The tag is right; the assertion cannot fail for it. `handledCleanly()` passes on a 400, and a
+status set containing both a 2xx and a 4xx means success and refusal both pass — so "a recipient
+can Reply" was satisfied by the server *rejecting* the reply. **These need the assertion replaced,
+not more tests added.** `npm run trace` prints the list with a reason per entry.
+
+`BR-C01 · FR-C03 · FR-K03 · FR-K14 · FR-K15 · FR-K16 · FR-K18 · FR-K22 · FR-K23 · FR-K24 ·
+FR-M01 · FR-M02 · FR-M03 · FR-M06`
+
+The fix is the same move every time: stop asserting the response was well-formed, assert the
+effect is observable on a subsequent read — and give each one its own seeded fixture (trap #6).
+Five were done this way already (FR-K21, FR-C01, FR-C02, FR-C05, and NFR-SEC02's second variant);
+each took roughly one read-back call and each found something.
+
+### 2. Blocked — 5 requirements, all external
+
+Written or tagged but never able to execute here. **Do not write assertions for these until the
+dependency lands**; a test nobody has seen pass is not evidence.
+
+| id | blocked on |
+| --- | --- |
+| `FR-M01`, `FR-M02`, `FR-M04`, `BR-M01` | The QA accounts have no mail-server credentials — `getMailCredentials` returns all-null, `postMail` 500s, the mailbox read answers "No Data Found". A provisioning gap for the developers, not a payload bug. |
+| `FR-K03` | No multipart shape we could construct attaches a file. `sendKatchupMsgMultiPart` returns `attachmentUuid: null` even with the documented `attachmentCaption`/`fileName` pairing; `uploadMultipartFiles` answers 400 "could not be read as a multipart upload" for every part name tried. **Open question for the developers: what does the `files` part expect?** Until that is answered we cannot tell an API defect from a bench mistake. |
+
+The FR-K03 access-control question is unanswered for the same reason: **can a non-participant
+download an `attachmentUuid` they were never sent?** No uuid could be obtained to try it.
+
+### 3. Untraced — 12 requirements
+
+`BR-K02 · BR-X01 · FR-C07 · FR-C08 · FR-C09 · FR-K09 · FR-K17 · FR-K25 · FR-S05 · FR-S11 ·
+FR-S12 · NFR-U01`
+
+Six of these lost their tags deliberately, because the test they were on proved something else:
+
+- **`FR-C08` / `FR-C09`** (call log with participant names, roles, duration; exact start/end
+  timestamps) sat on a Zod-contract check whose schema declares none of those fields. **This is
+  a spec problem, not a bench gap** — Kall's contract may not carry what the FRD claims, which
+  needs a product decision before a test can be written.
+- **`FR-S11`** (maintain an authenticated session) and **`FR-S12`** (log out, terminating the
+  session) sat on `assertStatus([200, 400, 401, 403])` — sets that accept 401, so they passed
+  when the session was *not* maintained and when the logout was refused.
+- **`BR-X01`** (read receipts consistent across Katchup and KMail) is untraced because it needs
+  the end-to-end journey layer that does not exist yet, and is also gated on the mail credentials.
+
+### 4. Type coverage — Kall and Kdiary are thin
+
+Katchup and KMail are well covered. The other two send one default value and almost nothing else,
+so the server's type branches are untested.
+
+| module | field | exercised | missing |
+| --- | --- | --- | --- |
+| Katchup | `messageType` | 0, 1, 2, 3, 5, 6, 7, 8, 9, 14, 15, 16, 18, 20 | **19, 24** (both appear in the contract) |
+| KMail | `fetchMailType` | all three (Y / N / A) | — |
+| KMail | `kmailStatusFlag` | all three | — |
+| Kall | `kallType` | `1` (builder default) + `9999` fuzz | contract shows `0`; no real variant ever sent |
+| Kall | `kallMode` | `0` (builder default) | never varied |
+| Kall | `kallStatus` | 2 (default), 4, 7 | the route's own comment says 2/3/9 are valid — **3 and 9 never sent** |
+| Kdiary | `userType` | `PERSONAL` | **`BUSINESS_S`, `BUSINESS`** are in the contract |
+| Kdiary | `repeatType` | `9999` fuzz only | contract shows `1` |
+
+**Worth doing alongside the tolerant work, not after it.** It is the same failure shape — coverage
+that looks present because the endpoint is called, but only ever down one branch. Kall business
+rules have already produced four confirmed findings and `addMembersToKall` 500s on a duplicate
+member, so varying these should be expected to surface more.
+
+### 5. Application flow — the weakest layer
+
+Roughly 25 genuine multi-step chains now exist (seed → act → read back as the affected party), and
+they are what found every recent defect. What is still missing is an **end-to-end journey layer**:
+nothing walks signup → login → send → recipient reads → receipt propagates → forward → recall.
+Cross-module coverage is `tests/crossModule/platformRules.spec.ts` (4 rules) plus one UI navigation
+journey. `BR-X01` is the requirement this blocks.
+
+### 6. Architecture phases still open
+
+- **Phase 5 — engine migration.** 9 of 329 mandatory endpoints are declared on the centralized
+  engine; the rest are hand-written specs. The mission property — *add an endpoint, get the full
+  battery free* — does not hold until this is done. This is the largest single gap against the
+  stated goal.
+- **Phase 6 — UI screens.** 2 screens declared against a whole application.
+
+### 7. Bench defects, not product defects
+
+- **KMail treats a 429 login as fatal.** Running `test:api` immediately before `test:kmail` leaves
+  the auth service throttled and KMail cannot start — that produced a run where **479 of 496
+  failures were one bench fault**. Workaround: run KMail first, or leave a gap. `authSession`
+  needs the same backoff the API bench's BR-S01 test already uses.
+- **A suite that fails to authenticate writes `"defects": []`.** A total execution failure is
+  currently indistinguishable from a clean run in the report. That is how a dead 929-test run came
+  to report zero defects.
+
+### 8. Open questions for the product/dev team, not bugs
+
+- **`getKpostIdUsingModule` payload width.** The route is public by design (confirmed), but the
+  anonymous response carries names and gender alongside handles. Whether the payload should be
+  that wide is a product decision; deliberately not filed.
+- **`BUG-API-A349C7` — payment gateway callback requires a bearer token.** Whether the gateway is
+  meant to call it tokenless is a design question the response cannot settle. Still the only
+  Critical in the report that has not been decided.
+- **Should Katchup message ids be guessable?** They are one global sequential counter. The
+  ownership check is the fix for the current P0, but non-sequential ids would remove the
+  enumeration surface entirely. See `docs/handover/katchup-message-ownership.md`.
+
+### 9. Findings awaiting a developer fix
+
+The gate suite is deliberately red for these — each will go green when the fix lands. See
+`docs/handover/` for the developer-facing write-ups.
+
+| finding | where |
+| --- | --- |
+| `sendMessage` honours an undocumented `msgID` and overwrites any message, any type, no ownership check — then recall/delete follow because `sender` was rewritten | `gate/security/messageOwnership.spec.ts` |
+| Stored XSS — Kdiary `createEvent`, Katchup `sendMessage` | `gate/security/storedContent.spec.ts` |
+| Hibernate internals leaked on `createSchedule` | `gate/security/internalsLeak.spec.ts` |
+| Confidential Copy recipient disclosed (messageType 18) | `gate/security/confidentialCopy.spec.ts` |
+| Wallet notification to a caller-supplied mobile | `gate/security/tokenIdentity.spec.ts` |
+| A reply is not linked to the message it replies to | `tests/katchupV2/businessRules.spec.ts` |
+| `addMembersToKall` 500s on a duplicate member | `tests/kallV2/kallEffects.spec.ts` |
+
+
 ## Reporting & defect tracking
 
 Every suite produces `BUG_REPORT.md`/`.json` and `DEV_DIGEST.md`/`.json` (gitignored, per run),
@@ -247,8 +397,12 @@ Three mechanisms keep the report honest:
 - **Content-hashed ids** collapse the same symptom on the same endpoint.
 - **`dedupeKey`** collapses one fault surfacing as many symptoms — an unvalidated controller files
   one ticket per *endpoint*, not per fuzzed field.
-- **A validity gate** refuses findings whose own evidence contradicts them (exposure claimed on a
-  401; enumeration claimed on a 404), announced as `[bug-gate] SUPPRESSED`.
+- **A validity gate** refuses findings whose own evidence contradicts them, announced as
+  `[bug-gate] SUPPRESSED`. Four rules, each added after a bad ticket got through:
+  exposure claimed on a 401/403; enumeration claimed on a 404; **a run that could not establish a
+  session** (the assertion never ran, so there is no verdict — a bench fault, not a defect); and
+  **a concurrency or idempotency claim evidenced by a 401/403** (two identical refusals are
+  correct gating under load, not shared state). Covered by `npm run test:unit`.
 
 `BUGZILLA_DRY_RUN=true` is currently set in all three API envs **deliberately** — see
 [`docs/context/`](docs/context/). Flip it only when the team accepts the re-filing.

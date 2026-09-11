@@ -38,7 +38,8 @@ function clean(value: string | undefined): string {
 }
 
 function firstLine(message: string): string {
-  const line = message.split('\n').find((candidate) => candidate.trim().length > 0) ?? 'Assertion failed';
+  const line =
+    message.split('\n').find((candidate) => candidate.trim().length > 0) ?? 'Assertion failed';
   return line.trim().slice(0, 180);
 }
 
@@ -60,7 +61,10 @@ function stableKey(message: string, method: string, endpointPath: string): strin
   const normalized = message
     .replace(ANSI, '')
     .replace(/\b\d{1,3}(?:\.\d{1,3}){3}\b/g, '<ip>') // IPv4
-    .replace(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g, '<uuid>')
+    .replace(
+      /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g,
+      '<uuid>',
+    )
     .replace(/\b[0-9a-fA-F]{16,}\b/g, '<hex>') // long hex blobs / hashes
     .replace(/:\d{2,5}\b/g, ':<port>') // :443, :8989
     .replace(/\b\d+\s?ms\b/gi, '<ms>') // latencies
@@ -91,14 +95,25 @@ function stableKey(message: string, method: string, endpointPath: string): strin
  * invents a classification it cannot justify. Category is derived downstream by
  * `deriveCategory`, which reads the same title for security markers.
  */
-function classifyFailure(message: string): { classification: FlawClassification; severity: Severity } {
+function classifyFailure(message: string): {
+  classification: FlawClassification;
+  severity: Severity;
+} {
   const m = message;
   const rules: Array<[RegExp, FlawClassification, Severity]> = [
     // genuine infrastructure noise — the only bucket that stays excluded from Bugzilla
-    [/ETIMEDOUT|ECONNRESET|ECONNREFUSED|socket hang|Target closed|context was destroyed|apiRequestContext\.\w+: (connect|request)/i, 'Assertion Failure', 'Major'],
+    [
+      /ETIMEDOUT|ECONNRESET|ECONNREFUSED|socket hang|Target closed|context was destroyed|apiRequestContext\.\w+: (connect|request)/i,
+      'Assertion Failure',
+      'Major',
+    ],
     // security — missing throttling. Stays ahead of the throttled-response rule below so that
     // "…all processed with no 429" is read as the absence of rate limiting, not as one.
-    [/\bno 429\b|not rate.?limited|no rate.?limit|throttl|rapid .*(login|attempt|signup|password)|consecutive .*(login|attempt|failed)/i, 'Security/Rate Limiting', 'Major'],
+    [
+      /\bno 429\b|not rate.?limited|no rate.?limit|throttl|rapid .*(login|attempt|signup|password)|consecutive .*(login|attempt|failed)/i,
+      'Security/Rate Limiting',
+      'Major',
+    ],
     /*
      * The endpoint throttled US. Excluded from Bugzilla, like the transport noise above.
      *
@@ -123,15 +138,35 @@ function classifyFailure(message: string): { classification: FlawClassification;
      * walkable by short integer ids. Each is an access-control fault, not test noise, so the
      * wording the specs actually use is matched here rather than only the word "IDOR".
      */
-    [/\bIDOR\b|cross-tenant|active sessions .*(supplied|query)|query-supplied|body-supplied|caller-supplied|supplying kpostID|body carried kpostID|can be walked|another (user|company|tenant)'s|for an arbitrary|someone else'?s/i, 'Security/Access Control', 'Critical'],
+    [
+      /\bIDOR\b|cross-tenant|active sessions .*(supplied|query)|query-supplied|body-supplied|caller-supplied|supplying kpostID|body carried kpostID|can be walked|another (user|company|tenant)'s|for an arbitrary|someone else'?s/i,
+      'Security/Access Control',
+      'Critical',
+    ],
     // security — internals disclosed
-    [/stack ?trace|Java exception|SQL syntax|Hibernate|ORA-\d|internals? leak|exception class/i, 'Security/Information Disclosure', 'Critical'],
+    [
+      /stack ?trace|Java exception|SQL syntax|Hibernate|ORA-\d|internals? leak|exception class/i,
+      'Security/Information Disclosure',
+      'Critical',
+    ],
     // concurrency / idempotency
-    [/concurrent|idempoten|unique constraint|\d+ of \d+ .*(succeeded|processed)|race condition|double/i, 'Idempotency / Concurrency', 'Major'],
+    [
+      /concurrent|idempoten|unique constraint|\d+ of \d+ .*(succeeded|processed)|race condition|double/i,
+      'Idempotency / Concurrency',
+      'Major',
+    ],
     // a failure transported as success (200 disagrees with the envelope)
-    [/HTTP (status )?\d+ .*(disagree|contradic)|status .*disagrees|envelope .*(status|500)|masked/i, 'Status Code Misreporting', 'Major'],
+    [
+      /HTTP (status )?\d+ .*(disagree|contradic)|status .*disagrees|envelope .*(status|500)|masked/i,
+      'Status Code Misreporting',
+      'Major',
+    ],
     // contract / schema break
-    [/schema validation|does not match .*(schema|contract)|violates .*(contract|schema)|response .*contract/i, 'Schema Violation', 'Minor'],
+    [
+      /schema validation|does not match .*(schema|contract)|violates .*(contract|schema)|response .*contract/i,
+      'Schema Violation',
+      'Minor',
+    ],
     /*
      * Unhandled server error — matched on the status the endpoint **observably returned**,
      * never on one that merely appears in the assertion's expected list.
@@ -143,9 +178,17 @@ function classifyFailure(message: string): { classification: FlawClassification;
      * whose endpoints had actually answered 429, 200, 404 or 204 - inflating the Major band
      * with findings that were, at worst, a wrong status code.
      */
-    [/produced HTTP 5\d\d|but got 5\d\d|returned HTTP 5\d\d|\bstatus 5\d\d\b|caused a server error|Internal Server Error/i, 'Unhandled NPE / Server Error', 'Major'],
+    [
+      /produced HTTP 5\d\d|but got 5\d\d|returned HTTP 5\d\d|\bstatus 5\d\d\b|caused a server error|Internal Server Error/i,
+      'Unhandled NPE / Server Error',
+      'Major',
+    ],
     // merely a wrong status code
-    [/Expected status|expected \d+\/\d+|expected \[|wrong status|HTTP \d{3}\b/i, 'Incorrect HTTP Status', 'Minor'],
+    [
+      /Expected status|expected \d+\/\d+|expected \[|wrong status|HTTP \d{3}\b/i,
+      'Incorrect HTTP Status',
+      'Minor',
+    ],
   ];
   for (const [re, classification, severity] of rules) {
     if (re.test(m)) return { classification, severity };
@@ -215,7 +258,7 @@ export default class BugSafetyNetReporter implements Reporter {
     const alreadyFiled = new Set(
       readBugLedger()
         .flatMap((record) => [record.testId, ...(record.observedByTests ?? [])])
-        .filter((id): id is string => Boolean(id))
+        .filter((id): id is string => Boolean(id)),
     );
 
     // Endpoint of last resort: the busiest call the test actually made, per telemetry.
@@ -259,8 +302,22 @@ export default class BugSafetyNetReporter implements Reporter {
       const calls = callsByTest.get(test.id) ?? [];
       const fallback = calls[calls.length - 1];
 
-      const method = (match ? match[1] : fallback?.method ?? 'â€”').toUpperCase();
-      const endpointPath = match ? match[2] : fallback?.path ?? test.location.file;
+      /*
+       * A ticket must name an API route, never a source file.
+       *
+       * The last resort here used to be `test.location.file`, so a test whose describe does not
+       * carry an endpoint — the requirement-led ones, e.g. `FR-K08 — editing a sent message` —
+       * filed with `endpointPath` set to a Windows path off the build agent. That module then
+       * resolves to "Unclassified", which is not a component on the Bugzilla product, and the
+       * ticket reaches nobody. Prefer the last route the test actually called; only fall back to
+       * the file when the test made no HTTP call at all, and mark it plainly so it is obvious in
+       * triage that the endpoint is unknown rather than wrong.
+       */
+      const inferredPath = match ? match[2] : fallback?.path;
+      const endpointPath = inferredPath?.startsWith('/') ? inferredPath : '/unknown';
+      const method = (
+        match ? match[1] : (fallback?.method ?? (endpointPath === '/unknown' ? 'UNKNOWN' : 'POST'))
+      ).toUpperCase();
 
       // Recover the real fault from the message. Only genuine infra noise stays
       // `Assertion Failure` (and thus excluded from Bugzilla); everything else files as a
@@ -312,7 +369,7 @@ export default class BugSafetyNetReporter implements Reporter {
 
     console.log(
       `${LOG} filed ${filed} synthesized defect(s) for failing tests that recorded none; ` +
-        `${skipped} already had a ledger entry (of ${failed.length} failing tests)`
+        `${skipped} already had a ledger entry (of ${failed.length} failing tests)`,
     );
   }
 

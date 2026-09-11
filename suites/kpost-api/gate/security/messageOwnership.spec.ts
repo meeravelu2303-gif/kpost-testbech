@@ -192,7 +192,7 @@ async function assertSenderActionRequiresOwnership(
   ).toBe(true);
 }
 
-test.describe('FR-K08 — sender actions require ownership of the message @gate', () => {
+test.describe('POST /v2/katchup/sendMessage — FR-K08 sender actions require ownership @gate', () => {
   test('[FR-K08][NFR-SEC06] edit must be refused for a non-participant', async ({
     katchupClient,
     authClient,
@@ -282,7 +282,7 @@ test.describe('FR-K08 — sender actions require ownership of the message @gate'
  * This is the test that should stay green forever once the field is rejected; the five above are
  * the per-action guards that prove no path regressed individually.
  */
-test.describe('NFR-SEC06 — an undocumented msgID must not overwrite another account @gate', () => {
+test.describe('POST /v2/katchup/sendMessage — NFR-SEC06 an undocumented msgID must not overwrite @gate', () => {
   test('[NFR-SEC06] a plain send carrying msgID must not take over an existing message', async ({
     katchupClient,
     authClient,

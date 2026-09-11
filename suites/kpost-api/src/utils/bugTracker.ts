@@ -222,7 +222,7 @@ const SECURITY_CONSEQUENCE_MARKERS = [
 export function deriveCategory(
   classification: FlawClassification,
   title: string,
-  description: string
+  description: string,
 ): BugCategory {
   const base = categoryFor(classification);
   if (base === 'Security') return base;
@@ -452,7 +452,9 @@ export function buildCurl(record: {
   requestBody?: string;
 }): string {
   const baseUrl = process.env.BASE_URL ?? 'http://localhost:8989';
-  const parts = [`curl -i -X ${record.method.toUpperCase()} ${shellQuote(baseUrl + record.endpointPath)}`];
+  const parts = [
+    `curl -i -X ${record.method.toUpperCase()} ${shellQuote(baseUrl + record.endpointPath)}`,
+  ];
 
   for (const [key, value] of Object.entries(record.requestHeaders)) {
     const emitted = key.toLowerCase() === 'authorization' ? 'Bearer $KPOST_TOKEN' : value;
@@ -482,7 +484,7 @@ export function buildCurl(record: {
      * type (the transport-contract cases) keeps the header it was actually run with.
      */
     const declaresContentType = Object.keys(record.requestHeaders).some(
-      (key) => key.toLowerCase() === 'content-type'
+      (key) => key.toLowerCase() === 'content-type',
     );
     if (isJson && !declaresContentType) {
       parts.push(`  -H ${shellQuote('Content-Type: application/json')}`);
@@ -499,8 +501,35 @@ export function buildCurl(record: {
  * KPOST's routes do not follow their tag names (Company Administration lives under
  * `/admin`, Kdiary under `/dairySchedule`), so prefix matching mis-routes tickets.
  */
+/**
+ * Path-prefix ownership, used only when the generated registry has no entry for a route.
+ *
+ * Longest prefix wins, so the order here matters: more specific prefixes are listed first.
+ */
+const MODULE_BY_PREFIX: Record<string, { module: string; team: string }> = {
+  '/v2/katchup/': { module: 'Katchup Messaging V2', team: 'Katchup' },
+  '/v2/contacts/': { module: 'Contacts Directory V2', team: 'Contacts' },
+  '/v2/kall/': { module: 'Kall (Voice/Video) V2 - current', team: 'Kall' },
+  '/v2/group/': { module: 'Groups V2', team: 'Groups' },
+  '/v2/profile/': { module: 'User Profile V2', team: 'Profile' },
+  '/v2/dashboard/': { module: 'Dashboard V2', team: 'Dashboard' },
+  '/v2/signupLogin/': { module: 'Authentication V2', team: 'Authentication' },
+  '/generalSetting/': { module: 'General Settings', team: 'General Settings' },
+  '/dairySchedule/': { module: 'Kdiary - Schedules, Events & Reports', team: 'Kdiary' },
+  '/v2/common/': { module: 'Common Reference Data & Utilities V2', team: 'Common' },
+  '/taWallet/': { module: 'TA Wallet Payments', team: 'Payments Integration' },
+  '/ai/': { module: 'Integration - AI Assistant', team: 'AI Integration' },
+};
+
 export function resolveModule(endpointPath: string): { module: string; team: string } {
-  const exact = MODULE_BY_PATH[endpointPath];
+  /*
+   * Trailing slashes are normalised first. Several routes are declared in the Excel with a
+   * trailing slash (`/v2/contacts/myContacts/`) and recorded that way on the finding, while the
+   * ownership registry holds the bare form — so the exact lookup missed and five tickets went
+   * out as "Unclassified", which is not a Bugzilla component and routes them to nobody.
+   */
+  const normalised = endpointPath.replace(/\/+$/, '');
+  const exact = MODULE_BY_PATH[endpointPath] ?? MODULE_BY_PATH[normalised];
   if (exact) return exact;
 
   // Path-parameter routes are recorded with a concrete value substituted in, so fall back
@@ -508,7 +537,7 @@ export function resolveModule(endpointPath: string): { module: string; team: str
   for (const [template, ownership] of Object.entries(MODULE_BY_PATH)) {
     if (!template.includes('{')) continue;
     const pattern = new RegExp(
-      `^${template.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\{[^}]+\\\}/g, '[^/]+')}$`
+      `^${template.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\{[^}]+\\\}/g, '[^/]+')}$`,
     );
     if (pattern.test(endpointPath)) return ownership;
   }
@@ -527,6 +556,19 @@ export function resolveModule(endpointPath: string): { module: string; team: str
     if (!template.includes('{')) continue;
     const base = template.slice(0, template.indexOf('/{')).replace(/\/+$/, '');
     if (base && base === endpointPath.replace(/\/+$/, '')) return ownership;
+  }
+
+  /*
+   * Last resort before "Unclassified": infer from the path prefix.
+   *
+   * A route missing from the generated registry — `/v2/kall/endKall` and
+   * `/v2/common/saveUnsubscriberDetails` both were — still belongs to an obvious module, and
+   * "Unclassified" is not one of the 27 components on the Bugzilla product, so those tickets
+   * land in a fallback component and reach no owner. A prefix is a weaker signal than the
+   * registry, which is why it runs last, but it is far better than nobody.
+   */
+  for (const [prefix, ownership] of Object.entries(MODULE_BY_PREFIX)) {
+    if (normalised.startsWith(prefix)) return ownership;
   }
 
   return { module: 'Unclassified', team: 'Platform' };
@@ -583,7 +625,7 @@ function computeId(
   endpointPath: string,
   title: string,
   classification: FlawClassification,
-  dedupeKey?: string
+  dedupeKey?: string,
 ): string {
   const fingerprint =
     dedupeKey ??
@@ -645,9 +687,9 @@ export function listSystemicObservations(kind: string): string[] {
       .filter((f) => f.endsWith('.json'))
       .map((f) => {
         try {
-          const parsed = JSON.parse(
-            fs.readFileSync(path.join(SYSTEMIC_DIR, kind, f), 'utf-8')
-          ) as { endpointKey: string };
+          const parsed = JSON.parse(fs.readFileSync(path.join(SYSTEMIC_DIR, kind, f), 'utf-8')) as {
+            endpointKey: string;
+          };
           return parsed.endpointKey;
         } catch {
           return '';
@@ -668,7 +710,7 @@ export function resetBugLedger(): void {
   fs.writeFileSync(
     BUG_REPORT_PATH,
     '# KPOST API — Automated Bug Report\n\n_Run in progress; this file is rewritten when the suite completes._\n',
-    'utf-8'
+    'utf-8',
   );
 }
 
@@ -728,8 +770,9 @@ export function listExercisedEndpoints(): string[] {
       .filter((f) => f.endsWith('.json'))
       .map((f) => {
         try {
-          return (JSON.parse(fs.readFileSync(path.join(COVERAGE_DIR, f), 'utf-8')) as { key: string })
-            .key;
+          return (
+            JSON.parse(fs.readFileSync(path.join(COVERAGE_DIR, f), 'utf-8')) as { key: string }
+          ).key;
         } catch {
           return '';
         }
@@ -860,17 +903,23 @@ export function listOccurrences(id: string): BugOccurrence[] {
 function contradictsOwnEvidence(input: BugInput): string | null {
   const actual = String(input.actual ?? '');
   const claim = `${input.title ?? ''} ${input.description ?? ''}`;
-  const status = Number(/HTTP (\d{3})/.exec(actual)?.[1] ?? NaN);
+  /*
+   * Both spellings. Findings recorded by the safety net carry the refusal only inside the
+   * envelope — `Body: {"statusCode":401,...}` with no "HTTP 401" anywhere — so matching the
+   * prefix alone left `status` as NaN and every status-dependent rule below silently skipped.
+   * BUG-API-FB6FFB reached the report that way: a concurrency claim evidenced by two 401s.
+   */
+  const status = Number(
+    /HTTP (\d{3})/.exec(actual)?.[1] ?? /"statusCode"\s*:\s*(\d{3})/.exec(actual)?.[1] ?? NaN,
+  );
 
   const declaredPublicFinding = /declared public|contract marks|route is public/i.test(claim);
   const claimsExposureOrBypass =
-    /expos|disclos|leak(?!s? database internals)|bypass|another user'?s|enumerat|smuggl/i.test(claim);
+    /expos|disclos|leak(?!s? database internals)|bypass|another user'?s|enumerat|smuggl/i.test(
+      claim,
+    );
 
-  if (
-    claimsExposureOrBypass &&
-    (status === 401 || status === 403) &&
-    !declaredPublicFinding
-  ) {
+  if (claimsExposureOrBypass && (status === 401 || status === 403) && !declaredPublicFinding) {
     return `claims exposure or bypass, but the recorded response is HTTP ${status} — the server refused the request, so it cannot evidence either`;
   }
 
@@ -878,6 +927,44 @@ function contradictsOwnEvidence(input: BugInput): string | null {
     return 'claims identifiers are enumerable, but the recorded response is HTTP 404 — nothing resolved';
   }
 
+  /*
+   * A run that could not establish a session is a BENCH fault, never a product defect.
+   *
+   * `BUG-API-CF7ADA` was filed as a Major against getUserProfile with the actual reading
+   * "AuthenticationUnavailableError: No authenticated session could be established, so this
+   * assertion could not be evaluated." The bench said outright that it had proved nothing, and
+   * that sentence became a ticket. An assertion that could not run has no verdict to report.
+   */
+  if (
+    /AuthenticationUnavailableError|could not be evaluated|No authenticated session could be established/i.test(
+      `${claim} ${actual}`,
+    )
+  ) {
+    return 'the bench could not establish a session, so the assertion never ran — this is a bench fault, not a defect';
+  }
+
+  /*
+   * A concurrency or idempotency claim cannot rest on two refusals.
+   *
+   * `BUG-API-727AA4` claimed a shared `resultMap` instance field because two responses came
+   * back byte-identical. They were identical because BOTH were
+   * `401 "Authentication is required"`. Two identical refusals are what a correctly gated route
+   * looks like under concurrent load — the claim needs two responses that actually reached the
+   * handler.
+   */
+  /*
+   * Keyed on the CLASSIFICATION, not on words in the prose.
+   *
+   * The first revision matched /race/ anywhere in the claim and suppressed a real finding —
+   * "repointing must not silently invalidate the caller's token" — because the auto-generated
+   * description contains the word "t-race". A gate that eats real defects is worse than one
+   * that lets a weak ticket through, so the text signals now only narrow a claim the ledger has
+   * already classified as concurrency.
+   */
+  const claimsConcurrency = input.classification === 'Idempotency / Concurrency';
+  if (claimsConcurrency && (status === 401 || status === 403)) {
+    return `claims a concurrency or idempotency fault, but the recorded response is HTTP ${status} — two identical refusals are correct gating, not shared state`;
+  }
   return null;
 }
 
@@ -885,7 +972,7 @@ export function recordBug(input: BugInput): string {
   const contradiction = contradictsOwnEvidence(input);
   if (contradiction) {
     process.stderr.write(
-      `[bug-gate] SUPPRESSED "${String(input.title).slice(0, 90)}" on ${input.method} ${input.endpointPath}: ${contradiction}\n`
+      `[bug-gate] SUPPRESSED "${String(input.title).slice(0, 90)}" on ${input.method} ${input.endpointPath}: ${contradiction}\n`,
     );
     return '';
   }
@@ -899,7 +986,7 @@ export function recordBug(input: BugInput): string {
     rest.endpointPath,
     identityTitle ?? rest.title,
     rest.classification,
-    rest.dedupeKey
+    rest.dedupeKey,
   );
   const resolved = resolveModule(input.endpointPath);
   const module = input.module || resolved.module;
@@ -1081,9 +1168,7 @@ function renderEvidence(record: BugRecord): string {
   // One sample is just `actual`, which the ticket already prints on its own line.
   if (samples.length <= 1) return '';
 
-  const rows = samples
-    .map((s) => `  - \`${s.method} ${s.endpointPath}\` → ${s.actual}`)
-    .join('\n');
+  const rows = samples.map((s) => `  - \`${s.method} ${s.endpointPath}\` → ${s.actual}`).join('\n');
   return `- **Observed variations (${samples.length} distinct):**\n${rows}\n`;
 }
 
@@ -1147,7 +1232,7 @@ function renderDashboard(records: BugRecord[], meta: RunMeta): string {
   const bySeverity = countBy(records, (r) => r.severity);
   const byModule = [...countBy(records, (r) => r.module).entries()].sort((a, b) => b[1] - a[1]);
   const byClass = [...countBy(records, (r) => r.classification).entries()].sort(
-    (a, b) => b[1] - a[1]
+    (a, b) => b[1] - a[1],
   );
 
   const byPriority = countBy(records, (r) => r.priority);
@@ -1173,7 +1258,7 @@ function renderDashboard(records: BugRecord[], meta: RunMeta): string {
     .map((severity) => {
       const cells = BUG_CATEGORIES.map(
         (category) =>
-          records.filter((r) => r.severity === severity && r.category === category).length
+          records.filter((r) => r.severity === severity && r.category === category).length,
       );
       return `| ${severity} | ${cells.join(' | ')} | **${bySeverity.get(severity) ?? 0}** |`;
     })
@@ -1257,20 +1342,20 @@ ${verdict}
 ### 🚩 Showstoppers — Critical (P0), fix before anything else
 
 ${
-    critical === 0
-      ? '_None. No Critical / P0 defects in this run._'
-      : `The ${critical} defect${critical === 1 ? '' : 's'} below ${critical === 1 ? 'is a' : 'are'} showstopper${critical === 1 ? '' : 's'} — a crash, data loss, exposure, or accepted-and-persisted bad input — ordered by how central the affected module is to the product. These block release.
+  critical === 0
+    ? '_None. No Critical / P0 defects in this run._'
+    : `The ${critical} defect${critical === 1 ? '' : 's'} below ${critical === 1 ? 'is a' : 'are'} showstopper${critical === 1 ? '' : 's'} — a crash, data loss, exposure, or accepted-and-persisted bad input — ordered by how central the affected module is to the product. These block release.
 
 | ID | Category | Module | Representative Endpoint | Title |
 | --- | --- | --- | --- | --- |
 ${records
-          .filter((r) => r.severity === 'Critical')
-          .map(
-            (r) =>
-              `| ${r.displayId ?? r.id} | ${r.category} | ${r.module} | \`${r.method} ${r.endpointPath}\` | ${r.title} |`
-          )
-          .join('\n')}`
-  }
+  .filter((r) => r.severity === 'Critical')
+  .map(
+    (r) =>
+      `| ${r.displayId ?? r.id} | ${r.category} | ${r.module} | \`${r.method} ${r.endpointPath}\` | ${r.title} |`,
+  )
+  .join('\n')}`
+}
 
 ### Defects by Module
 
@@ -1295,13 +1380,13 @@ ${byClass.map(([c, n]) => `| ${c} | ${n} |`).join('\n') || '| _none_ | 0 |'}
 | ID | Severity | Priority | Category | Endpoints | Occurrences | Owner | Title |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 ${
-    records
-      .map(
-        (r) =>
-          `| ${r.displayId ?? r.id} | ${r.severity} | ${r.priority} | ${r.category} | ${r.affectedEndpoints?.length ?? 1} | ${r.occurrences ?? 1} | ${r.owner} | ${r.title} |`
-      )
-      .join('\n') || '| _none_ | — | — | — | — | — | — | — |'
-  }
+  records
+    .map(
+      (r) =>
+        `| ${r.displayId ?? r.id} | ${r.severity} | ${r.priority} | ${r.category} | ${r.affectedEndpoints?.length ?? 1} | ${r.occurrences ?? 1} | ${r.owner} | ${r.title} |`,
+    )
+    .join('\n') || '| _none_ | — | — | — | — | — | — | — |'
+}
 
 ## Itemized Bug Ledger
 
@@ -1334,7 +1419,11 @@ export function compileBugReport(stats: RunStats): void {
  * characters so the label stays scannable in a table.
  */
 function moduleToken(module: string): string {
-  const word = module.replace(/[^A-Za-z0-9 ]/g, ' ').trim().split(/\s+/)[0] ?? 'API';
+  const word =
+    module
+      .replace(/[^A-Za-z0-9 ]/g, ' ')
+      .trim()
+      .split(/\s+/)[0] ?? 'API';
   return word.slice(0, 8).toUpperCase() || 'API';
 }
 
@@ -1408,7 +1497,10 @@ export function compileGrouping(records: BugRecord[]): void {
     const byEndpoint = new Map<string, AffectedEndpoint>();
     const tests = new Set<string>();
     const timestamps: string[] = [];
-    const distinctActuals = new Map<string, { method: string; endpointPath: string; actual: string }>();
+    const distinctActuals = new Map<
+      string,
+      { method: string; endpointPath: string; actual: string }
+    >();
 
     for (const occurrence of occurrences) {
       const key = `${occurrence.method} ${occurrence.endpointPath}`;
@@ -1440,15 +1532,18 @@ export function compileGrouping(records: BugRecord[]): void {
       (a, b) =>
         b.occurrences - a.occurrences ||
         a.endpointPath.localeCompare(b.endpointPath) ||
-        a.method.localeCompare(b.method)
+        a.method.localeCompare(b.method),
     );
 
     const moduleWeight = new Map<string, number>();
     for (const endpoint of affected) {
-      moduleWeight.set(endpoint.module, (moduleWeight.get(endpoint.module) ?? 0) + endpoint.occurrences);
+      moduleWeight.set(
+        endpoint.module,
+        (moduleWeight.get(endpoint.module) ?? 0) + endpoint.occurrences,
+      );
     }
     const modulesByWeight = [...moduleWeight.entries()].sort(
-      (a, b) => b[1] - a[1] || a[0].localeCompare(b[0])
+      (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
     );
 
     record.occurrences = occurrences.length;
@@ -1564,9 +1659,9 @@ function writeReport(meta: RunMeta): void {
       affectedEndpointCount: new Set(
         records.flatMap((r) =>
           (r.affectedEndpoints ?? [{ method: r.method, endpointPath: r.endpointPath }]).map(
-            (e) => `${e.method} ${e.endpointPath}`
-          )
-        )
+            (e) => `${e.method} ${e.endpointPath}`,
+          ),
+        ),
       ).size,
       bySeverity: tally(records, (r) => r.severity),
       byPriority: tally(records, (r) => r.priority),

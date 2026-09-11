@@ -59,14 +59,14 @@ test.describe('recordBug validity gate', () => {
   test('refuses an exposure claim whose evidence is a refused request (401)', () => {
     const id = recordBug(
       input({
-        title: 'Another user\'s contacts were exposed to the caller',
+        title: "Another user's contacts were exposed to the caller",
         actual: 'HTTP 401 — body: {"message":"Authentication token is invalid."}',
-      })
+      }),
     );
 
     expect(
       id,
-      'a request the server REFUSED cannot evidence that data was exposed — this must file nothing'
+      'a request the server REFUSED cannot evidence that data was exposed — this must file nothing',
     ).toBe('');
   });
 
@@ -75,7 +75,7 @@ test.describe('recordBug validity gate', () => {
       input({
         title: 'Sequential session ids can be enumerated to walk the conversation store',
         actual: 'HTTP 404 — body: {"message":"The requested resource does not exist."}',
-      })
+      }),
     );
 
     expect(id, 'nothing resolved, so nothing was enumerable').toBe('');
@@ -92,7 +92,7 @@ test.describe('recordBug validity gate', () => {
         title: 'Route declared public rejects anonymous callers',
         description: 'The contract marks this route public; the implementation gates it.',
         actual: 'HTTP 401 — the auth filter refused an anonymous request.',
-      })
+      }),
     );
 
     expect(id, 'the public-route finding must still file').not.toBe('');
@@ -104,7 +104,7 @@ test.describe('recordBug validity gate', () => {
       input({
         title: 'Anonymous module lookup exposes account handles (user directory)',
         actual: 'HTTP 200 — body: {"data":[{"kpostID":"info@kpost.in"}]}',
-      })
+      }),
     );
 
     expect(id, 'a 200 that returned handles is exactly the evidence this claim needs').not.toBe('');
@@ -121,10 +121,98 @@ test.describe('recordBug validity gate', () => {
         title: 'Injected input triggers an internals leak (Hibernate internals)',
         classification: 'Unhandled NPE / Server Error',
         actual: 'HTTP 500 — body: org.hibernate.exception.SQLGrammarException',
-      })
+      }),
     );
 
     expect(id, 'an internals leak on a 500 is a real finding').not.toBe('');
+    cleanUp([id]);
+  });
+});
+
+/*
+ * Added 2026-09-11, after a full run produced two tickets whose own evidence disproved them and
+ * that the gate did not catch — both would have gone to Bugzilla:
+ *
+ *  - `BUG-API-CF7ADA` (Major, getUserProfile) recorded "AuthenticationUnavailableError: No
+ *    authenticated session could be established, so this assertion could not be evaluated." The
+ *    bench said it had proved nothing, and that sentence became a product defect.
+ *  - `BUG-API-727AA4` (Major, kmailPasswordPatchWork) claimed a shared `resultMap` instance field
+ *    because two responses were byte-identical. Both were `401 Authentication is required`.
+ */
+test.describe('validity gate — bench faults and concurrency claims', () => {
+  test('refuses a finding whose assertion never ran for want of a session', () => {
+    const id = recordBug(
+      input({
+        title: 'AuthenticationUnavailableError: No authenticated session could be established',
+        actual:
+          'AuthenticationUnavailableError: No authenticated session could be established, so this assertion could not be evaluated. Target: http://192.168.0.66:8989',
+      }),
+    );
+
+    expect(
+      id,
+      'a run that could not authenticate has no verdict to report — this is a bench fault, not a defect',
+    ).toBe('');
+  });
+
+  test('refuses a concurrency claim whose evidence is two refusals', () => {
+    const id = recordBug(
+      input({
+        title:
+          'a patch-job call and a concurrent storage read returned byte-identical bodies, which points at the shared resultMap instance field',
+        classification: 'Idempotency / Concurrency',
+        actual:
+          'HTTP 401 — body: {"status":"FAILURE","statusCode":401,"message":"Authentication is required to access this resource."}',
+      }),
+    );
+
+    expect(
+      id,
+      'two identical 401s are what correct gating looks like under concurrent load, not shared state',
+    ).toBe('');
+  });
+
+  test('does NOT refuse a concurrency claim that reached the handler', () => {
+    /*
+     * The other half. A real concurrency fault — two simultaneous writes both 500ing — must still
+     * file. The gate is narrow on purpose: one that guesses suppresses real defects.
+     */
+    const id = recordBug(
+      input({
+        title: 'concurrent identical member additions returned 500 and 500',
+        classification: 'Idempotency / Concurrency',
+        actual: 'HTTP 500 — body: {"message":"Failed to Add Member","status":"FAILURE"}',
+      }),
+    );
+
+    expect(id, 'a concurrency fault evidenced by a 500 is real and must be filed').not.toBe('');
+    cleanUp([id]);
+  });
+});
+
+test.describe('validity gate — must not eat real findings', () => {
+  test('a session-integrity finding on a 401 is NOT suppressed as concurrency', () => {
+    /*
+     * Regression pin. The first concurrency rule matched /race/ anywhere in the claim and ate
+     * this exact finding — "repointing must not silently invalidate the caller's token" — because
+     * the auto-generated description says "the tier 1 diagnostic trace has the full exchange".
+     * The 401 here IS the defect: the caller's own token stopped working after their own write.
+     */
+    const id = recordBug(
+      input({
+        title:
+          "after repointing the primary device the caller's own token answered HTTP 401 on getUserProfile. Changing a device pairing must not log the user out of the session that made the change.",
+        classification: 'Incorrect HTTP Status',
+        description:
+          'Detected by a plain expect(); the tier 1 diagnostic trace has the full exchange.',
+        actual: 'HTTP 401 — the token no longer resolves.',
+      }),
+    );
+
+    expect(
+      id,
+      "a 401 that IS the defect must still file — the caller's own token stopped working",
+    ).not.toBe('');
     cleanUp([id]);
   });
 });

@@ -62,7 +62,7 @@ async function bookKall(
   return { kallID: typeof row?.kallID === 'number' ? row.kallID : null, subject, response };
 }
 
-test.describe('FR-C01 — a booked Kall is stored with the details it was booked with @audit', () => {
+test.describe('POST /v2/kall/scheduledKall — FR-C01 a booked Kall keeps its details @audit', () => {
   test('[FR-C01] the booked title and both times must survive a read-back', async ({
     kallV2Client,
     staticToken,
@@ -120,7 +120,7 @@ test.describe('FR-C01 — a booked Kall is stored with the details it was booked
   });
 });
 
-test.describe('FR-C02 — added participants are on the Kall afterwards @audit', () => {
+test.describe('POST /v2/kall/addMembersToKall — FR-C02 added participants are on the Kall @audit', () => {
   test('[FR-C02] every added participant must be on the call, and nobody else', async ({
     kallV2Client,
     staticToken,
@@ -181,14 +181,23 @@ test.describe('FR-C02 — added participants are on the Kall afterwards @audit',
     );
     const { text } = await readBody(response);
 
+    /*
+     * Named outcomes, not a `< 500` range: that range also passes on a 404 or a 401, which would
+     * mean the call never reached the handler. Two assertions — it got there, and it did not fault.
+     */
     expect(
-      response.status(),
+      [401, 403, 404, 405].includes(response.status()),
+      `FR-C02: the duplicate-add call answered HTTP ${response.status()}, so it never reached the handler and the duplicate case was not exercised. Body: ${text.slice(0, 200)}`,
+    ).toBe(false);
+
+    expect(
+      response.status() >= 500,
       `FR-C02: re-adding a participant who is already on kallID ${kallID} produced HTTP ${response.status()}. A duplicate invite is an ordinary organiser action — it must be a no-op or a clean 4xx, never a server fault. Body: ${text.slice(0, 200)}`,
-    ).toBeLessThan(500);
+    ).toBe(false);
   });
 });
 
-test.describe('FR-C05 — a placed call is recorded @audit', () => {
+test.describe('POST /v2/kall/initiateKall — FR-C05 a placed call is recorded @audit', () => {
   test('[FR-C05] placing a direct call must create a call record', async ({
     kallV2Client,
     staticToken,

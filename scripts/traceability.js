@@ -70,15 +70,16 @@ for (const root of SPEC_ROOTS) {
         if (!hits.has(id)) hits.set(id, []);
         hits.get(id).push({
           body: (() => {
-            // The test block, by brace count. Prettier-formatted sources make this reliable.
-            let depth = 0, started = false;
+            /*
+             * Brace counting alone over-ran into the FOLLOWING test — a destructuring line or
+             * a template literal can leave the count unbalanced — and the next test's
+             * assertions were then judged as this one's. FR-K21 was reported as using
+             * handledCleanly() when its own body does not. Stop at the next test declaration.
+             */
             const out = [];
             for (let k = index; k < lines.length; k++) {
+              if (k > index && /^\s*test(?:\.\w+)?\s*\(/.test(lines[k])) break;
               out.push(lines[k]);
-              const opens = (lines[k].match(/\{/g) ?? []).length;
-              depth += opens - (lines[k].match(/\}/g) ?? []).length;
-              if (opens) started = true;
-              if (started && depth <= 0) break;
             }
             return out.join('\n');
           })(),
@@ -160,7 +161,15 @@ function acceptsSuccessAndRefusal(body) {
 const tolerant = [];
 for (const r of automatable) {
   for (const h of hits.get(r.id) ?? []) {
-    const body = h.body ?? '';
+    /*
+     * Comments are stripped first. A test that EXPLAINS why it replaced a tolerant assertion
+     * names the old helper in its own comment, and matching that reported the fixed test as
+     * still broken — FR-K21 was flagged for the sentence describing its own repair.
+     */
+    const body = (h.body ?? '')
+      .split('\n')
+      .filter((line) => !/^\s*(\/\/|\/\*|\*)/.test(line))
+      .join('\n');
     const reasons = TOLERANT.filter(([re]) => re.test(body)).map(([, why]) => why);
     if (acceptsSuccessAndRefusal(body)) {
       reasons.push('status set accepts both a 2xx and a 4xx — success and refusal both pass');
