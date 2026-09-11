@@ -35,7 +35,8 @@
       "module": "KMail",
       "priority": "High",
       "layer": "api",
-      "text": "Read-receipt data is recorded for every mail sent, matching Katchup's behaviour."
+      "text": "Read-receipt data is recorded for every mail sent, matching Katchup's behaviour.",
+      "blocked": "Written but never exercised: the QA accounts have no mail-server credentials (getMailCredentials returns all-null), so postMail 500s and the mailbox read answers \"No Data Found\". 6 of 7 receipt tests skip. Blocked 2026-09-11 — re-check when the developers provision mail credentials."
     },
     {
       "id": "BR-S01",
@@ -147,7 +148,8 @@
       "module": "Katchup",
       "priority": "High",
       "layer": "api",
-      "text": "Attach one or more files to a message."
+      "text": "Attach one or more files to a message.",
+      "blocked": "Cannot be verified from the bench: no multipart shape we could construct attaches a file. sendKatchupMsgMultiPart returns attachmentUuid:null even with the documented attachmentCaption/fileName pairing, and uploadMultipartFiles answers 400 (request could not be read as a multipart upload) for every part name tried. Open question for the developers: what does the files part expect? Blocked 2026-09-11 - no assertion written, because one that has never passed is not evidence."
     },
     {
       "id": "FR-K04",
@@ -308,14 +310,16 @@
       "module": "KMail",
       "priority": "High",
       "layer": "api",
-      "text": "Compose and send a new mail message."
+      "text": "Compose and send a new mail message.",
+      "blocked": "Rests on postMail, which 500s on this environment: the QA accounts have no mail-server credentials (getMailCredentials returns all-null). The contract check passes on the error envelope, so it is not evidence the mail was composed or delivered. Blocked 2026-09-11 — re-check when the developers provision mail credentials."
     },
     {
       "id": "FR-M02",
       "module": "KMail",
       "priority": "High",
       "layer": "api",
-      "text": "Add one or more recipients to a mail message."
+      "text": "Add one or more recipients to a mail message.",
+      "blocked": "Rests on postMail, which 500s on this environment: the QA accounts have no mail-server credentials (getMailCredentials returns all-null). The contract check passes on the error envelope, so it is not evidence the mail was composed or delivered. Blocked 2026-09-11 — re-check when the developers provision mail credentials."
     },
     {
       "id": "FR-M03",
@@ -329,7 +333,8 @@
       "module": "KMail",
       "priority": "High",
       "layer": "api",
-      "text": "Record and display a read receipt per mail, with exact open date/time."
+      "text": "Record and display a read receipt per mail, with exact open date/time.",
+      "blocked": "Written but never exercised: the QA accounts have no mail-server credentials (getMailCredentials returns all-null), so postMail 500s and the mailbox read answers \"No Data Found\". 6 of 7 receipt tests skip. Blocked 2026-09-11 — re-check when the developers provision mail credentials."
     },
     {
       "id": "FR-M05",

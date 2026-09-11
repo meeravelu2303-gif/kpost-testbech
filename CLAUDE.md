@@ -182,7 +182,7 @@ default behaviour:
 
 ---
 
-## Four traps this bench has actually fallen into
+## Six traps this bench has actually fallen into
 
 Each cost real time and each is now guarded. Read these before writing an assertion.
 
@@ -197,6 +197,42 @@ Each cost real time and each is now guarded. Read these before writing an assert
 4. **A wrong contract invalidates every gate built on it.** A parser that silently dropped 35
    endpoints let the Excel gate report 100% while measuring an incomplete workbook. *Guard:*
    `contract:parse` reports row gaps per tab; a gap means the parser is wrong, not the workbook.
+5. **Judging a disclosure or removal from the ACTOR's response instead of the AFFECTED party's
+   fetch.** This is the standing vantage-point rule, and it has produced a wrong test twice.
+
+   > **The verdict on a disclosure, removal, ownership or delivery requirement is taken from the
+   > affected party's own read — never from the response the actor receives.**
+
+   The actor's response is the actor's view, and the actor is often entitled to see what the
+   rule is protecting from someone else. NFR-SEC02 first asserted on the *sender's* send
+   response, where a sender may legitimately see the Confidential Copy list they chose — it
+   reported a leak that was not one. FR-K10 first asserted that a recalled message left the
+   *sender's* conversation, where the backend correctly keeps the row marked recalled
+   (`messageType 7`, `status 5`) — it reported a defect against correct behaviour.
+
+   *Guard:* before writing the assertion, name the party the requirement protects and read as
+   them. That usually means a second login on a throwaway device id — worth it. It applies to
+   every rule of this shape still to be written: **forward, transfer, delete, recall, block,
+   unshare, revoke.** If reading as the affected party is impossible on the environment, the
+   test skips with that reason; it does not fall back to the actor's view.
+6. **Running several mutations against ONE seeded fixture.** The companion to the vantage-point
+   rule, and it produced a wrong result the same week.
+
+   > **One action per seeded fixture. A mutation sequence sharing a fixture makes every result
+   > after the first unreadable.**
+
+   Five sender actions — edit, note, reminder, recall, delete — were run against a single
+   message. All five answered 200 and the read was "none of them check ownership". Re-run with
+   a fresh message per action, recall and delete answered **400**: they check ownership
+   correctly. Their 200 in the first run was real, but it came *after* the edit had rewritten
+   the message's `sender` to the caller, so by then the caller genuinely owned it. The shared
+   fixture turned a two-stage escalation into a flat, wrong conclusion — and it was the more
+   serious finding that the flat reading destroyed.
+
+   *Guard:* seed inside the loop, never outside it. If a test genuinely needs a chain, assert
+   each step against the state that step alone produced, and say in the test which earlier step
+   each result depends on. Applies to every mutation family still to be written: block/unblock,
+   archive/restore, add/remove member, grant/revoke.
 
 ---
 

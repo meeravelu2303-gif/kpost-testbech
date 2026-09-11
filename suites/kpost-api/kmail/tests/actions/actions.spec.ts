@@ -208,7 +208,7 @@ test.describe('POST /v2/common/setKmailAsImportant @audit', () => {
     await assertStatusCodeParity(response, { ...META, body: {} });
   });
 
-  test('[FR-M04][BR-M01][13] round-trip (business rule): a flagged mail must appear in the Important folder', async ({
+  test('[13] round-trip (business rule): a flagged mail must appear in the Important folder', async ({
     mailboxClient,
     token,
   }) => {

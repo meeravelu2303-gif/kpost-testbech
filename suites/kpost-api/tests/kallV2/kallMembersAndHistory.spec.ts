@@ -943,7 +943,7 @@ test.describe('POST /v2/kall/kallDashboard @audit', () => {
     repro: `await kallV2Client.kallDashboard(buildKallDashboardPayload(), { token });`,
   };
 
-  test('[FR-C08][FR-C09][1] happy path: the call history satisfies the Zod contract', async ({
+  test('[1] happy path: the call history satisfies the Zod contract', async ({
     kallV2Client,
     staticToken,
   }) => {

@@ -62,7 +62,7 @@ test.describe('POST /v2/group/createUserGroup @audit', () => {
     repro: `await groupsV2Client.createUserGroup(buildCreateGroupPayload(), { token });`,
   };
 
-  test('[FR-K06][1] happy path: a valid creation satisfies the Zod contract', async ({
+  test('[1] happy path: a valid creation satisfies the Zod contract', async ({
     groupsV2Client,
     staticToken,
   }) => {

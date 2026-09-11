@@ -296,7 +296,7 @@ test.describe('Auth - POST /v2/signupLogin/userLogout @audit', () => {
     repro: `await authClient.userLogout(buildLogoutPayload(kpostID), { token });`,
   };
 
-  test('[FR-S12] 1. baseline: a logout attempt returns a documented status', async ({
+  test('1. baseline: a logout attempt returns a documented status', async ({
     authClient,
     revocableToken,
   }) => {
@@ -1730,7 +1730,7 @@ test.describe('Auth - GET /v2/signupLogin/getActiveSession @audit', () => {
     repro: `await authClient.getActiveSession({ token });`,
   };
 
-  test('[FR-S11] 1. baseline returns a documented status', async ({ authClient, staticToken }) => {
+  test('1. baseline returns a documented status', async ({ authClient, staticToken }) => {
     const response = await authClient.getActiveSession({ token: staticToken });
     await assertStatus(response, [200, 400, 401, 403], META);
   });

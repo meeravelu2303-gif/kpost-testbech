@@ -63,7 +63,7 @@ test.describe('POST /v2/kall/scheduledKall @audit', () => {
     repro: `await kallV2Client.scheduledKall(buildScheduledKallPayload(), { token });`,
   };
 
-  test('[FR-C01][FR-C02][1] happy path: booking a call satisfies the Zod contract', async ({
+  test('[1] happy path: booking a call satisfies the Zod contract', async ({
     kallV2Client,
     staticToken,
   }) => {

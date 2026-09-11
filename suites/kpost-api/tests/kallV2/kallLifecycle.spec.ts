@@ -65,7 +65,7 @@ test.describe('POST /v2/kall/initiateKall @audit', () => {
     repro: `await kallV2Client.initiateKall(buildKallROPayload(), { token });`,
   };
 
-  test('[FR-C05][1] happy path: placing a call satisfies the Zod contract', async ({
+  test('[1] happy path: placing a call satisfies the Zod contract', async ({
     kallV2Client,
     staticToken,
   }) => {
