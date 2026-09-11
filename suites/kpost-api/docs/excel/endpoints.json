@@ -1,17 +1,351 @@
 [
   {
     "tab": "KatchupAPI",
+    "row": 2,
+    "module": "Signup",
+    "name": "fetchUserDetails",
+    "url": "https://devapi2.kpostindia.com/v2/profile/fetchUserDetails/",
+    "path": "/v2/profile/fetchUserDetails/",
+    "request": "{\n    \"kpostID\": \"karans@kpost.in\",\n    \"countryID\":1\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
     "row": 3,
     "module": "Signup",
-    "url": "https://devapi2.kpostindia.com/v2/signupLogin/fetchUserDetails/",
-    "path": "/v2/signupLogin/fetchUserDetails/",
+    "name": "fetchUserDetails",
+    "url": "https://devapi2.kpostindia.com/v2/profile/fetchUserDetails/\n\nhttps://devapi2.kpostindia.com/v2/signupLogin/fetchUserDetails/",
+    "path": "/v2/profile/fetchUserDetails/",
     "request": "{\n    \"kpostID\": \"karans@kpost.in\",\n    \"countryID\":1\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 4,
+    "name": "userLogin",
+    "url": "https://devapi2.kpostindia.com//v2/signupLogin/userLogin/",
+    "path": "/v2/signupLogin/userLogin/",
+    "request": "{\n    \"loginRO\": {\n        \"countryID\": \"1\",\n        \"password\": \"123456\",\n        \"userType\":\"PERSONAL\" or \"BUSINESS\" or \"INSTITUTION\"\n    },\n    \"kpostID\": \"jmkmani55@kpostindia.com\",\n    \"sessionID\": \"45939170-2500-11fd-7609-eff623a703d6\",\n    \"deviceType\": \"Web\",\n    \"deviceIdentity_primary\": \"9f9d6bd8-238f-11ed-b3e2-73ce62ed0e94\",\n    \"deviceIdentity_secondary\": \"Desktop-Chrome\",\n    \"login_lattitude\": 13.0476875,\n    \"login_longitude\": 80.2655737,\n    \"oneSignal_Key\": \"oneSignalKey\",\n    \"logintime\": 1687001111000,\n    \"module\": 0 (kpost),\n    \"voip\" : \"voip\"\n}\nFor Time:\nhttps://www.epochconverter.com/",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 5,
+    "module": "Signup",
+    "name": "generateJWTokens",
+    "url": "https://devapi2.kpostindia.com/v2/signupLogin/generateJWTokens/",
+    "path": "/v2/signupLogin/generateJWTokens/",
+    "request": "{\n    \"refreshToken\": \"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJrYXJrc3JhamFuQGtwb3N0aW5kaWEuY29tIiwiaXNSZWZyZXNoVG9rZW4iOnRydWUsImV4cCI6MTcwNTk4NTk2MiwiaWF0IjoxNzA1NzI2NzYyfQ.P6oZp16dLjIW1ct0VtlohzGdMUkAGYbLysx6V42rAdAwBNTv6CWRBXyQ31ZZtbpMfiJp0p4fQfV3UU6dRAw5UA\"\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 6,
+    "module": "common",
+    "name": "msStatus",
+    "url": "https://devapi2.kpostindia.com/v2/common/msStatus/",
+    "path": "/v2/common/msStatus/",
+    "request": "",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 7,
+    "module": "common",
+    "name": "forgotPasswordUpdate  \n\n\nchangePassword",
+    "url": "https://devapi2.kpostindia.com/v2/common/forgotPasswordUpdate  \n\n\n   https://devapi2.kpostindia.com/v2/profile/changePassword",
+    "path": "/v2/common/forgotPasswordUpdate",
+    "request": "forgot password\n{  \"kpostID\": \"karans@kpostindia.com\",\n  \"forgotPassword\": \"1234567890\"       }\n\n\nchangePassword \n{\n\"oldPassword\":\"1234567\",\n\"confirmPassword\":\"123456\"}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 8,
+    "module": "common",
+    "name": "sendOTP\n\n\nvalidateOTP",
+    "url": "https://devapi2.kpostindia.com/v2/common/sendOTP/\n\nhttps://devapi2.kpostindia.com/v2/common/validateOTP/",
+    "path": "/v2/common/sendOTP/",
+    "request": "Send OTP\n\n{\n    \"countryID\": 1,\n    \"mobileNumber\":\"8056234596\",\n    \"requestType\":\"signup\" or \"business\" or \"institution\"\n}\n\nValidate OTP\n\n{\n  \"otp\": \"546093\",\n  \"countryID\": 1,\n  \"mobileNumber\": \"8056234596\",\n  \"sendDate\": 1687927955000\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 9,
+    "module": "common",
+    "name": "forgotPasswordOTPOrSentKpostIDSms",
+    "url": "https://devapi2.kpostindia.com/v2/common/forgotPasswordOTPOrSentKpostIDSms",
+    "path": "/v2/common/forgotPasswordOTPOrSentKpostIDSms",
+    "request": "{\"kpostID\": \"karans@kpostindia.com\",\n \"requestType\":\"password\"\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 10,
+    "module": "common",
+    "name": "countries",
+    "url": "https://devapi2.kpostindia.com/v2/common/countries",
+    "path": "/v2/common/countries",
+    "request": "Not Required",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 11,
+    "module": "common",
+    "name": "languages",
+    "url": "https://devapi2.kpostindia.com/v2/common/languages",
+    "path": "/v2/common/languages",
+    "request": "{\n    \"countryID\":1\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 12,
+    "module": "common",
+    "name": "sendOTPtoMail",
+    "url": "https://devapi2.kpostindia.com/v2/common/sendOTPtoMail/",
+    "path": "/v2/common/sendOTPtoMail/",
+    "request": "{\n   \"otherEmail\": \"abc@gmail.com\"\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 13,
+    "module": "common",
+    "name": "validateMailOTP",
+    "url": "https://devapi2.kpostindia.com/v2/common/validateMailOTP/",
+    "path": "/v2/common/validateMailOTP/",
+    "request": "{\n    \"email\": \"abc@gmail.com\",\n    \"sendDate\": 1687582289000,\n    \"otp\": 811054\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 14,
+    "module": "common",
+    "name": "mobileNoExist",
+    "url": "https://devapi2.kpostindia.com/v2/common/mobileNoExist/",
+    "path": "/v2/common/mobileNoExist/",
+    "request": "{\n  \"countryID\": 1,\n  \"mobileNumber\": \"123456789\"\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 15,
+    "module": "Signup",
+    "name": "kpostIdExist",
+    "url": "https://devapi2.kpostindia.com/v2/signupLogin/kpostIdExist/",
+    "path": "/v2/signupLogin/kpostIdExist/",
+    "request": "{\n    \"kpostID\": \"shalini@kpostindia.com\",\n    \"firstName\": \"shalini\",\n    \"lastName\": \"sri\",\n    \"mobileNumber\":\"123456789\"\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 16,
+    "module": "Signup",
+    "name": "kpostIDsuggestionList",
+    "url": "https://devapi2.kpostindia.com/v2/signupLogin/kpostIDsuggestionList/",
+    "path": "/v2/signupLogin/kpostIDsuggestionList/",
+    "request": " {\n   \n    \"firstName\": \"vignesh\",\n    \"lastName\": \"natchiar\",\n    \"mobileNumber\": \"1234567890\"\n   \n    }\n",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 17,
+    "module": "Signup",
+    "name": "signup",
+    "url": "https://devapi2.kpostindia.com/v2/signupLogin/signup/",
+    "path": "/v2/signupLogin/signup/",
+    "request": "{\n    \"kpostID\": \"jitendra@tn.kpost.in\",\n    \"firstName\": \"jitendra\",\n    \"lastName\": \"Kumar\",\n    \"mobileNumber\": \"9626306859\",\n    \"createdDate\": 1661171425000,\n    \"password\": \"Jiten@1234\",\n    \"gender\": \"male\",\n    \"dateOfBirth\": \"1989-07-09\",\n    \"module\": 0 /**(default)(kpost)*/,\n    \"countryCode\": \"91\",\n     \"email\" : \"jitendra@gmail.com\",\n    \"userProfile\": {\n        \"landLineNumber\": \"044444343784\",\n        \"referalId\": \"\",\n        \"pinCode\": \"600114\",\n        \"areaName\": \"Pazhavanthangal\",\n        \"state\": \"Tamil Nadu\",\n        \"city\": \"Chennai\"\n    }\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 18,
+    "name": "importPhoneContacts",
+    "url": "https://devapi2.kpostindia.com/v2/contacts/importPhoneContacts/",
+    "path": "/v2/contacts/importPhoneContacts/",
+    "request": "{\n    \"deviceID\": \"myDesktop\",\n    \"mobileNumber\": \"9087342129\",\n    \"countryCode\": \"91\",\n    \"phoneContacts\": [\n        {\n            \"mobileNumber\": \"7096122322\",\n            \"countryCode\": 91,\n            \"name\": \"Jitendra Airtel\"\n        },\n        {\n            \"countryCode\": \"\",\n            \"mobileNumber\": \"9841669300\",\n            \"name\": \"baskar test S\"\n        }\n    ]\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 19,
+    "module": "common",
+    "name": "domain",
+    "url": "https://devapi2.kpostindia.com/v2/common/domain/",
+    "path": "/v2/common/domain/",
+    "request": "For BUSINESS users:\n\n{\n  \"countryID\": 1,\n  \"userType\": \"BUSINESS\" \n}\n BUSINESS_S (S stands for Small)\n\nBUSINESS_M (M stands for Medium)\n\nBUSINESS_L(L stands for Large)\n\nFor PERSONAL users:\n\n{\n  \"countryID\": 1,\n  \"userType\": \"PERSONAL\"\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 20,
+    "name": "homeDashboardMsgs",
+    "url": "https://devapi2.kpostindia.com/v2/dashboard/homeDashboardMsgs/",
+    "path": "/v2/dashboard/homeDashboardMsgs/",
+    "request": "{\n \"serverTime\":1678346006000 ,\n \"lastMsgID\": 6180\n\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 21,
+    "module": "dashboard",
+    "name": "katchupDashboardMsg",
+    "url": "https://devapi2.kpostindia.com/v2/dashboard/katchupDashboardMsg/",
+    "path": "/v2/dashboard/katchupDashboardMsg/",
+    "request": "{ \n    \"serverTime\": 1689056910000\n}\n\n{\n \"lastMsgID\": 6180\n}\n{\n \"firstMsgID\": 6179\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 22,
+    "module": "dashboard",
+    "name": "getKmailDashboardMsg",
+    "url": "https://kmail5.kpostindia.com/kmail5/common/getKmailDashboardMsg/",
+    "path": "/kmail5/common/getKmailDashboardMsg/",
+    "request": "first fetch\n{\n     \"kmailID\": \"\"\n}\n\nsecond fetch\n{\n     \"kmailID\": 1001\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 23,
+    "module": "KALL",
+    "url": "https://devapi2.kpostindia.com//v2/dashboard/kallDashboard/",
+    "path": "/v2/dashboard/kallDashboard/",
+    "request": "{ \n    \"serverTime\": 1689250488000\n}  ",
+    "yellow": true
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 24,
+    "url": "https://devapi2.kpostindia.com/v2/contacts/katchupContacts",
+    "path": "/v2/contacts/katchupContacts",
+    "request": "GET METHOD",
+    "yellow": true
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 25,
+    "module": "katchup",
+    "name": "frequentlyAccessContacts",
+    "url": "https://devapi2.kpostindia.com/v2/katchup/frequentlyAccessContacts",
+    "path": "/v2/katchup/frequentlyAccessContacts",
+    "request": "Not Required(Get method)",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 26,
+    "module": "contacts",
+    "name": "addContact",
+    "url": "https://devapi2.kpostindia.com/v2/contacts/addContact",
+    "path": "/v2/contacts/addContact",
+    "request": "{\n    \"contactID\": \"karanss@kpostindia.com\",\n    \"firstName\": \"karans\",\n    \"lastName\": \"s\",\n    \"userType\": \"PERSONAL\"\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 27,
+    "module": "contacts",
+    "name": "addContactReference",
+    "url": "https://devapi2.kpostindia.com/v2/contacts/addContactReference/",
+    "path": "/v2/contacts/addContactReference/",
+    "request": "{\n \"contactID\": \"karanss@kpostindia.com\",\n  \"referenceName\": \"java 2\"\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 28,
+    "module": "contacts",
+    "name": "getImportedPhoneContacts",
+    "url": "https://devapi2.kpostindia.com/v2/contacts/getImportedPhoneContacts/",
+    "path": "/v2/contacts/getImportedPhoneContacts/",
+    "request": " ",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 29,
+    "url": "https://devapi2.kpostindia.com/v2/contacts/fetchAdditionalKatchupContacts/",
+    "path": "/v2/contacts/fetchAdditionalKatchupContacts/",
+    "request": "GET METHOD",
+    "yellow": true
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 31,
+    "module": "katchup",
+    "name": "getSharedMessageInfo",
+    "url": "https://devapi2.kpostindia.com/v2/katchup/getSharedMessageInfo/",
+    "path": "/v2/katchup/getSharedMessageInfo/",
+    "request": "{\n  \"sharedMessageId\": 1693394184027\n} ",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 32,
+    "module": "contacts",
+    "name": "myContacts",
+    "url": "https://devapi2.kpostindia.com//v2/contacts/myContacts/",
+    "path": "/v2/contacts/myContacts/",
+    "request": "for first fetch\n{\n    \"lastfetchDate\":null\n}\n\nfrom second fetch\n{\n    \"lastfetchDate\":\"2023-08-02T01:32:06.000+00:00\"\n}  \n\n",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 33,
+    "module": "contacts",
+    "name": "myUnknownKatchupContacts",
+    "url": "https://devapi2.kpostindia.com//v2/contacts/myUnknownKatchupContacts/",
+    "path": "/v2/contacts/myUnknownKatchupContacts/",
+    "request": "for first fetch\n{\n    \"lastfetchDate\":null\n}\n\nfrom second fetch\n{\n    \"lastfetchDate\":\"2023-08-02T01:32:06.000+00:00\"\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 34,
+    "module": "contacts",
+    "name": "myGroups",
+    "url": "https://devapi2.kpostindia.com//v2/contacts/myGroups/",
+    "path": "/v2/contacts/myGroups/",
+    "request": "for first fetch\n{\n    \"lastfetchDate\":null\n}\n\nfrom second fetch\n{\n    \"lastfetchDate\":\"2023-08-02T01:32:06.000+00:00\"\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 35,
+    "module": "contacts",
+    "name": "myUnknownGroups",
+    "url": "https://devapi2.kpostindia.com//v2/contacts/myUnknownGroups/",
+    "path": "/v2/contacts/myUnknownGroups/",
+    "request": "for first fetch\n{\n    \"lastfetchDate\":null\n}\n\nfrom second fetch\n{\n    \"lastfetchDate\":\"2023-08-02T01:32:06.000+00:00\"\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 36,
+    "module": "katchup",
+    "name": "getUnopenedMessagesCount",
+    "url": "https://devapi2.kpostindia.com//v2/katchup/getUnopenedMessagesCount/",
+    "path": "/v2/katchup/getUnopenedMessagesCount/",
+    "request": "GET METHOD",
+    "yellow": false
+  },
+  {
+    "tab": "KatchupAPI",
+    "row": 37,
+    "module": "katchup",
+    "name": "sendMessage",
+    "url": "https://devapi2.kpostindia.com/v2/katchup/sendMessage/",
+    "path": "/v2/katchup/sendMessage/",
+    "request": "{\r\n    \"receiver\": \"karans@kpostindia.com\",\r\n    \"messageType\": \"0\",\r\n    \"subject\": \"General\",\r\n    \"actualMessage\": \"test message for testing..\",\r\n    \"messageTime\": 1691493767000,\r\n    \"serverTime\": 1691493767000,\r\n    \"status\": \"0\",\r\n    \"sessionID\": \"Web-Ang5\",\r\n    \"referenceMsgID\": null,\r\n        \"groupFlag\": \"false\",\r\n        \"isHtml\": false,\r\n        \"forwardReceiverList\": null,\r\n        \"groupForwardList\": null,\r\n        \"groupmemberList\": [], \r\n        \"sharedMessageDetails\": null,\r\n        \"secretMessageExpireTime\":null,\r\n        \"isVanished\":false,\r\n        \"sharedType\"0,\r\n        \"temporaryMsgID\":0,\r\n\"attachmentCaption\": \"[{\\\"fileName\\\":\\\"SAMPLE PROFILE FORMAT.docx\\\",\\\"caption\\\":\\\"\\\"},{\\\"fileName\\\":\\\"AppraisalReport_18_06_2024.pdf\\\",\\\"caption\\\":\\\"\\\"},{\\\"fileName\\\":\\\"rajan_kpost.in-Kmail-1718271932507-9ac4c833-6772-4d64-b501-8d6d0c79ec97.jpg\\\",\\\"caption\\\":\\\"\\\"},{\\\"fileName\\\":\\\"KDiary functional document 1.0 (1).docx\\\",\\\"caption\\\":\\\"\\\"}]\",\r\n    \"uuid\": [\r\n        \"75450bc8-9cef-4134-83cd-f8a9cd5344d8\",\r\n        \"7a0662af-548f-40f8-9ae3-b7c290a7f514\",\r\n        \"f3298392-a5bd-4980-a9b5-9b1363a32da7\",\r\n        \"ab2de1d8-6fc8-4870-af12-88e2cce138e1\"\r\n    ],\r\n    \"isVoiceMessage\": false,\r\n \"mapDetails\": \"{\\\"latitude\\\":\\\"28.7041\\\", \\\"longitude\\\":\\\"77.1025\\\", \\\"address\\\":\\\"New Delhi, India\\\"}\",\r\n\"contactDetails\":\"{\\\"kpostID\\\":\\\"sritharanp@kpost.in\\\",\\\"firstName\\\":\\\"Sritharan\\\",\\\"lastName\\\":\\\"P\\\",\\\"countryCode\\\":\\\"91\\\",\\\"mobileNumber\\\":\\\"9514650959\\\",\\\"country\\\":\\\"India\\\",\\\"state\\\":\\\"UNSPECIFIED\\\",\\\"city\\\":null,\\\"areaName\\\":\\\"Mylapore\\\",\\\"contactType\\\":\\\"PERSONAL\\\"}\",\r\n    \"sharedDetailReceiverList\": [\r\n        \"aravind07@kpost.in\",\r\n        \"ayyappan@kpostindia.com\"\r\n    ]\r\n\r\n}",
     "yellow": false
   },
   {
     "tab": "KatchupAPI",
     "row": 38,
     "module": "katchup",
+    "name": "saveKatchupMessages",
     "url": "https://devapi2.kpostindia.com/v2/katchup/saveKatchupMessages/",
     "path": "/v2/katchup/saveKatchupMessages/",
     "request": "For Group\n{\n    \"groupKpostID\": \"xyz@kpostindia.com\",\n    \"msgIDs\": [100,200,222,2223,223,2212,212],\n    \"groupFlag\": \"true\"\n}\n    ---------------------------------------------------------------------------------\nIndividual\n\n{\n    \"receiver\": \"xyz@kpostindia.com\",\n    \"msgIDs\": [100,200,222,2223,223,2212,212],\n    \"groupFlag\": \"false\"\n}",
@@ -21,6 +355,7 @@
     "tab": "KatchupAPI",
     "row": 39,
     "module": "katchup",
+    "name": "searchKatchUpMessage",
     "url": "https://devapi2.kpostindia.com/v2/katchup/searchKatchUpMessage/",
     "path": "/v2/katchup/searchKatchUpMessage/",
     "request": "{\n  \"searchMessage\": \"parameter\"\n}",
@@ -30,6 +365,7 @@
     "tab": "KatchupAPI",
     "row": 40,
     "module": "katchup",
+    "name": "katchupMessagesForSelectedContactID",
     "url": "https://devapi2.kpostindia.com/v2/katchup/katchupMessagesForSelectedContactID/",
     "path": "/v2/katchup/katchupMessagesForSelectedContactID/",
     "request": "for individual\n{\n  \"groupFlag\": false,\n  \"firstMsgID\": null,\n  \"lastMsgID\": null,\n  \"receiver\": \"vigneshnatchiar@kpostindia.com\"\n}\n\nfor group\n\n{\n  \"groupFlag\": true,\n  \"msgID\": 0,\n  \"receiver\": \"FT959@kpostindia.com\",\n}",
@@ -39,6 +375,7 @@
     "tab": "KatchupAPI",
     "row": 41,
     "module": "katchup",
+    "name": "markOrUnmarkImportantMessage",
     "url": "https://devapi2.kpostindia.com/v2/katchup/markOrUnmarkImportantMessage/",
     "path": "/v2/katchup/markOrUnmarkImportantMessage/",
     "request": "for individual\n{\n \n  \"msgID\": 40,\n  \"groupFlag\":false\n\n}\nfor group\n{\n   \"msgID\": 14,\n  \"groupFlag\":true,\n  \"markFlag\":true/false\n}",
@@ -48,6 +385,7 @@
     "tab": "KatchupAPI",
     "row": 42,
     "module": "katchup",
+    "name": "recallMessage",
     "url": "https://devapi2.kpostindia.com/v2/katchup/recallMessage/",
     "path": "/v2/katchup/recallMessage/",
     "request": "for individual\n{\n  \"msgID\": 1249,\n    \"status\":5\n}\n\nfor Group \n{\n    \"msgID\": 1249,\n    \"groupFlag\": true,\n}",
@@ -57,6 +395,7 @@
     "tab": "KatchupAPI",
     "row": 43,
     "module": "katchup",
+    "name": "getReadStatusGroupMessage",
     "url": "https://devapi2.kpostindia.com/v2/katchup/getReadStatusGroupMessage/",
     "path": "/v2/katchup/getReadStatusGroupMessage/",
     "request": "{\n  \"msgID\":5741\n}",
@@ -66,6 +405,7 @@
     "tab": "KatchupAPI",
     "row": 44,
     "module": "katchup",
+    "name": "deleteKatchUpMessage",
     "url": "https://devapi2.kpostindia.com/v2/katchup/deleteKatchUpMessage/",
     "path": "/v2/katchup/deleteKatchUpMessage/",
     "request": "{\n  \"messageIds\": [887,888,1025],\n    \"groupFlag\": true or false\n\n}",
@@ -75,6 +415,7 @@
     "tab": "KatchupAPI",
     "row": 45,
     "module": "group",
+    "name": "createUserGroup",
     "url": "https://devapi2.kpostindia.com/v2/group/createUserGroup/",
     "path": "/v2/group/createUserGroup/",
     "request": "{\n    \"activeStatus\": \"Y\",\n    \"createdBy\": \"baskar\",\n    \"groupPicturePath\": \"picture\",\n    \"groupCreateAccess\": true,\n    \"groupKpostName\": \"LEO DAS \",\n    \"isPrivateGroup\": \"Y\",\n    \"memberDetails\": [\n        {\n            \"createdBy\": \"baskar1992@kpostindia.com\",\n            \"hasAdminAccess\": \"Y\",\n            \"kpostID\": \"vigneshnatchiar@kpostindia.com\",\n            \"name\": \"vignesh vicky\",\n            \"memberDesignation\": \"\",\n            \"privacyStatus\": \"Y\",\n            \"remarks\": \"created by karkuvel\"\n        },\n        {\n            \"createdBy\": \"baskar1992@kpostindia.com\",\n            \"hasAdminAccess\": \"Y\",\n            \"kpostID\": \"prakas168@kpostindia.com\",\n            \"name\": \"prakash kumar\",\n            \"memberDesignation\": \"\",\n            \"privacyStatus\": \"Y\",\n            \"remarks\": \"created by karkuvel\"\n        },\n        {\n            \"createdBy\": \"baskar1992@kpostindia.com\",\n            \"hasAdminAccess\": \"Y\",\n            \"kpostID\": \"baskar1992@kpostindia.com\",\n            \"name\": \"karkuvel Rajam\",\n            \"memberDesignation\": \"\",\n            \"privacyStatus\": \"Y\",\n            \"remarks\": \"created by karkuvel\"\n        }\n    ]\n}",
@@ -84,6 +425,7 @@
     "tab": "KatchupAPI",
     "row": 46,
     "module": "group",
+    "name": "addUserToGroup",
     "url": "https://devapi2.kpostindia.com/v2/group/addUserToGroup/",
     "path": "/v2/group/addUserToGroup/",
     "request": "{\n    \"groupID\": 1202,\n    \"groupKpostID\": \"flu412@kpostindia.com\",\n    \"memberDetails\": [\n        {\n            \"kpostID\": \"limson@kpostindia.com\",\n            \"name\": \"limson lim\",\n            \"memberDesignation\":\"\",\n            \"hasAdminAccess\": \"N\",\n            \"privacyStatus\": \"Y\",\n            \"remarks\": \"member\",\n            \"createdBy\": \"baskar\"\n        }\n    ]\n}",
@@ -93,6 +435,7 @@
     "tab": "KatchupAPI",
     "row": 47,
     "module": "group",
+    "name": "removeGroupMember",
     "url": "https://devapi2.kpostindia.com/v2/group/removeGroupMember/",
     "path": "/v2/group/removeGroupMember/",
     "request": "{\n    \"memberKpostIdList\": [\n        \"jitendra9@kpostindia.com\"\n    ],\n    \"groupID\": 1141,\n    \"groupKpostID\": \"tgk998@kpostindia.com\"\n\n}",
@@ -102,6 +445,7 @@
     "tab": "KatchupAPI",
     "row": 48,
     "module": "group",
+    "name": "addOrRemoveAdminAccess",
     "url": "https://devapi2.kpostindia.com/v2/group/addOrRemoveAdminAccess/",
     "path": "/v2/group/addOrRemoveAdminAccess/",
     "request": "ADD ADMIN\n{\n  \"kpostIDs\": [\"vigneshnatchiar@kpostindia.com\"],\n  \"ids\": [523],\n  \"groupID\": 1141,\n  \"hasAdminAccess\": \"Y\"\n}\n\nRemove ADMIN\n{\n  \"kpostID\": [\"vigneshnatchiar@kpostindia.com\"],\n  \"id\": [523],\n  \"groupID\": 1141,\n  \"hasAdminAccess\": \"N\"\n}",
@@ -111,6 +455,7 @@
     "tab": "KatchupAPI",
     "row": 49,
     "module": "group",
+    "name": "leaveFromGroup",
     "url": "https://devapi2.kpostindia.com/v2/group/leaveFromGroup/",
     "path": "/v2/group/leaveFromGroup/",
     "request": "{\n    \"id\": \"532\",\n    \"groupID\": 1141,\n    \"groupKpostID\": \"tgk998@kpostindia.com\"\n\n}",
@@ -120,9 +465,10 @@
     "tab": "KatchupAPI",
     "row": 50,
     "module": "katchup",
+    "name": "sendKatchupMsgMultiPart",
     "url": "https://devapi2.kpostindia.com/v2/katchup/sendKatchupMsgMultiPart/",
     "path": "/v2/katchup/sendKatchupMsgMultiPart/",
-    "request": "files (multipart/form-data) – value select file.\ntext (application/json)\nvalue for text (application/json)\n{\n  \"receiver\": \"karkuvelrajan@kpostindia.com\",\n  \"messageType\": \" 0\",\n  \"subject\": \"General\",\n  \"actualMessage\": \"Normal msg\",\n  \"messageTime\": 1691493767000,\n  \"serverTime\": 1691493767000,\n  \"status\": 0,\n  \"sessionID\": \"Web-Ang5\",\n  \"attachmentCaption\": \"[{\\\"fileName\\\":\\\"send normal msg.txt\\\",\\\"caption\\\":\\\"sending normal txt file\\\"},{\\\"fileName\\\":\\\"reply msg.txt\\\",\\\"caption\\\":\\\"2nd caption\\\"}]\",\n  \"groupFlag\": false,\n  \"isHtml\": false,\n  \"forwardReceiverList\": null,\n\"referenceMessage\":null,\n  \"referenceMessageIDList\":null,\n  \"groupForwardList\": null,\n  \"groupmemberList\": null,\n  \"sharedMessageDetails\": null,\n  \"secretMessageExpireTime\": null,\n  \"isVanished\": false,\n  \"sharedType\":0,\n   \"temporaryMsgID\":0\n}\n\nNote:- In attachmentCaption  fileName should be same as selected file then add caption for the same.",
+    "request": "files (multipart/form-data) – value select file.\ntext (application/json)\nvalue for text (application/json)\n{\n  \"receiver\": \"karkuvelrajan@kpostindia.com\",\n  \"messageType\": \" 0\",\n  \"subject\": \"General\",\n  \"actualMessage\": \"Normal msg\",\n  \"messageTime\": 1691493767000,\n  \"serverTime\": 1691493767000,\n  \"status\": 0,\n  \"sessionID\": \"Web-Ang5\",\n  \"attachmentCaption\": \"[{\\\"fileName\\\":\\\"send normal msg.txt\\\",\\\"caption\\\":\\\"sending normal txt file\\\"},{\\\"fileName\\\":\\\"reply msg.txt\\\",\\\"caption\\\":\\\"2nd caption\\\"}]\",\n  \"groupFlag\": false,\n  \"isHtml\": false,\n  \"forwardReceiverList\": null,\n\"referenceMessage\":null,\n  \"referenceMessageIDList\":null,\n  \"groupForwardList\": null,\n  \"groupmemberList\": null,\n  \"sharedMessageDetails\": null,\n  \"secretMessageExpireTime\": null,\n  \"isVanished\": false,\n  \"sharedType\":0,\n   \"temporaryMsgID\":0\n}\n\nNote:- In attachmentCaption  fileName should be same as selected file then add caption for the same.\n",
     "yellow": false
   },
   {
@@ -246,15 +592,15 @@
     "tab": "KatchupAPI",
     "row": 64,
     "module": "KALL",
-    "url": "https://devapi2.kpostindia.com/v2/kall/removeMemberKatchupKall",
-    "path": "/v2/kall/removeMemberKatchupKall",
+    "url": "https://devapi2.kpostindia.com/v2/kall/reScheduleKatchupKall",
+    "path": "/v2/kall/reScheduleKatchupKall",
     "request": "{\n    \"idsList\":[18]\n}",
     "yellow": true
   },
   {
     "tab": "KatchupAPI",
     "row": 65,
-    "module": "",
+    "name": "download",
     "url": "https://devapi2.kpostindia.com/v2/katchup/download/{uuid}",
     "path": "/v2/katchup/download/{uuid}",
     "request": "GET METHOD",
@@ -263,16 +609,16 @@
   {
     "tab": "KatchupAPI",
     "row": 66,
-    "module": "",
+    "name": "updateProfileImage",
     "url": "https://devapi2.kpostindia.com/v2/profile/updateProfileImage/",
     "path": "/v2/profile/updateProfileImage/",
-    "request": "file (multipart/form-data) – value select file.",
+    "request": "file (multipart/form-data) – value select file.\n",
     "yellow": false
   },
   {
     "tab": "KatchupAPI",
     "row": 67,
-    "module": "",
+    "name": "removeProfileImage",
     "url": "https://devapi2.kpostindia.com//v2/profile/removeProfileImage/",
     "path": "/v2/profile/removeProfileImage/",
     "request": "GET METHOD",
@@ -281,16 +627,15 @@
   {
     "tab": "KatchupAPI",
     "row": 68,
-    "module": "",
-    "url": "https://devapi2.kpostindia.com//v2/profile/getDigitalCard/",
-    "path": "/v2/profile/getDigitalCard/",
+    "name": "getDigitalCard",
+    "url": "https://devapi2.kpostindia.com//v2//profile/getDigitalCard/",
+    "path": "/v2//profile/getDigitalCard/",
     "request": "for known Contacts\n{\n    \"contactID\":\"karans@kpostindia.com\",\n    \"userType\": \"KnownContacts\"\n}\n\nfor unKnowContacts\n{\n    \"contactID\":\"karans@kpostindia.com\",\n    \"userType\": \"unKnownContacts\"\n}",
     "yellow": false
   },
   {
     "tab": "KatchupAPI",
     "row": 69,
-    "module": "",
     "url": "https://devapi2.kpostindia.com/v2/signupLogin/getActiveSession",
     "path": "/v2/signupLogin/getActiveSession",
     "request": "GET METHOD",
@@ -299,7 +644,6 @@
   {
     "tab": "KatchupAPI",
     "row": 70,
-    "module": "",
     "url": "https://devapi2.kpostindia.com/v2/katchup/downloadThumbnail/{uuid}",
     "path": "/v2/katchup/downloadThumbnail/{uuid}",
     "request": "GET METHOD",
@@ -308,7 +652,6 @@
   {
     "tab": "KatchupAPI",
     "row": 71,
-    "module": "",
     "url": "https://kmail.kpostindia.com/kmail5/v2/translator/translation/",
     "path": "/kmail5/v2/translator/translation/",
     "request": "{\n    \"langTo\": \"hi\",\n    \"msgToTranslate\": \"hi how are you\"\n}",
@@ -317,7 +660,6 @@
   {
     "tab": "KatchupAPI",
     "row": 72,
-    "module": "",
     "url": "https://devapi2.kpostindia.com/v2/contacts/deleteContact/",
     "path": "/v2/contacts/deleteContact/",
     "request": "{\n  \"contactID\":\"prakas168@kpostindia.com\"\n}",
@@ -326,7 +668,6 @@
   {
     "tab": "KatchupAPI",
     "row": 73,
-    "module": "",
     "url": "https://devapi2.kpostindia.com/v2/contacts/blockOrUnBlockContact/",
     "path": "/v2/contacts/blockOrUnBlockContact/",
     "request": "{\n    \"contactID\": \"vijayg@kpostindia.com\",\n    \"isBlocked\": true or false\n}",
@@ -335,7 +676,6 @@
   {
     "tab": "KatchupAPI",
     "row": 74,
-    "module": "",
     "url": "https://devapi2.kpostindia.com/v2/contacts/getSearchDetails/",
     "path": "/v2/contacts/getSearchDetails/",
     "request": "{\n  \"requestType\": \"areaName\",\n  \"country\": \"INDIA\",\n  \"provienceName\": \"Southern Zone\",\n  \"state\": \"Tamil Nadu\",\n  \"city\":\"Chennai\"\n}\n\n{\n  \"requestType\": \"provienceName\",\n  \"country\": \"INDIA\"\n}\n{\n  \"requestType\": \"country\"\n}\n{\n  \"requestType\": \"pinCode\"\n}\n{\n  \"requestType\": \"city\",\n  \"country\": \"INDIA\",\n  \"provienceName\": \"Southern Zone\",\n  \"state\": \"Tamilnadu\"\n}\n{\n  \"requestType\": \"state\",\n  \"country\": \"INDIA\",\n  \"provienceName\": \"Southern Zone\"\n}",
@@ -344,7 +684,6 @@
   {
     "tab": "KatchupAPI",
     "row": 75,
-    "module": "",
     "url": "https://devapi2.kpostindia.com/v2/profile/autoSearchWithName/",
     "path": "/v2/profile/autoSearchWithName/",
     "request": "{\r\n    \"fullName\": \"ramesh\",\r\n    \"country\": \"india\"\r\n}",
@@ -353,7 +692,6 @@
   {
     "tab": "KatchupAPI",
     "row": 76,
-    "module": "",
     "url": "https://devapi2.kpostindia.com/v2/profile/advancedSearch/",
     "path": "/v2/profile/advancedSearch/",
     "request": "{\n    \"fullName\": \"karan s\",\n    \"mobileNumber\": \"9841\",\n    \"gender\": null,\n    \"ageFrom\": null,\n    \"ageTo\": null,\n    \"profession\": null,\n    \"pincode\": null,\n    \"state\": null,\n    \"city\": null,\n    \"country\":\"india\"\n}",
@@ -362,7 +700,6 @@
   {
     "tab": "KatchupAPI",
     "row": 77,
-    "module": "",
     "url": "https://devapi2.kpostindia.com/v2/contacts/globalSearch/",
     "path": "/v2/contacts/globalSearch/",
     "request": "{\n  \"search\": \"ram\" ,\n  \"languageList\": [\n    \"english\"\n  ],\n  \"userTypeList\": [\n    \"personal\"\n  ],\n  \"countryList\":[\"india\"]\n}",
@@ -371,7 +708,6 @@
   {
     "tab": "KatchupAPI",
     "row": 78,
-    "module": "",
     "url": "https://devapi2.kpostindia.com/v2/kall/todayKoolKall/",
     "path": "/v2/kall/todayKoolKall/",
     "request": "GET METHOD",
@@ -380,7 +716,6 @@
   {
     "tab": "KatchupAPI",
     "row": 79,
-    "module": "",
     "url": "https://kmail.kpostindia.com/kmail5/v2/sentMail/postMailMultiPart/",
     "path": "/kmail5/v2/sentMail/postMailMultiPart/",
     "request": "files (multipart/form-data) – value select file.\ntext (application/json)\nvalue for text (application/json)\n{ \n\"toAddress\": \"jitendra@kpost.in\",\n    \"kmailSubject\": \"mail from postman 1 mail no 4, with attachment\",\n    \"saluation\": \"Hello\",\n    \"saluationName\": \"karans\",\n    \"kmailContent\": \"How r u testing new mail from postman\",\n    \"kmailSendDate\": 1671701730543,\n    \"kmailType\": 0,\n    \"priority\": 0,\n    \"attachmentFlag\": 1,\n    \"ccList\":[\"jksrivatsa@gmail.com\"],\n    \"bccList\":[\"jksrivatsa@yahoo.com\"]\n}",
@@ -389,7 +724,6 @@
   {
     "tab": "KatchupAPI",
     "row": 80,
-    "module": "",
     "url": "https://devapi2.kpostindia.com/v2/common/getDesignation/",
     "path": "/v2/common/getDesignation/",
     "request": "{\n \"designation\": \"soft\"\n}",
@@ -398,7 +732,6 @@
   {
     "tab": "KatchupAPI",
     "row": 81,
-    "module": "",
     "url": "https://devapi2.kpostindia.com/v2/profile/updateDesignation",
     "path": "/v2/profile/updateDesignation",
     "request": "{\n \"designation\": \"software engineer\"\n}",
@@ -417,8 +750,8 @@
     "tab": "KatchupAPI",
     "row": 83,
     "module": "KALLv2  Kool Kall",
-    "url": "https://devapi2.kpostindia.com/v2/kall/scheduledRepeatKall",
-    "path": "/v2/kall/scheduledRepeatKall",
+    "url": "https://devapi2.kpostindia.com//v2/kall/scheduledKall",
+    "path": "/v2/kall/scheduledKall",
     "request": "{\n    \"kallSession\": \"789653\",\n    \"kallMode\": 0,\n    \"subject\": \"Kool call 07-11-2023\",\n    \"scheduledStartTime\": 1699352412000,\n    \"scheduledEndTime\": 1699352412000,\n    \"meetingLink\": \"www.jitsi.com\",\n    \"repeatType\":1,\n    \"repeatedDate\":\"{\\\"start_date\\\":\\\"2023-11-08\\\",\\\"end_date\\\":\\\"2023-11-20\\\"}\",\n    \"kallDetails\": [\n        {\n            \"receiver\": \"jitendra@kpostindia.com\"\n        },\n        {\n            \"receiver\": \"limson@kpostindia.com\"\n        }\n    ]\n}",
     "yellow": false
   },
@@ -462,7 +795,7 @@
     "tab": "KatchupAPI",
     "row": 88,
     "module": "KALLv2  Kool Kall",
-    "url": "https://devapi2.kpostindia.com/v2/kall/endKall",
+    "url": "https://devapi2.kpostindia.com/v2/kall/endKall\nurl changed to \nhttps://devapi2.kpostindia.com/v2/kall/endKoolKall",
     "path": "/v2/kall/endKall",
     "request": "{\n    \"id\": 3,\n    \"kallID\": 3\n}",
     "yellow": false
@@ -527,13 +860,14 @@
     "module": "KALLv2",
     "url": "https://devapi2.kpostindia.com/v2/kall/endIndividualKall/",
     "path": "/v2/kall/endIndividualKall/",
-    "request": "{\n     \"kallID\": 60\n}"
+    "request": "{\n     \"kallID\": 60\n}",
+    "yellow": false
   },
   {
     "tab": "KatchupAPI",
     "row": 96,
     "module": "KALLv2",
-    "url": "https://devapi2.kpostindia.com/v2/kall/contactInfo/",
+    "url": "https://devapi2.kpostindia.com//v2/kall/contactInfo/",
     "path": "/v2/kall/contactInfo/",
     "request": "{\n    \"contactID\": \"vino@kpost.in\",\n    \"deviceType\": \"android\",\n    \"fetchType\": \"knownContact\"  or \"unknownContact\"\n}",
     "yellow": false
@@ -587,9 +921,9 @@
     "tab": "KatchupAPI",
     "row": 102,
     "module": "Group",
-    "url": "https://devapi2.kpostindia.com/v2/group/removeGroupProfileImage",
+    "url": "https://devapi2.kpostindia.com//v2/group/removeGroupProfileImage",
     "path": "/v2/group/removeGroupProfileImage",
-    "request": "{\"groupKpostID\": \"hs798@kpostindia.com\"}",
+    "request": "\n{\"groupKpostID\": \"hs798@kpostindia.com\"}",
     "yellow": false
   },
   {
@@ -605,7 +939,7 @@
     "tab": "KatchupAPI",
     "row": 104,
     "module": "Group",
-    "url": "https://devapi2.kpostindia.com/v2/group/editGroupName",
+    "url": "https://devapi2.kpostindia.com//v2/group/editGroupName",
     "path": "/v2/group/editGroupName",
     "request": "{\n\"groupKpostID\": \"hs798@kpostindia.com\",    \n\"groupKpostName\":\"group edit checked\"\n}",
     "yellow": false
@@ -624,7 +958,7 @@
     "row": 106,
     "module": "profile",
     "url": "https://devapi2.kpostindia.com/v2//profile/updateContactInformation/",
-    "path": "/v2/profile/updateContactInformation/",
+    "path": "/v2//profile/updateContactInformation/",
     "request": "{\n\"country\": \"INDIA\",\n\"pinCode\": \"600073\",\n\"city\": \"CHENNAI\",\n\"areaName\": \"CAMPROAD\",\n\"addressLine1\": \"NO.1 chelli nagar\",\n\"addressLine2\": \"selaiyur\",\n\"alternateMobileno\": \"9087342129\",\n\"landLineNumber\": \"044\"\n}",
     "yellow": false
   },
@@ -632,8 +966,8 @@
     "tab": "KatchupAPI",
     "row": 107,
     "module": "profile",
-    "url": "https://devapi2.kpostindia.com/v2/profile/updateCollegeDetails/",
-    "path": "/v2/profile/updateCollegeDetails/",
+    "url": "https://devapi2.kpostindia.com/v2/profile/saveOrUpdateCollegeDetails/",
+    "path": "/v2/profile/saveOrUpdateCollegeDetails/",
     "request": "{\n    \"collegeDetails\": [\n        {\n            \"collegeID\": \"1342\",\n            \"collegeName\": \"Patrician Collage of Arts & Science\",\n            \"degree\": \"Bachelor/'s\",\n            \"course\": \"computer Application\",\n            \"field\": \"computer Application\",\n            \"yearFrom\": \"2019\",\n            \"yearTo\": \"2022\",\n            \"logoPath\": \"35d0017f-5b5b-42a2-869e-fcdb686c071c\",\n            \"about\":\"its good place to learn\",\n            \"attachmentPath\": [\n                \"f32298cc-9153-4293-90f2-b5a469df9135\",\n                \"63470516-0b12-418e-984d-19bd5340e37f\",\n                \"8b2d84ac-e8a9-4505-b3ae-ed87a4653f21\"\n            ]\n        }\n    ]\n}",
     "yellow": false
   },
@@ -641,8 +975,8 @@
     "tab": "KatchupAPI",
     "row": 108,
     "module": "profile",
-    "url": "https://devapi2.kpostindia.com/v2/profile/updateSchoolDetails/",
-    "path": "/v2/profile/updateSchoolDetails/",
+    "url": "https://devapi2.kpostindia.com/v2/profile/saveOrUpdateSchoolDetails/",
+    "path": "/v2/profile/saveOrUpdateSchoolDetails/",
     "request": "{\n    \"schoolDetails\": [\n        {\n            \"schoolID\": \"123\",\n            \"schoolName\": \"Santhome Higher Secondary School\",\n            \"standard\": \"11th to 12th\",\n            \"course\": \"computer science & Mathematics\",\n            \"yearFrom\": \"2017\",\n            \"yearTo\": \"2019\",\n            \"logoPath\": \"35d0017f-5b5b-42a2-869e-fcdb686c071c\",\n            \"about\":\"its good place to learn\",\n            \"attachmentPath\": [\n                \"f32298cc-9153-4293-90f2-b5a469df9135\",\n                \"63470516-0b12-418e-984d-19bd5340e37f\",\n                \"8b2d84ac-e8a9-4505-b3ae-ed87a4653f21\"\n            ]\n        }\n    ]\n}",
     "yellow": false
   },
@@ -650,8 +984,8 @@
     "tab": "KatchupAPI",
     "row": 109,
     "module": "profile",
-    "url": "https://devapi2.kpostindia.com/v2/profile/updateUniversityDetails/",
-    "path": "/v2/profile/updateUniversityDetails/",
+    "url": "https://devapi2.kpostindia.com/v2/profile/saveOrUpdateUniversityDetails/",
+    "path": "/v2/profile/saveOrUpdateUniversityDetails/",
     "request": "{\n    \"universityDetails\":[\n        {\n            \"universityID\":\"876\",\n            \"universityName\":\"Madras University\",\n            \"degree\":\"Masters\",\n            \"course\":\"Computer Application\",\n            \"field\":\"Computer Application\",\n            \"yearFrom\":2019,\n            \"yearTo\":2022,\n            \"logoPath\":\"\",\n            \"about\":\"its good place to learn\",\n            \"attachmentPath\":[\n                \"f32298cc-9153-4293-90f2-b5a469df9135\",\n                \"63470516-0b12-418e-984d-19bd5340e37f\",\n                \"8b2d84ac-e8a9-4505-b3ae-ed87a4653f21\"\n            ]\n        }\n    ]\n}",
     "yellow": false
   },
@@ -749,8 +1083,8 @@
     "tab": "KatchupAPI",
     "row": 120,
     "module": "katchup",
-    "url": "https://devapi2.kpostindia.com/v2/katchup/getReferenceMessagesDetails/",
-    "path": "/v2/katchup/getReferenceMessagesDetails/",
+    "url": "https://devapi2.kpostindia.com/v2/katchup/getReferenceMSGDetails/",
+    "path": "/v2/katchup/getReferenceMSGDetails/",
     "request": "{\n    \"referenceMessageIDList\": [\n        330340,\n        330329,\n        330321,\n        329749,\n        329749,\n        329747,\n        329746\n    ],\n    \"sourceMsgID\": 330510\n}",
     "yellow": false
   },
@@ -776,8 +1110,8 @@
     "tab": "KatchupAPI",
     "row": 123,
     "module": "profile",
-    "url": "https://devapi2.kpostindia.com/v2/profile/sendPrimaryDeviceOtp",
-    "path": "/v2/profile/sendPrimaryDeviceOtp",
+    "url": "https://devapi2.kpostindia.com/v2/profile/sendPrimaryDeviceOtp/",
+    "path": "/v2/profile/sendPrimaryDeviceOtp/",
     "request": "GET METHOD",
     "yellow": false
   },
@@ -785,8 +1119,8 @@
     "tab": "KatchupAPI",
     "row": 124,
     "module": "profile",
-    "url": "https://devapi2.kpostindia.com/v2/profile/setDeviceAsPrimary",
-    "path": "/v2/profile/setDeviceAsPrimary",
+    "url": "https://devapi2.kpostindia.com/v2/profile/setDeviceAsPrimary/",
+    "path": "/v2/profile/setDeviceAsPrimary/",
     "request": "{\n    \"deviceIdentity_primary\":\"DGBIGUUYIN\"\n}",
     "yellow": false
   },
@@ -803,8 +1137,8 @@
     "tab": "KatchupAPI",
     "row": 126,
     "module": "profile",
-    "url": "https://devapi2.kpostindia.com/v2/profile/updateDeviceAsPrimary",
-    "path": "/v2/profile/updateDeviceAsPrimary",
+    "url": "https://devapi2.kpostindia.com/v2/profile/updateDeviceAsPrimary/",
+    "path": "/v2/profile/updateDeviceAsPrimary/",
     "request": "{\n    \"deviceIdentity_primary\":\"DGBIGUUYIN\"\n}",
     "yellow": false
   },
@@ -895,7 +1229,7 @@
     "module": "KALL",
     "url": "https://devapi2.kpostindia.com/v2/kall/scheduledRepeatKall",
     "path": "/v2/kall/scheduledRepeatKall",
-    "request": "Daily \n\n{\n    \"kallSession\": \"baskar\",\n    \"kallMode\": 1,\n    \"kallType\": 1,\n    \"subject\": \"Daily Team Standup\",\n    \"description\": \"Daily standup meeting\",\n    \"scheduledStartTime\": 1717569637000,  ( april 25 2026 4pm)\n    \"scheduledEndTime\": 1717819396000,    ( april 25 2026 6pm)\n    \"seriesEndDate\": \"2026-08-31\",\n    \"meetingLink\": \"www.jitsi.com\",\n    \"repeatType\": 1,\n    \"preferredDays\": [],\n    \"preferredWeek\": [],\n    \"preferredDate\": [],\n    \"preferredMonth\": [],\n    \"receiverList\": [\n        \"jitendra@kpostindia.com\",\n        \"limson@kpostindia.com\"\n    ],\n    \"isReminder\": false,\n    \"priority\": 1,\n    \"snoozeDetails\": \"\"\n} \n\n  Weekly\n{\n    \"kallSession\": \"baskar\",\n    \"kallMode\": 1,\n    \"kallType\": 1,\n    \"subject\": \"Weekly Sprint Review\",\n    \"description\": \"Weekly sprint review meeting\",\n    \"scheduledStartTime\": 1717569637000,\n    \"scheduledEndTime\": 1720411396000,\n    \"seriesEndDate\": \"2026-08-31\",\n    \"meetingLink\": \"www.jitsi.com\",\n    \"repeatType\": 2,\n    \"preferredDays\": [1, 3, 5],\n    \"preferredWeek\": [1, 3],\n    \"preferredDate\": [],\n    \"preferredMonth\": [],\n    \"receiverList\": [\n        \"jitendra@kpostindia.com\",\n        \"limson@kpostindia.com\"\n    ],\n    \"isReminder\": false,\n    \"priority\": 1,\n    \"snoozeDetails\": \"\"\n} \n\nMonthly by Preferred Week + Day\n{\n    \"kallSession\": \"baskar\",\n    \"kallMode\": 1,\n    \"kallType\": 1,\n    \"subject\": \"Monthly Board Meeting\",\n    \"description\": \"Monthly board review\",\n    \"scheduledStartTime\": 1717569637000,\n    \"scheduledEndTime\": 1720411396000,\n    \"seriesEndDate\": \"2026-08-31\",\n    \"meetingLink\": \"www.jitsi.com\",\n    \"repeatType\": 3,\n    \"preferredMonth\": [7, 8],\n    \"preferredWeek\": [1, 3],\n    \"preferredDays\": [1],\n    \"preferredDate\": [],\n    \"receiverList\": [\n        \"jitendra@kpostindia.com\",\n        \"limson@kpostindia.com\"\n    ],\n    \"isReminder\": false,\n    \"priority\": 1,\n    \"snoozeDetails\": \"\"\n}\n\n\nMonthly -prefered week \n\"{\n    \"receiverList\": [\n        \"jitendra@kpostindia.com\",\n        \"limson@kpostindia.com\"\n    ],\n    \"kallSession\": \"baskar\",\n    \"kallMode\": 1,\n    \"kallType\": 1,\n    \"subject\": \"Kool repeatKall \",\n    \"description\": \"Salary processing meeting\",\n    \"scheduledStartTime\": 1717569637000,\n    \"scheduledEndTime\": 1720411396000,\n    \"seriesEndDate\": \"2026-08-31\",\n    \"meetingLink\": \"www.jitsi.com\",\n    \"repeatType\": 3,\n    \"preferredMonth\": [\n        7,\n        8\n    ],\n    \"preferredWeek\": [\n        1,\n        3\n    ],\n    \"preferredDays\": [\n        1\n    ]\n}\"    \n\nMonthly -prefered date\n{\n    \"kallSession\": \"baskar\",\n    \"kallMode\": 1,\n    \"kallType\": 1,\n    \"subject\": \"Monthly Salary Review\",\n    \"description\": \"Salary processing meeting\",\n    \"scheduledStartTime\": 1776859200000,\n    \"scheduledEndTime\": 1776866400000,\n    \"seriesEndDate\": 1788185400000,\n    \"meetingLink\": \"www.jitsi.com\",\n    \"repeatType\": 3,\n    \"preferredMonth\": [\n        4,\n        5,\n        7,\n        8\n    ],\n    \"preferredDate\": [\n        \"1\",\n        \"15\",\n        \"28\"\n    ],\n    \"preferredWeek\": [],\n    \"preferredDays\": [],\n    \"receiverList\": [\n        \"karanss@kpostindia.com\",\n        \"virat@kpost.in\"\n    ],\n    \"isReminder\": false,\n    \"priority\": 1,\n    \"snoozeDetails\": \"\"\n}",
+    "request": " Daily \n\n{\n    \"kallSession\": \"baskar\",\n    \"kallMode\": 1,\n    \"kallType\": 1,\n    \"subject\": \"Daily Team Standup\",\n    \"description\": \"Daily standup meeting\",\n    \"scheduledStartTime\": 1717569637000,  ( april 25 2026 4pm)\n    \"scheduledEndTime\": 1717819396000,    ( april 25 2026 6pm)\n    \"seriesEndDate\": \"2026-08-31\",\n    \"meetingLink\": \"www.jitsi.com\",\n    \"repeatType\": 1,\n    \"preferredDays\": [],\n    \"preferredWeek\": [],\n    \"preferredDate\": [],\n    \"preferredMonth\": [],\n    \"receiverList\": [\n        \"jitendra@kpostindia.com\",\n        \"limson@kpostindia.com\"\n    ],\n    \"isReminder\": false,\n    \"priority\": 1,\n    \"snoozeDetails\": \"\"\n} \n\n  Weekly\n{\n    \"kallSession\": \"baskar\",\n    \"kallMode\": 1,\n    \"kallType\": 1,\n    \"subject\": \"Weekly Sprint Review\",\n    \"description\": \"Weekly sprint review meeting\",\n    \"scheduledStartTime\": 1717569637000,\n    \"scheduledEndTime\": 1720411396000,\n    \"seriesEndDate\": \"2026-08-31\",\n    \"meetingLink\": \"www.jitsi.com\",\n    \"repeatType\": 2,\n    \"preferredDays\": [1, 3, 5],\n    \"preferredWeek\": [1, 3],\n    \"preferredDate\": [],\n    \"preferredMonth\": [],\n    \"receiverList\": [\n        \"jitendra@kpostindia.com\",\n        \"limson@kpostindia.com\"\n    ],\n    \"isReminder\": false,\n    \"priority\": 1,\n    \"snoozeDetails\": \"\"\n} \n\nMonthly by Preferred Week + Day\n{\n    \"kallSession\": \"baskar\",\n    \"kallMode\": 1,\n    \"kallType\": 1,\n    \"subject\": \"Monthly Board Meeting\",\n    \"description\": \"Monthly board review\",\n    \"scheduledStartTime\": 1717569637000,\n    \"scheduledEndTime\": 1720411396000,\n    \"seriesEndDate\": \"2026-08-31\",\n    \"meetingLink\": \"www.jitsi.com\",\n    \"repeatType\": 3,\n    \"preferredMonth\": [7, 8],\n    \"preferredWeek\": [1, 3],\n    \"preferredDays\": [1],\n    \"preferredDate\": [],\n    \"receiverList\": [\n        \"jitendra@kpostindia.com\",\n        \"limson@kpostindia.com\"\n    ],\n    \"isReminder\": false,\n    \"priority\": 1,\n    \"snoozeDetails\": \"\"\n}\n\n\nMonthly -prefered week \n\"{\n    \"receiverList\": [\n        \"jitendra@kpostindia.com\",\n        \"limson@kpostindia.com\"\n    ],\n    \"kallSession\": \"baskar\",\n    \"kallMode\": 1,\n    \"kallType\": 1,\n    \"subject\": \"Kool repeatKall \",\n    \"description\": \"Salary processing meeting\",\n    \"scheduledStartTime\": 1717569637000,\n    \"scheduledEndTime\": 1720411396000,\n    \"seriesEndDate\": \"2026-08-31\",\n    \"meetingLink\": \"www.jitsi.com\",\n    \"repeatType\": 3,\n    \"preferredMonth\": [\n        7,\n        8\n    ],\n    \"preferredWeek\": [\n        1,\n        3\n    ],\n    \"preferredDays\": [\n        1\n    ]\n}\"    \n\nMonthly -prefered date\n{\n    \"kallSession\": \"baskar\",\n    \"kallMode\": 1,\n    \"kallType\": 1,\n    \"subject\": \"Monthly Salary Review\",\n    \"description\": \"Salary processing meeting\",\n    \"scheduledStartTime\": 1776859200000,\n    \"scheduledEndTime\": 1776866400000,\n    \"seriesEndDate\": 1788185400000,\n    \"meetingLink\": \"www.jitsi.com\",\n    \"repeatType\": 3,\n    \"preferredMonth\": [\n        4,\n        5,\n        7,\n        8\n    ],\n    \"preferredDate\": [\n        \"1\",\n        \"15\",\n        \"28\"\n    ],\n    \"preferredWeek\": [],\n    \"preferredDays\": [],\n    \"receiverList\": [\n        \"karanss@kpostindia.com\",\n        \"virat@kpost.in\"\n    ],\n    \"isReminder\": false,\n    \"priority\": 1,\n    \"snoozeDetails\": \"\"\n}",
     "yellow": false
   },
   {
@@ -904,7 +1238,7 @@
     "module": "KALL",
     "url": "https://devapi2.kpostindia.com/v2/kall/fetchScheduledRepeatKall",
     "path": "/v2/kall/fetchScheduledRepeatKall",
-    "request": "{\n    \"scheduledStartTime\":\"2024-06-14\"\n}",
+    "request": "{\n    \"scheduledStartTime\":\"2024-06-14\"\n}\n",
     "yellow": false
   },
   {
@@ -956,8 +1290,8 @@
     "tab": "KatchupAPI",
     "row": 143,
     "module": "Dashboard",
-    "url": "https://devapi2.kpostindia.com/v2/dashboard/homeDashboardNewMsgs/",
-    "path": "/v2/dashboard/homeDashboardNewMsgs/",
+    "url": "https://devapi2.kpostindia.com/v2/dashboard/homeDashboardNewMsgs",
+    "path": "/v2/dashboard/homeDashboardNewMsgs",
     "request": "{\n    \"firstMsgID\": 78544,\n    \"serverTime\": \"2024-06-25T05:07:17.000+00:00\"\n}",
     "yellow": false
   },
@@ -1039,7 +1373,7 @@
     "module": "Katchup",
     "url": "https://devapi2.kpostindia.com/v2/katchup/messageCountBetweenSenderAndReceiver/",
     "path": "/v2/katchup/messageCountBetweenSenderAndReceiver/",
-    "request": "for individual\n{\n    \"receiver\":\"rajan@kpost.in\",\n    \"groupFlag\": \"false\"\n}\n\nfor group\n{\n    \"receiver\": \"towi392@kpost.in\",\n    \"groupFlag\": \"true\"\n}",
+    "request": "for individual\n{\n    \"receiver\":\"rajan@kpost.in\",\n    \"groupFlag\": \"false\"\n}\n\nfor group\n{\n    \"receiver\": \"towi392@kpost.in\",\n    \"groupFlag\": \"true\"\n}\n\n",
     "yellow": false
   },
   {
@@ -1298,8 +1632,8 @@
     "tab": "KatchupAPI",
     "row": 181,
     "module": "Group",
-    "url": "https://devapi2.kpostindia.com/v2/group/getGroupDetailsUsingGroupKpostID/{groupKpostID}",
-    "path": "/v2/group/getGroupDetailsUsingGroupKpostID/{groupKpostID}",
+    "url": "https://kmail5.kpostindia.com/kmail5/v2/readMail/downloadODAttachment",
+    "path": "/kmail5/v2/readMail/downloadODAttachment",
     "request": "GET METHOD",
     "yellow": false
   },
@@ -1577,8 +1911,8 @@
     "tab": "KatchupAPI",
     "row": 212,
     "module": "Common",
-    "url": "https://devapi2.kpostindia.com/v2/common/getCompanyDetailsByAdmin(Admin",
-    "path": "/v2/common/getCompanyDetailsByAdmin(Admin",
+    "url": "https://devapi2.kpostindia.com/v2/common/getCompanyDetailsByAdmin",
+    "path": "/v2/common/getCompanyDetailsByAdmin",
     "request": "{\n    \"mobileNumber\":\"9789833076\"\n}",
     "yellow": false
   },
@@ -1586,7 +1920,7 @@
     "tab": "KatchupAPI",
     "row": 213,
     "module": "katchup",
-    "url": "https://devapi2.kpostindia.com/v2/katchup/searchKatchUpMessageSubject",
+    "url": "https://devapi2.kpostindia.com//v2/katchup/searchKatchUpMessageSubject",
     "path": "/v2/katchup/searchKatchUpMessageSubject",
     "request": "{\r\n  \"selectedContact\" : \"baskar1992@kpost.in\",\r\n  \"searchMessage\": \"a\"\r\n}",
     "yellow": false
@@ -1606,7 +1940,7 @@
     "module": "Profile",
     "url": "https://devapi2.kpostindia.com/v2/profile/uploadImageToS3",
     "path": "/v2/profile/uploadImageToS3",
-    "request": "multipart \n\nkey : file",
+    "request": "multipart \n\nkey : file ",
     "yellow": false
   },
   {
@@ -1624,7 +1958,7 @@
     "module": "Profile",
     "url": "https://devapi2.kpostindia.com/v2/profile/updateSignatureImage",
     "path": "/v2/profile/updateSignatureImage",
-    "request": "multipart \n\nkey : file",
+    "request": "multipart \n\nkey : file ",
     "yellow": false
   },
   {
@@ -1766,8 +2100,8 @@
     "tab": "KatchupAPI",
     "row": 233,
     "module": "Profile",
-    "url": "https://devapi2.kpostindia.com/v2/profile/getUserBasicDetailsUsingKpostID/{kpostID}",
-    "path": "/v2/profile/getUserBasicDetailsUsingKpostID/{kpostID}",
+    "url": "https://devapi2.kpostindia.com/v2/profile/getUserBasicDetailsUsingKpostID",
+    "path": "/v2/profile/getUserBasicDetailsUsingKpostID",
     "request": "{\r\n    \"mobileNumber\" : \"9043063930\",\r\n    \"countryID\" : 1\r\n}",
     "yellow": false
   },
@@ -1784,7 +2118,7 @@
     "tab": "KatchupAPI",
     "row": 235,
     "module": "AI",
-    "url": "https://devapi2.kpostindia.com/ai/sessions",
+    "url": "https://devapi2.kpostindia.com//ai/sessions",
     "path": "/ai/sessions",
     "request": "GET METHOD",
     "yellow": false
@@ -1793,7 +2127,7 @@
     "tab": "KatchupAPI",
     "row": 236,
     "module": "AI",
-    "url": "https://devapi2.kpostindia.com/ai/messages/1",
+    "url": "https://devapi2.kpostindia.com//ai/messages/1",
     "path": "/ai/messages/1",
     "request": "",
     "yellow": false
@@ -1921,7 +2255,7 @@
     "module": "AI",
     "url": "https://devapi2.kpostindia.com//ai/messageAssist",
     "path": "/ai/messageAssist",
-    "request": "{\n    \"message\": \"I AM LEAVE TODAY\",\n    \"prompt\": \"provide a brief message for leave\",\n     \"aiType\": \"chatgpt\", or \"perplexity\" or \"gemini\" or \"mistral\" or ''deepseek\", (aiType is optional) if not given dafault deepseek will work\n    \"requestType\": \"NEW\"\n}",
+    "request": " {\n    \"message\": \"I AM LEAVE TODAY\",\n    \"prompt\": \"provide a brief message for leave\",\n     \"aiType\": \"chatgpt\", or \"perplexity\" or \"gemini\" or \"mistral\" or ''deepseek\", (aiType is optional) if not given dafault deepseek will work\n    \"requestType\": \"NEW\"\n}",
     "yellow": false
   },
   {
@@ -2091,8 +2425,9 @@
     "row": 3,
     "module": "KDIARY- Schedule",
     "method": "POST",
+    "url": "/dairySchedule/createSchedule",
     "path": "/dairySchedule/createSchedule",
-    "request": "{\n\n    \"kallSession\": \"Koolkallsession145d04\",\n    \"kallMode\": 0,\n    \"meetingLink\": \"KoolKall2bd821c\",\n    \"description\": \"Team meeting to discuss project status\",\n    \"title\": \"Project Status Meeting\",\n    \"priority\": 1,\n    \"scheduleStartDateAndTime\": \"2024-06-17T10:00:00\",\n    \"scheduleEndDateAndTime\": \"2024-06-17T11:00:00\",\n    \"isReminder\": true,\n    \"isKoolKall\": false,\n    \"snoozeDetails\": \"5 minutes before\",\n    \"participants\": [\n        {\n            \"participant\": \"virat@kpost.in\",\n            \"userType\": \"Personal\"\n        },\n        {\n            \"participant\": \"rajan@kpost.in\",\n            \"userType\": \"Personal\"\n        }\n    ]\n}",
+    "request": "{\n\n    \"kallSession\": \"Koolkallsession145d04\",\n    \"kallMode\": 0,\n    \"meetingLink\": \"KoolKall2bd821c\",\n    \"description\": \"Team meeting to discuss project status\",\n    \"title\": \"Project Status Meeting\",\n    \"priority\": 1,\n    \"scheduleStartDateAndTime\": \"2024-06-17T10:00:00\",\n    \"scheduleEndDateAndTime\": \"2024-06-17T11:00:00\",\n    \"isReminder\": true,\n    \"isKoolKall\": false,\n    \"snoozeDetails\": \"5 minutes before\",\n    \"participants\": [\n        {\n            \"participant\": \"virat@kpost.in\",\n            \"userType\": \"Personal\"\n        },\n        {\n            \"participant\": \"rajan@kpost.in\",\n            \"userType\": \"Personal\"\n        }\n    ]\n}\n",
     "yellow": false
   },
   {
@@ -2100,6 +2435,7 @@
     "row": 4,
     "module": "KDIARY- Schedule",
     "method": "GET",
+    "url": "/dairySchedule/getTodaySchedules",
     "path": "/dairySchedule/getTodaySchedules",
     "request": "",
     "yellow": false
@@ -2109,6 +2445,7 @@
     "row": 5,
     "module": "KDIARY- Schedule",
     "method": "POST",
+    "url": "/dairySchedule/createEvent",
     "path": "/dairySchedule/createEvent",
     "request": "{\n  \"title\": \"Project Review Meeting\",\n  \"description\": \"Weekly discussion about project updates and pending activities\",\n  \"priority\": 1,\n  \"type\": 1- Daily, 2 - Weekly, 3 - Monthly,\n  \"scheduleStartDateAndTime\": 1780308000000,\n  \"scheduleEndDateAndTime\": 1780311600000,\n  \"isReminder\": true,\n  \"isKoolKall\": true,\n  \"snoozeDetails\": \"{\\\"reminderBeforeMinutes\\\":15,\\\"snoozeEnabled\\\":true}\",\n  \"preferredDays\": [\n    1,\n    3,\n    5\n  ],\n  \"preferredWeek\": [\n    1,\n    3\n  ],\n  \"preferredDate\": [],\n  \"preferredMonth\": [\n    6,\n    7,\n    8\n  ],\n  \"participants\": [\n    {\n      \"participant\": \"ajithkumar16@kpost.in\",\n      \"userType\": \"PERSONAL\"\n    },\n    {\n      \"participant\": \"virat@kpost.in\",\n      \"userType\": \"PERSONAL\"\n    }\n  ],\n  \"seriesEndDate\" : \"2026-08-31\"\n}",
     "yellow": false
@@ -2118,6 +2455,7 @@
     "row": 6,
     "module": "KDIARY- Schedule",
     "method": "POST",
+    "url": "/dairySchedule/updateEvent",
     "path": "/dairySchedule/updateEvent",
     "request": "{\n    \"eventID\": 38,\n    \"repeat\": true,\n    \"weekly\": true\n}",
     "yellow": false
@@ -2127,6 +2465,7 @@
     "row": 7,
     "module": "KDIARY- Schedule",
     "method": "GET",
+    "url": "/dairySchedule/getEvents",
     "path": "/dairySchedule/getEvents",
     "request": "GET METHOD",
     "yellow": false
@@ -2136,6 +2475,7 @@
     "row": 8,
     "module": "KDIARY- Schedule",
     "method": "POST",
+    "url": "/dairySchedule/getEventDate",
     "path": "/dairySchedule/getEventDate",
     "request": "{\n    \"eventIds\" : [39]\n}",
     "yellow": false
@@ -2145,6 +2485,7 @@
     "row": 9,
     "module": "KDIARY- Schedule",
     "method": "POST",
+    "url": "/dairySchedule/getEventSelectedDate",
     "path": "/dairySchedule/getEventSelectedDate",
     "request": "{\n    \"scheduleStartDateAndTime\": \"2026-04-16T13:25:00\",\n    \"scheduleEndDateAndTime\": \"2026-04-30T13:25:00\"\n}",
     "yellow": false
@@ -2154,6 +2495,7 @@
     "row": 10,
     "module": "KDIARY- Schedule",
     "method": "POST",
+    "url": "/dairySchedule/deleteEvent",
     "path": "/dairySchedule/deleteEvent",
     "request": "{\n    \"eventID\": 38\n}",
     "yellow": false
@@ -2163,6 +2505,7 @@
     "row": 11,
     "module": "KDIARY- Schedule",
     "method": "POST",
+    "url": "/dairySchedule/addparticipants",
     "path": "/dairySchedule/addparticipants",
     "request": "{\n    \"eventID\": 39,\n    \"participants\": [\n        {\n            \"participant\": \"samaranpkm@kpostmalaysia.com\",\n            \"userType\": \"PERSONAL\"\n        }\n    ]\n}",
     "yellow": false
@@ -2172,6 +2515,7 @@
     "row": 12,
     "module": "KDIARY- Schedule",
     "method": "POST",
+    "url": "/dairySchedule/updateScheduleRemarks",
     "path": "/dairySchedule/updateScheduleRemarks",
     "request": "{\n \"eventIds\" : [39],\n\"remarks\":1,\n\"remarksDescription\":\"i completed the work\"\n}",
     "yellow": false
@@ -2181,6 +2525,7 @@
     "row": 13,
     "module": "KDIARY- Report",
     "method": "POST",
+    "url": "/dairySchedule/saveReport",
     "path": "/dairySchedule/saveReport",
     "request": "{\n  \"taskReport\": \"Completed KMail dashboard changes, forward mail reference implementation, and API testing.\"\n}",
     "yellow": false
@@ -2190,6 +2535,7 @@
     "row": 14,
     "module": "KDIARY- Report",
     "method": "POST",
+    "url": "/dairySchedule/editReport",
     "path": "/dairySchedule/editReport",
     "request": "{\n  \"id\": 1,\n  \"taskReport\": \"Updated KMail dashboard, forward mail reference implementation, API testing, and bug fixes.\"\n}",
     "yellow": false
@@ -2199,6 +2545,7 @@
     "row": 15,
     "module": "KDIARY- Report",
     "method": "GET",
+    "url": "/dairySchedule/getTodayReport",
     "path": "/dairySchedule/getTodayReport",
     "request": "GET METHOD",
     "yellow": false
@@ -2208,8 +2555,17 @@
     "row": 16,
     "module": "KDIARY- Report",
     "method": "POST",
+    "url": "/dairySchedule/editScheduleEvent",
     "path": "/dairySchedule/editScheduleEvent",
     "request": "{  // can edit what ever Keys you want\n    \"eventID\": 340,\n    \"kallMode\": 1,\n    \"description\": \"Team meeting to discuss project status Edited\",\n    \"title\": \"Project Status Meeting Edited\",\n    \"priority\": 1,\n    \"scheduleStartDateAndTime\": \"2026-06-15T13:05:00\",\n    \"scheduleEndDateAndTime\": \"2026-06-15T14:05:00\",\n    \"participants\": [\n        {\n            \"participant\": \"virat@kpost.in\",\n            \"userType\": \"Personal\"\n        },\n        {\n            \"participant\": \"rajan@kpost.in\",\n            \"userType\": \"Personal\"\n        },\n        {\n            \"participant\": \"isagiyoichi@kpost.in\",\n            \"userType\": \"Personal\"\n        }\n    ]\n}",
+    "yellow": false
+  },
+  {
+    "tab": "KMAILAPI",
+    "row": 1,
+    "url": "https://kmail5.kpostindia.com/kmail5/v2/",
+    "path": "/kmail5/v2/",
+    "request": "",
     "yellow": false
   },
   {
@@ -2217,6 +2573,7 @@
     "row": 3,
     "module": "Kmail",
     "method": "GET",
+    "url": "/common/getSaluations/",
     "path": "/common/getSaluations/",
     "request": "Not Required",
     "yellow": false
@@ -2226,6 +2583,7 @@
     "row": 4,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/getKmailDashboardMsg/",
     "path": "/common/getKmailDashboardMsg/",
     "request": "For first fetch { \"kmailID\": \"\" } \nfor second fetch { \"kmailID\": \"1001\" }\n for selected date { \"selectedDate\":1694411390000 }\nfor fetch before { \"firstKmailID\" : 12822}",
     "yellow": false
@@ -2235,6 +2593,7 @@
     "row": 5,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/postBoxContacts/",
     "path": "/common/postBoxContacts/",
     "request": "Not needed API changed in V2",
     "yellow": false
@@ -2244,6 +2603,7 @@
     "row": 6,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/mailSubjectSelectedContact/",
     "path": "/common/mailSubjectSelectedContact/",
     "request": "{\n\"selectedContact\":\"jitendra@kpostindia.com\"}",
     "yellow": false
@@ -2253,6 +2613,7 @@
     "row": 7,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/statusOfKmailsContacts/",
     "path": "/common/statusOfKmailsContacts/",
     "request": "UNUSED",
     "yellow": true
@@ -2262,6 +2623,7 @@
     "row": 8,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/sentMailNotOpened/",
     "path": "/common/sentMailNotOpened/",
     "request": "{\n\"selectedContact\":\"jitendra@kpostindia.com\"}",
     "yellow": false
@@ -2271,8 +2633,9 @@
     "row": 9,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/replyNotReceived/",
     "path": "/common/replyNotReceived/",
-    "request": "{\"kpostUser\":\"baskar1992@kpostindia.com\",\n\"selectedContact\":\"jitendra@kpostindia.com\"}",
+    "request": "",
     "yellow": false
   },
   {
@@ -2280,6 +2643,7 @@
     "row": 10,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/replyNotSent/",
     "path": "/common/replyNotSent/",
     "request": "{\n\"selectedContact\":\"jitendra@kpostindia.com\"}",
     "yellow": false
@@ -2289,6 +2653,7 @@
     "row": 11,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/replyNotRequiredBySender/",
     "path": "/common/replyNotRequiredBySender/",
     "request": "{\"selectedContact\":\"jitendra@kpostindia.com\",\n\"kmailID\":3}",
     "yellow": false
@@ -2298,6 +2663,7 @@
     "row": 12,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/replyNotRequiredByReceiver/",
     "path": "/common/replyNotRequiredByReceiver/",
     "request": "{\"selectedContact\":\"jitendra@kpostindia.com\",\n\"kmailID\":3}",
     "yellow": false
@@ -2307,8 +2673,9 @@
     "row": 13,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/deleteKmailWithDeletedBy/",
     "path": "/common/deleteKmailWithDeletedBy/",
-    "request": "{\n  \"groupFlag\": true,\n  \"transactionIDs\": [37094]\n}",
+    "request": "{\n  \"groupFlag\": true,\n  \"transactionIDs\": [37094]\n}\n",
     "yellow": false
   },
   {
@@ -2316,6 +2683,7 @@
     "row": 14,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/setKmailAsImportant/",
     "path": "/common/setKmailAsImportant/",
     "request": "{\n\"kmailID\":4}",
     "yellow": false
@@ -2325,6 +2693,7 @@
     "row": 15,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/getAllImportantMails/",
     "path": "/common/getAllImportantMails/",
     "request": "{\n\"selectedContact\":\"jitendra@kpostindia.com\"}",
     "yellow": false
@@ -2334,6 +2703,7 @@
     "row": 16,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/frequentKmailContact/",
     "path": "/common/frequentKmailContact/",
     "request": "GET METHOD",
     "yellow": false
@@ -2343,6 +2713,7 @@
     "row": 17,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/unOpenedMailCountBySenderID/",
     "path": "/common/unOpenedMailCountBySenderID/",
     "request": "GET METHOD",
     "yellow": false
@@ -2352,6 +2723,7 @@
     "row": 18,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/miscellaneousContacts/",
     "path": "/common/miscellaneousContacts/",
     "request": "GET METHOD",
     "yellow": false
@@ -2361,6 +2733,7 @@
     "row": 19,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/convertMailAsPDF/",
     "path": "/common/convertMailAsPDF/",
     "request": "",
     "yellow": false
@@ -2370,6 +2743,7 @@
     "row": 20,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/selectedContactMails/",
     "path": "/common/selectedContactMails/",
     "request": "{\n    \"selectedContact\": \"kma438@kpost.in\",\n    \"fetchMailType\": \"A\"or \"Y\" or \"N\",\n    \"groupFlag\": true or false,\n    \"lastKmailID\": null,\n    \"firstKmailID\": null,\n    \"count\": 50(Default) or we can customize count\n}",
     "yellow": false
@@ -2379,8 +2753,9 @@
     "row": 21,
     "module": "Kmail",
     "method": "POST",
+    "url": "/sentMail/postMail/",
     "path": "/sentMail/postMail/",
-    "request": "{\n    \"fromAddress\": \"baskar1992@kpostindia.com\",\n    \"toAddress\": \"jitendra@kpostindia.com\",\n    \"kmailSubject\": \"mail from postman 5.0 mail no 7, with attachment\",\n    \"saluation\": \"Hello\",\n    \"saluationName\": \"karans\",\n    \"kmailContent\": \"How r u testing new mail from postman\",\n    \"kmailSendDate\": 1671701730543,\n    \"kmailType\": 0,\n    \"priority\": 0,\n    \"attachmentFlag\": 1,\n    \"ccList\":[\"jksrivatsa@gmail.com\"],\n    \"bccList\":[\"jksrivatsa@yahoo.com\"],\n    \"status\": \"SUCCESS\",\n    \"senderUniqueMailID\": \"<1983894417.384.1677749146164@ip-10-0-1-137.ap-south-1.compute.internal>\"\n    \"byteAttachments\": {\n        \"AttachmentBytes.txt\": \"ew0\"\n    }\n}\n\n\nForward Mail::--------\n{\n    \"fromAddress\": \"limson@kpostindia.com\",\n    \"toAddress\": \"\",\n    \"kmailSubject\": \"I am not sure if you are aware\",\n    \"kmailSendDate\": 1679582868619,\n    \"kmailType\": 2,\n    \"priority\": 1,\n    \"attachmentFlag\": 0,\n    \"ccList\": [],\n    \"bccList\": [],\n    \"status\": \"SUCCESS\",\n    \"forwardList\": [\n        \"karans@kpostindia.com\",\n        \"vinoth@kpostindia.com\"\n    ],\n    \"senderUniqueMailID\": \"<r9gi6vlgv3_iqyis8q@kpostindia.com>\"\n}",
+    "request": "",
     "yellow": true
   },
   {
@@ -2388,6 +2763,7 @@
     "row": 22,
     "module": "Kmail",
     "method": "POST",
+    "url": "/sentMail/postMailMultiPart/",
     "path": "/sentMail/postMailMultiPart/",
     "request": "{ \n\"toAddress\": \"jitendra@kpost.in\",\n\"kmailSubject\":\"win over Indonesian Fredy Setiawan.\",\n\"referenceKmailID\":null,\n\"saluation\": \"Hello\",\n\"saluationName\": \"jitendra K\",\n\"kmailContent\": \"took his career tally to 14 World Championship medals, which includes 6 gold, 3 silver, 5 bronze in all categories.\",\n\"groupFlag\":false,\n\"groupReceiverList\":null,\n\"kmailSendDate\": 1710324340000,\n\"senderLatitde\": 13.0476875,\n\"senderLongitude\": 80.2655737,\n\"kmailType\": 0,\n\"forwardList\":null,\n\"revealSource\":false,\n\"selectedMembers\":\"N\",\n\"priority\": 2,\n\"attachmentFlag\": 1,\n\"originalKmailID\":null,\n\"forwardNote\":\"forward note\",\n\"forwardAttachmentLists\":null,\n\"ccList\":[],\n\"bccList\":[]\n}",
     "yellow": true
@@ -2397,6 +2773,7 @@
     "row": 23,
     "module": "Kmail",
     "method": "POST",
+    "url": "/sentMail/loadOtherDomainMails/",
     "path": "/sentMail/loadOtherDomainMails/",
     "request": "GET METHOD",
     "yellow": false
@@ -2406,6 +2783,7 @@
     "row": 24,
     "module": "Kmail",
     "method": "POST",
+    "url": "/draft/draftMail/",
     "path": "/draft/draftMail/",
     "request": "{\n    \"toAddress\": \"baskar1992@kpostindia.com\",\n    \"kmailContent\": \"How r u testing new mail from postman\",\n    \"kmailSubject\": \"mail from postman 5.0 mail no 7, with attachment\",\n    \"kmailID\": \"0\" or \"1420\",\n    \"saluation\": \"Hello\",\n    \"saluationName\": \"Jitendra\",\n    \"kmailSendDate\": 1671701730543,\n     \"ccList\":[\"jksrivatsa@gmail.com\"],\n    \"bccList\":[\"jksrivatsa@yahoo.com\"],\n    \"priority\": 0,\n    \"kmailType\": 0,\n    \"groupFlag\":true\n    }",
     "yellow": false
@@ -2415,6 +2793,7 @@
     "row": 25,
     "module": "Kmail",
     "method": "POST",
+    "url": "/draft/getAllDraftMails/",
     "path": "/draft/getAllDraftMails/",
     "request": "GET METHOD",
     "yellow": false
@@ -2424,6 +2803,7 @@
     "row": 26,
     "module": "Kmail",
     "method": "POST",
+    "url": "/draft/getDraftMailsContacts/",
     "path": "/draft/getDraftMailsContacts/",
     "request": "GET METHOD",
     "yellow": false
@@ -2433,6 +2813,7 @@
     "row": 27,
     "module": "Kmail",
     "method": "POST",
+    "url": "/draft/getDraftMailsForSelectedContact/",
     "path": "/draft/getDraftMailsForSelectedContact/",
     "request": "{\n   \"toAddress\":\"karans@kpostindia.com\"\n}",
     "yellow": false
@@ -2442,6 +2823,7 @@
     "row": 28,
     "module": "Kmail",
     "method": "POST",
+    "url": "/draft/deleteDraftMail/",
     "path": "/draft/deleteDraftMail/",
     "request": "{\n    \"kmailID\":\"606\",\n   \"draftMailID\":  \"<1608468711.4.1678435160369@DESKTOP-RNNOS4C.mshome.net>\",\n    \"kmailSendDate\":1678434563000\n}\n\nOR \n\n{\n    \"kmailID\":\"606\"\n}",
     "yellow": false
@@ -2451,6 +2833,7 @@
     "row": 29,
     "module": "Kmail",
     "method": "POST",
+    "url": "/translator/translation/",
     "path": "/translator/translation/",
     "request": "{\n    \"langFrom\": \"en\",\n    \"langTo\": \"hi\",\n    \"msgToTranslate\": \"message translation\"\n}",
     "yellow": false
@@ -2460,6 +2843,7 @@
     "row": 30,
     "module": "Kmail",
     "method": "POST",
+    "url": "/readMail/referenceMailContent/",
     "path": "/readMail/referenceMailContent/",
     "request": "{\n    \"referenceMails\":[]\n}",
     "yellow": false
@@ -2469,6 +2853,7 @@
     "row": 31,
     "module": "Kmail",
     "method": "POST",
+    "url": "/readMail/sentAndInboxMailContent/",
     "path": "/readMail/sentAndInboxMailContent/",
     "request": "{\n\"kmailID\":1,\nkmailType\":\"received\",\n\"senderUniqueMailID\":\"<128320604.1.1671798308409@KPOST.Dlink>\",\n\"receiverUniqueMailID\":\"\",\n\"kmailSubject\":\"hai\",\n\"kmailSendDate\":1671798307000,\n\"kmailNumber\": 1,\n\"selectedContact\":\"jitendra@kpostindia.com\"\n}\n\n\n\n {\n        \"kmailID\": 2363,\n        \"kmailType\": \"received\",\n        \"kmailNumber\": 381,\n        \"selectedContact\": \"kark@kpost.in\",\n        \"groupFlag\": false\n    }",
     "yellow": false
@@ -2478,6 +2863,7 @@
     "row": 32,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/addOtherDomainContacts/",
     "path": "/common/addOtherDomainContacts/",
     "request": "{\n \"contactEmailID\":\"baskar.nov@gmail.com\",\n \"contactName\":\"Baskar\",\n \"referenceName\":\"My gmail account\"\n }",
     "yellow": false
@@ -2487,6 +2873,7 @@
     "row": 33,
     "module": "Kmail",
     "method": "POST",
+    "url": "sentMail/getMailCredentials/",
     "path": "/sentMail/getMailCredentials/",
     "request": "{\n    \"kpostID\": \"baskar1992@kpostindia.com\",\n    \"password\": \"aTrwaD4pcK0=\"\n}",
     "yellow": false
@@ -2496,6 +2883,7 @@
     "row": 34,
     "module": "Kmail",
     "method": "POST",
+    "url": "/readMail/draftMailContent",
     "path": "/readMail/draftMailContent",
     "request": "{\n  \"draftKmailID\": \"597\",\n  \"kmailSendDate\":1678359924000,\n  \"kmailSubject\": \"null\",\n \"senderUniqueMailID\": \"<mailto:470184133.516.1678359962146@ip-10-0-1-137.ap-south-1.compute.internal>\"\n}",
     "yellow": false
@@ -2505,8 +2893,9 @@
     "row": 35,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/statusOfKmailsContactsWithCount/",
     "path": "/common/statusOfKmailsContactsWithCount/",
-    "request": "{\n\"kmailStatusFlag\":2\n}",
+    "request": "{\n\"kmailStatusFlag\":2\n}\n",
     "yellow": false
   },
   {
@@ -2514,6 +2903,7 @@
     "row": 36,
     "module": "Kmail",
     "method": "GET",
+    "url": "/common/getInstantReply/",
     "path": "/common/getInstantReply/",
     "request": "NOT REQUIRED",
     "yellow": false
@@ -2523,6 +2913,7 @@
     "row": 37,
     "module": "Kmail",
     "method": "POST",
+    "url": "common/postBoxContacts/",
     "path": "/common/postBoxContacts/",
     "request": "{\n      \"lastFetchTime\":1682280626000\n\n}",
     "yellow": false
@@ -2531,7 +2922,7 @@
     "tab": "KMAILAPI",
     "row": 38,
     "module": "Kmail",
-    "method": "",
+    "url": "kmailSetting/getDigitalSignature",
     "path": "/kmailSetting/getDigitalSignature",
     "request": "GET METHOD",
     "yellow": false
@@ -2540,7 +2931,7 @@
     "tab": "KMAILAPI",
     "row": 39,
     "module": "Kmail",
-    "method": "",
+    "url": "/common/deleteOtherDomainContact/",
     "path": "/common/deleteOtherDomainContact/",
     "request": "{\n    \"contactEmailID\": \"baskar.nov@gmail.com\"\n}",
     "yellow": false
@@ -2549,7 +2940,7 @@
     "tab": "KMAILAPI",
     "row": 40,
     "module": "Kmail",
-    "method": "",
+    "url": "/common/editOtherDomainContactsDetails/",
     "path": "/common/editOtherDomainContactsDetails/",
     "request": "{\n \"contactEmailID\":\"baskar.nov@gmail.com\",\n \"contactName\":\"Baskar thambi\",\n \"referenceName\":\"gmail account\"\n }",
     "yellow": false
@@ -2558,7 +2949,7 @@
     "tab": "KMAILAPI",
     "row": 41,
     "module": "Kmail",
-    "method": "",
+    "url": "/common/knownPostBoxContacts/",
     "path": "/common/knownPostBoxContacts/",
     "request": "{\n    \"lastFetchTime\": \"1695280938000\"\n}",
     "yellow": false
@@ -2567,7 +2958,7 @@
     "tab": "KMAILAPI",
     "row": 42,
     "module": "Kmail",
-    "method": "",
+    "url": "/common/statusOfKmailsContactsTotalCount/",
     "path": "/common/statusOfKmailsContactsTotalCount/",
     "request": "GET METHOD",
     "yellow": false
@@ -2577,6 +2968,7 @@
     "row": 43,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/clearStatusOfKmailsContacts/",
     "path": "/common/clearStatusOfKmailsContacts/",
     "request": "for clear all selected contact\n{ \n\"kmailStatusFlag\":0 or 1 or 2, \n \"selectMailType\":'A',\n \"selectedContact\": \"praski468@kpost.in\"\n} \n\nfor clear selected (single) \n{\n  \"kmailStatusFlag\": 0 or 1 or  2,\n  \"selectMailType\": \"S\",\n  \"transactionIDs\" : [17924, 17926, 17927]\n}\n\n0-SENTLETTERS_NOT_OPENED, 1-REPLY_NOT_RECEIVED, 2-REPLY_NOT_SENT",
     "yellow": false
@@ -2586,6 +2978,7 @@
     "row": 44,
     "module": "Kmail",
     "method": "POST",
+    "url": "draft/draftMailMultiPart",
     "path": "/draft/draftMailMultiPart",
     "request": "files (multipart/form-data) – value select file.\ntext (application/json)\nvalue for text (application/json)\n{\n    \"toAddress\": \"baskar1992@kpostindia.com\",\n    \"kmailContent\": \"How r u testing new mail from postman\",\n    \"kmailSubject\": \"mail from postman 5.0 mail no 7, with attachment\",\n    \"saluation\": \"Hello\",\n    \"kmailID\": \"0\" or \"1420\",\n    \"saluationName\": \"Jitendra\",\n    \"kmailSendDate\": 1671701730543,\n     \"ccList\":[\"jksrivatsa@gmail.com\"],\n    \"bccList\":[\"jksrivatsa@yahoo.com\"],\n    \"priority\": 0,\n    \"kmailType\": 0\n    }",
     "yellow": false
@@ -2595,6 +2988,7 @@
     "row": 45,
     "module": "Kmail",
     "method": "POST",
+    "url": "/v2/sentMail/postMail/",
     "path": "/v2/sentMail/postMail/",
     "request": "{ \n\"toAddress\": \"rajan@kpost.in\",\n\"kmailSubject\":\"win over Indonesian Fredy Setiawan. postman new concept Implemented with attachment\",\n\"referenceKmailID\":null,\n\"saluation\": \"Hello\",\n\"saluationName\": \"Rajan\",\n\"kmailContent\": \"took his career tally to 14 World Championship medals, which includes 6 gold, 3 silver, 5 bronze in all categories.\",\n\"groupFlag\":false,\n\"groupReceiverList\":null,\n\"kmailSendDate\": 1710324340000,\n\"senderLatitde\": 13.0476875,\n\"senderLongitude\": 80.2655737,\n\"kmailType\": 0,\n\"forwardList\":null,\n\"revealSource\":false,\n\"selectedMembers\":\"N\",\n\"priority\": 2,\n\"attachmentFlag\": 1,\n\"originalKmailID\":null,\n\"forwardNote\":\"forward note\",\n\"forwardRevealDetails\":{\n\"fromAddress\":\"\",\n\"toAddress\":\"\",\n\"ccList\":[],\n\"sendDate\":\"\"\n},\n\"forwardAttachmentLists\":[],\n\"ccList\":[],\n\"bccList\":[],\n  \"attachmentCaption\":\"[{\\\"fileName\\\":\\\"downloaded_file_1732703266727_image.png\\\",\\\"caption\\\":\\\"caption cheking hi hi hi checking \\\"}]\",\n\"attachmentUuid\":[\"0eca760e-f8f3-4bce-82c4-cca74880d6b3\",\"5b0bf853-a970-47bd-8f32-5d5bdb225435\",\"64d646c2-9511-4fb1-8051-0c031b48e40c\"]\n}",
     "yellow": false
@@ -2604,6 +2998,7 @@
     "row": 46,
     "module": "Kmail",
     "method": "GET",
+    "url": "readMail/getCopiesInfo/{kmailID}",
     "path": "/readMail/getCopiesInfo/{kmailID}",
     "request": "",
     "yellow": false
@@ -2613,6 +3008,7 @@
     "row": 47,
     "module": "Kmail",
     "method": "POST",
+    "url": "/v2/aws/generate-presigned-url",
     "path": "/v2/aws/generate-presigned-url",
     "request": "{\r\n    \"extension\":\"pdf\",\r\n    \"fileName\":\"abc.pdf\",\r\n    \"fileSize\":\"940\"\r\n}",
     "yellow": false
@@ -2622,6 +3018,7 @@
     "row": 48,
     "module": "Kmail",
     "method": "POST",
+    "url": "/v2/readMail/downloadODAttachment",
     "path": "/v2/readMail/downloadODAttachment",
     "request": "{\n    \"kmailID\": 14574,\n    \"kmailNumber\": 375,\n    \"kmailType\": \"sent\",\n    \"groupFlag\": false,\n    \"targetFileName\": \"sample_1280x720.mkv\"\n}",
     "yellow": false
@@ -2631,6 +3028,7 @@
     "row": 49,
     "module": "Kmail",
     "method": "GET",
+    "url": "readMail/downloadThumbnail/{uuid}",
     "path": "/readMail/downloadThumbnail/{uuid}",
     "request": "GET METHOD",
     "yellow": false
@@ -2640,6 +3038,7 @@
     "row": 50,
     "module": "Kmail",
     "method": "GET",
+    "url": "readMail/mediaStreaming/{uuid}",
     "path": "/readMail/mediaStreaming/{uuid}",
     "request": "GET METHOD",
     "yellow": false
@@ -2649,6 +3048,7 @@
     "row": 51,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/deleteCustomizedInstantReply",
     "path": "/kmailSetting/deleteCustomizedInstantReply",
     "request": "{\n    \"id\": \"67c2d766-10eb-45d3-80ac-b87b4980b406\"\n}",
     "yellow": false
@@ -2658,6 +3058,7 @@
     "row": 52,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/saveOrUpdateCustomizedInstantReply",
     "path": "/kmailSetting/saveOrUpdateCustomizedInstantReply",
     "request": "for update \n{\n    \"id\" : \"c0012346-79ec-4362-90cb-6ab7f7cdcb42\",\n    \"instantReply\" : \"Updated Mail recived Successfully\"\n}     \nfor save       \n{\n   \"instantReply\" : \"Updated Mail recived Successfully\"\n}",
     "yellow": false
@@ -2667,6 +3068,7 @@
     "row": 53,
     "module": "Kmail",
     "method": "POST",
+    "url": "common/kmailGroupReadStatus/",
     "path": "/common/kmailGroupReadStatus/",
     "request": "{\n    \"kmailID\": 9993\n}",
     "yellow": false
@@ -2676,6 +3078,7 @@
     "row": 54,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/clearStatusOfAllKmailsContacts",
     "path": "/common/clearStatusOfAllKmailsContacts",
     "request": "{\n  \"kmailStatusFlag\": 0 or 1 or 2,\n  \"selectMailType\": \"A\"\n}\n\n\n0-SENTLETTERS_NOT_OPENED, 1-REPLY_NOT_RECEIVED, 2-REPLY_NOT_SENT",
     "yellow": false
@@ -2685,6 +3088,7 @@
     "row": 55,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/saveOrUpdateCustomizedSaluations",
     "path": "/kmailSetting/saveOrUpdateCustomizedSaluations",
     "request": "{\n    \"saluationID\": \"\",\n    \"saluation\": \"Prof Dr\"\n}",
     "yellow": false
@@ -2694,6 +3098,7 @@
     "row": 56,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/deleteCustomizedSaluation",
     "path": "/kmailSetting/deleteCustomizedSaluation",
     "request": "{\r\n    \"saluationID\": \"525863f6-3fd6-4a7e-a966-cf79826c7d69\"\r\n}",
     "yellow": false
@@ -2703,8 +3108,9 @@
     "row": 57,
     "module": "Kmail",
     "method": "POST",
+    "url": "/readMail/getKmailDetailsUsingKmailID",
     "path": "/readMail/getKmailDetailsUsingKmailID",
-    "request": "{\r\n  \"kmailIDs\": [13060,13059]\r\n}",
+    "request": "{\r\n  \"kmailIDs\": [13060,13059]\r\n}\r",
     "yellow": false
   },
   {
@@ -2712,7 +3118,8 @@
     "row": 58,
     "module": "Kmail",
     "method": "POST",
-    "path": "/readMail/download/{uuid}",
+    "url": "/readMail//download/{uuid}",
+    "path": "/readMail//download/{uuid}",
     "request": "GET METHOD",
     "yellow": false
   },
@@ -2721,6 +3128,7 @@
     "row": 59,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/letterHeadUpload",
     "path": "/kmailSetting/letterHeadUpload",
     "request": "multipart\n\nfiles : LH1.png\nfiles : LH2.png",
     "yellow": true
@@ -2730,6 +3138,7 @@
     "row": 60,
     "module": "Kmail",
     "method": "GET",
+    "url": "/kmailSetting/getAllLetterHead",
     "path": "/kmailSetting/getAllLetterHead",
     "request": "GET METHOD",
     "yellow": false
@@ -2739,6 +3148,7 @@
     "row": 61,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/setLetterHead",
     "path": "/kmailSetting/setLetterHead",
     "request": "{\r\n    \"id\" : \"adfff87d-ee33-41d8-be85-5eeae28a9222\"\r\n}",
     "yellow": false
@@ -2748,6 +3158,7 @@
     "row": 62,
     "module": "Kmail",
     "method": "GET",
+    "url": "/kmailSetting/getLetterHead",
     "path": "/kmailSetting/getLetterHead",
     "request": "GET METHOD",
     "yellow": false
@@ -2757,6 +3168,7 @@
     "row": 63,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/saveOrUpdateMailSignaturePersonalData",
     "path": "/kmailSetting/saveOrUpdateMailSignaturePersonalData",
     "request": "{\n  \"firstName\": \"kirubanidhi\",\n  \"lastName\": \"Velayutham\",\n  \"designation\": \"Jr.java Developer\",\n  \"emailId\": \"prasanthkiruba143@gmail.com\",\n  \"mobileNumber\": \"9025245889\",\n  \"alternateMobile\": \"\"\n}",
     "yellow": false
@@ -2766,6 +3178,7 @@
     "row": 64,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/saveOrUpdateMailSignatureCompanyData",
     "path": "/kmailSetting/saveOrUpdateMailSignatureCompanyData",
     "request": "{\n  \"companyName\": \"KSMACC Software India Pvt Ltd\",\n  \"website\": \"https://kpostindia.com\",\n  \"addressLine1\": \"No. 45, Mount Road, Guindy\",\n  \"addressLine2\": \"Near Anna Salai Metro Station\"\n}",
     "yellow": false
@@ -2775,6 +3188,7 @@
     "row": 65,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/saveOrUpdateMailSignatureGraphics",
     "path": "/kmailSetting/saveOrUpdateMailSignatureGraphics",
     "request": "{\n  \"photoUrl\": \"https://kpostindia.s3.ap-south-1.amazonaws.com/profile_photo.png\",\n  \"bannerUrl\": \"https://kpostindia.s3.ap-south-1.amazonaws.com/banner_image.png\",\n  \"bannerLinkingTo\": \"https://kpostindia.com\"\n}",
     "yellow": false
@@ -2784,6 +3198,7 @@
     "row": 66,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/saveOrUpdateMailSignatureStyle",
     "path": "/kmailSetting/saveOrUpdateMailSignatureStyle",
     "request": "{\n  \"color\": \"#1A73E8\",\n  \"fontStyle\": \"Arial, sans-serif\"\n}",
     "yellow": false
@@ -2793,6 +3208,7 @@
     "row": 67,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/saveOrUpdateMailSignatureSocialMediaLink",
     "path": "/kmailSetting/saveOrUpdateMailSignatureSocialMediaLink",
     "request": "{\n  \"twitter\": \"https://twitter.com/kpostindia\",\n  \"facebook\": \"https://facebook.com/kpostindia\",\n  \"instagram\": \"https://instagram.com/kpostindia\",\n  \"linkedIn\": \"https://linkedin.com/company/kpostindia\",\n  \"youTube\": \"https://youtube.com/@kpostindia\"\n}",
     "yellow": false
@@ -2802,6 +3218,7 @@
     "row": 68,
     "module": "Kmail",
     "method": "GET",
+    "url": "/kmailSetting/getMailSignature",
     "path": "/kmailSetting/getMailSignature",
     "request": "GET METHOD",
     "yellow": false
@@ -2811,6 +3228,7 @@
     "row": 69,
     "module": "Kmail",
     "method": "GET",
+    "url": "/kmailSetting/getLetterHeadTemplate",
     "path": "/kmailSetting/getLetterHeadTemplate",
     "request": "GET METHOD",
     "yellow": false
@@ -2820,6 +3238,7 @@
     "row": 70,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/saveOrUpdateMailSignatureTemplateId",
     "path": "/kmailSetting/saveOrUpdateMailSignatureTemplateId",
     "request": "{\n    \"templateID\" : 1\n}",
     "yellow": false
@@ -2829,6 +3248,7 @@
     "row": 71,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/saveOrUpdateMailSignature",
     "path": "/kmailSetting/saveOrUpdateMailSignature",
     "request": "{\n    \"personalData\": {\n        \"firstName\": \"kirubanidhi\",\n        \"lastName\": \"Velayutham\",\n        \"designation\": \"Jr.java Developer\",\n        \"emailId\": \"prasanthkiruba143@gmail.com\",\n        \"mobileNumber\": \"9025245889\",\n        \"alternateMobile\": \"9076543217\"\n    },\n    \"companyData\": {\n        \"companyName\": \"KSMACC Software India Pvt Ltd\",\n        \"website\": \"https://kpostindia.com\",\n        \"addressLine1\": \"No. 45, Mount Road, Mylapore\",\n        \"addressLine2\": \"Near Anna Salai Metro Station\"\n    },\n    \"graphics\": {\n        \"photoUrl\": \"https://kpostindia.s3.ap-south-1.amazonaws.com/profile_photo.png\",\n        \"bannerUrl\": \"https://kpostindia.s3.ap-south-1.amazonaws.com/banner_image.png\",\n        \"bannerLinkingTo\": \"https://kpostindia.com.jyfr\"\n    },\n    \"style\": {\n        \"color\": \"#1A73E8\",\n        \"fontStyle\": \"Arial, sans-serif\"\n    },\n    \"socialMedialink\": {\n        \"twitter\": \"https://twitter.com/kpostindia\",\n        \"facebook\": \"https://facebook.com/kpostindia\",\n        \"instagram\": \"https://instagram.com/kpostindia\",\n        \"linkedIn\": \"https://linkedin.com/company/kpostindia\",\n        \"youTube\": \"https://youtube.com/@kpostindia\"\n    }\n}",
     "yellow": false
@@ -2838,6 +3258,7 @@
     "row": 72,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/deleteLetterHead",
     "path": "/kmailSetting/deleteLetterHead",
     "request": "{\n    \"id\": \"0c7f3044-0d3d-49f1-b71d-f5d40f634a83\"\n}",
     "yellow": false
@@ -2847,6 +3268,7 @@
     "row": 73,
     "module": "Kmail",
     "method": "POST",
+    "url": "/sentMail/postBulkMail",
     "path": "/sentMail/postBulkMail",
     "request": "{\n    \"toAddressList\": [\n        \"prasanthkiruba143@gmail.com\",\n        \"kirubaxv9346@gmail.com\",\n        \"balajiraman.amaze@gmail.com\",\n        \"graphicaldesignusage@gmail.com\",\n        \"kumaresan.mani1005@gmail.com\",\n        \"aarunjosephaj53@gmail.com\",\n        \"arunjoseph1530@gmail.com\",\n        \"yesamjith1997@gmail.com\",\n        \"otrsofi@gmail.com\",\n        \"mohammedbillal2214@gmail.com\",\n        \"dineshkumarrr474@gmail.com\",\n        \"havocdinesh71@gmail.com\",\n        \"asraf007thj@gmail.com\",\n        \"moneshm720@gmail.com\",\n        \"mvrn250@gmail.com\",\n        \"vishvasrivishvasri55@gmail.com\",\n        \"vishvasri386@gmail.com\",\n        \"vishvasri1022@gmail.com\",\n        \"abinayaabi9441@gmail.com\",\n        \"hannahabi2012@gmail.com\",\n        \"sankarsankarmani99@gmail.com\",\n        \"asrafkabalikhan007@gmail.com\",\n        \"ashahitha14@gmail.com\",\n        \"sahithabanu240@gmail.com\",\n        \"a.nagaraj7810@gmail.com\",\n        \"nagarajannadurai7810@gmail.com\",\n        \"mahamurugan0929@gmail.com\",\n        \"mahamurugan09@gmail.com\",\n        \"sanjayjp7904@gmail.com\",\n        \"sanjaysj7904@gmail.com\",\n        \"sanjay7904661702@gmail.com\",\n        \"sandy4682000@gmail.com\",\n        \"sanjayueducation@gmail.com\",\n        \"deliveryamazon014@gmail.com\",\n        \"vedting450@gmail.com\",\n        \"ramanankpost@gmail.com\",\n        \"ramananb84@gmail.com\",\n        \"ramanangames84@gmail.com\",\n        \"ananthimohan28122000@gmail.com\",\n        \"ananthimohan2804@gmail.com\",\n        \"ammumonika277@gmail.com\",\n        \"pioneergroup4321@gmail.com\",\n        \"gayathrib2912@gmail.com\",\n        \"niranb35@gmail.com\",\n        \"sankar0222006@gmail.com\",\n        \"sindhujasindhuja591@gmail.com\",\n        \"sindhujasridevi1220@gmail.com\",\n        \"navinkumarr700@gmail.com\",\n        \"navenjd@gmail.com\",\n        \"selvakumarbfa@gmail.com\",\n        \"selvakumarkpost@gmail.com\",\n        \"rprabbhu@gmail.com\",\n        \"indhupandilla@gmail.com\",\n        \"indhupandilla5@gmail.com\",\n        \"indhupandilla073@gmail.com\",\n        \"rohithroyals5056@gmail.com\",\n        \"rohitroyals5056@gmail.com\",\n        \"arunskpost23@gmail.com\",\n        \"vjiarun450@gmail.com\",\n        \"arunjwa42@gmail.com\",\n        \"prabhukpost@gamil.com\",\n        \"swethakpost@gmail.com\",\n        \"swvedhakrishnamoorthy2803@gmail.com\",\n        \"sbkkrishnan28@gmail.com\",\n        \"catchchinni1997@gmail.com\",\n        \"designerdeepak77@gmail.com\",\n        \"thrarakutty17@gmail.com\",\n        \"tharaa2178@gmail.com\",\n        \"premaprema2178@gmail.com\",\n        \"pavithramani2178@gmail.com\",\n        \"pavithra2178@gmail.com\",\n        \"upperdemoon1@gmail.com\",\n        \"gejaselvi19@gmail.com\",\n        \"gejageja876@gmail.com\",\n        \"gejamaharaja110@gmail.com\",\n        \"vaneshgeja@gmail.com\",\n        \"geja0419@gmail.com\",\n        \"karthikarvh@gmail.com\",\n        \"karthikarajaraman17@gmail.com\",\n        \"dhanaraju2301@gmail.com\",\n        \"dhanaraju1101@gmail.com\",\n        \"c.prashanth185@gmail.com\",\n        \"c.prashanth186@gmail.com\",\n        \"karthik_rathinam_08@gmail.com\",\n        \"rmkarthik128@gmail.com\",\n        \"chandrumobo@gmail.com\",\n        \"chandrumobo29@gmail.com\",\n        \"ajithraj1632000@gmail.com\",\n        \"laks14315@gmail.com\",\n        \"karthickrthickvt@gmail.com\",\n        \"ganeshtyson6@gmail.com\",\n        \"ganeshravikumar22@gmail.com\",\n        \"nivethamanivannan427@gmail.com\",\n        \"sunflower20@gmail.com\",\n        \"mulan8066@gmail.com\",\n        \"beautyand7beast@gmail.com\",\n        \"zmedows24@gmail.com\",\n        \"ajithdesigner3d@gmail.com\",\n        \"karthickanimator258@gmail.com\",\n        \"digikirukalgal.26@gmail.com\",\n        \"katbookaudios@gmail.com\",\n        \"balaji82raman@gmail.com\",\n        \"balajiraman82amaze@gmail.com\",\n        \"cg.balajiraman1982@gmail.com\",\n        \"curvesmultimedia@gmail.com\",\n        \"mothi2019@outlook.com\",\n        \"mothi2025@yahoo.com\"\n    ],\n    \"kmailSubject\": \"Performing the Bulk Mail Functionality at 19/03/2026\",\n    \"kmailContent\": \"<h3>Hello,</h3><p>We are currently performing bulk mail functionality testing to ensure smooth and reliable communication. This is a test message to verify that emails are being delivered successfully.</p><p>If you have received this email, the system is working as expected.</p><p>Thank you for your time and cooperation.</p><br/><p>Best regards,<br/>Development Team</p>\",\n    \"priority\": 0,\n    \"kmailType\": 13,\n    \"attachmentUuid\": []\n}",
     "yellow": false
@@ -2856,6 +3278,7 @@
     "row": 74,
     "module": "Kmail",
     "method": "GET",
+    "url": "/sentMail/bulkMail/status/{fromAddress}",
     "path": "/sentMail/bulkMail/status/{fromAddress}",
     "request": "GET METHOD",
     "yellow": false
@@ -2865,6 +3288,7 @@
     "row": 75,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/getBulkKmailDashboardMsg",
     "path": "/common/getBulkKmailDashboardMsg",
     "request": "{\n    \"kmailID\": null \n}",
     "yellow": false
@@ -2874,6 +3298,7 @@
     "row": 76,
     "module": "Kmail",
     "method": "POST",
+    "url": "/common/getAllMailCount",
     "path": "/common/getAllMailCount",
     "request": "for individual\n\n{\n    \"selectedContact\": \"prakash@kpost.in\",\n    \"groupFlag\": false\n}\n\nfor group\n\n{\n    \"selectedContact\": \"ast708@kpost.in\",\n    \"groupFlag\": true\n}",
     "yellow": false
@@ -2883,6 +3308,7 @@
     "row": 77,
     "module": "Kmail",
     "method": "POST",
+    "url": "/kmailSetting/updateMailCountDaysLimit",
     "path": "/kmailSetting/updateMailCountDaysLimit",
     "request": "{\n    \"countDaysLimit\" : 60\n}",
     "yellow": false
@@ -2892,6 +3318,7 @@
     "row": 78,
     "module": "Kmail",
     "method": "GET",
+    "url": "/kmailSetting/getMailCountDaysLimit",
     "path": "/kmailSetting/getMailCountDaysLimit",
     "request": "GET METHOD",
     "yellow": false

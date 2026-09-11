@@ -23,15 +23,6 @@ export const PROFILE_PATHS = {
 
   // --- Education and biography -------------------------------------------------------
   saveOrUpdateSchoolDetails: '/v2/profile/saveOrUpdateSchoolDetails',
-  /*
-   * Excel rows 107-109 document a SECOND, distinct family alongside `saveOrUpdate*Details`.
-   * They are not aliases: `saveOrUpdate*` takes the flat `UserProfileRO` keyed by
-   * `requestType`, while these take a nested ARRAY of records (`schoolDetails: [ ... ]`)
-   * carrying the row id, `course`/`standard`/`field`, `about` and `attachmentPath`.
-   */
-  updateSchoolDetails: '/v2/profile/updateSchoolDetails',
-  updateCollegeDetails: '/v2/profile/updateCollegeDetails',
-  updateUniversityDetails: '/v2/profile/updateUniversityDetails',
   deleteSchoolDetail: '/v2/profile/deleteSchoolDetail',
   saveOrUpdateCollegeDetails: '/v2/profile/saveOrUpdateCollegeDetails',
   deleteCollegeDetail: '/v2/profile/deleteCollegeDetail',
@@ -156,18 +147,6 @@ export class ProfileClient extends BaseClient {
   }
 
   /* ---- education and biography ---- */
-
-  updateSchoolDetails(data: unknown, options?: RequestOptions): Promise<APIResponse> {
-    return this.post(PROFILE_PATHS.updateSchoolDetails, data, options);
-  }
-
-  updateCollegeDetails(data: unknown, options?: RequestOptions): Promise<APIResponse> {
-    return this.post(PROFILE_PATHS.updateCollegeDetails, data, options);
-  }
-
-  updateUniversityDetails(data: unknown, options?: RequestOptions): Promise<APIResponse> {
-    return this.post(PROFILE_PATHS.updateUniversityDetails, data, options);
-  }
 
   saveOrUpdateSchoolDetails(data: unknown, options?: RequestOptions): Promise<APIResponse> {
     return this.post(PROFILE_PATHS.saveOrUpdateSchoolDetails, data, options);

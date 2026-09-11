@@ -33,7 +33,8 @@
     "trace:md": "node scripts/traceability.js --markdown",
     "audit:excel": "npm run audit:excel -w kpost-api",
     "audit:vectors": "npm run audit:vectors -w kpost-api",
-    "audit:bugs": "npm run audit:bugs -w kpost-api"
+    "audit:bugs": "npm run audit:bugs -w kpost-api",
+    "contract:parse": "npm run contract:parse -w kpost-api --"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

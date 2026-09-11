@@ -143,5 +143,11 @@ export default defineConfig({
      * rather than of an endpoint. See tests/crossModule/platformRules.spec.ts.
      */
     { name: 'crossModule', testDir: './tests/crossModule' },
+    /*
+     * The generic engine driver — not a controller tag either. It runs the centralized validation
+     * pipeline against every endpoint registered in `src/engine/definitions/`, so its coverage
+     * grows by declaration rather than by new spec files.
+     */
+    { name: 'engine', testDir: './tests/engine' },
   ],
 });

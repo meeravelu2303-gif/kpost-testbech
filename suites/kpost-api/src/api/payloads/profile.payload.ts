@@ -214,48 +214,72 @@ export function base64Png(): string {
   return `data:image/png;base64,${pngFileBuffer().toString('base64')}`;
 }
 
-/** School history. `requestType` selects insert vs update on the shared UserProfileRO DTO. */
+/**
+ * School history — `saveOrUpdateSchoolDetails`, Excel row 108.
+ *
+ * The NESTED array shape, not the flat `requestType` DTO the bench sent until 2026-09-11.
+ * Verified live that day: flat -> 400 "Invalid kpostID"; nested -> 200 "School details updated
+ * successfully". Every case on this route had been exercising a rejected request.
+ */
 export function buildSchoolDetailsPayload(overrides: Record<string, unknown> = {}) {
-  return {
-    requestType: 'SAVE',
-    schoolName: qaLabel('school'),
-    fromYear: '2000',
-    toYear: '2010',
-    city: 'Chennai',
-    state: 'Tamil Nadu',
-    country: 'India',
-    ...overrides,
+  const record = {
+        schoolID: '',
+        schoolName: qaLabel('school'),
+        standard: '11th to 12th',
+        course: 'Computer Science & Mathematics',
+        yearFrom: '2017',
+        yearTo: '2019',
+        logoPath: '',
+        about: 'QA automation placeholder',
+        attachmentPath: [],
   };
+  // Overriding the collection itself replaces the array (the structural fuzz cases); any other
+  // override applies to the RECORD, because that is what a caller naming a field means.
+  return 'schoolDetails' in overrides
+    ? { schoolDetails: overrides.schoolDetails }
+    : { schoolDetails: [{ ...record, ...overrides }] };
 }
 
-/** College history. */
+/** College history — `saveOrUpdateCollegeDetails`, Excel row 107. Nested shape; see school. */
 export function buildCollegeDetailsPayload(overrides: Record<string, unknown> = {}) {
-  return {
-    requestType: 'SAVE',
-    collegeName: qaLabel('college'),
-    degree: 'B.E.',
-    fromYear: '2010',
-    toYear: '2014',
-    city: 'Chennai',
-    state: 'Tamil Nadu',
-    country: 'India',
-    ...overrides,
+  const record = {
+        collegeID: '',
+        collegeName: qaLabel('college'),
+        degree: 'B.E.',
+        course: 'Computer Application',
+        field: 'Computer Application',
+        yearFrom: '2019',
+        yearTo: '2022',
+        logoPath: '',
+        about: 'QA automation placeholder',
+        attachmentPath: [],
   };
+  // Overriding the collection itself replaces the array (the structural fuzz cases); any other
+  // override applies to the RECORD, because that is what a caller naming a field means.
+  return 'collegeDetails' in overrides
+    ? { collegeDetails: overrides.collegeDetails }
+    : { collegeDetails: [{ ...record, ...overrides }] };
 }
 
-/** University history. */
+/** University history — `saveOrUpdateUniversityDetails`, Excel row 109. Nested shape. */
 export function buildUniversityDetailsPayload(overrides: Record<string, unknown> = {}) {
-  return {
-    requestType: 'SAVE',
-    universityName: qaLabel('university'),
-    degree: 'M.Tech',
-    fromYear: '2014',
-    toYear: '2016',
-    city: 'Chennai',
-    state: 'Tamil Nadu',
-    country: 'India',
-    ...overrides,
+  const record = {
+        universityID: '',
+        universityName: qaLabel('university'),
+        degree: 'M.Tech',
+        course: 'Computer Application',
+        field: 'Computer Application',
+        yearFrom: 2019,
+        yearTo: 2022,
+        logoPath: '',
+        about: 'QA automation placeholder',
+        attachmentPath: [],
   };
+  // Overriding the collection itself replaces the array (the structural fuzz cases); any other
+  // override applies to the RECORD, because that is what a caller naming a field means.
+  return 'universityDetails' in overrides
+    ? { universityDetails: overrides.universityDetails }
+    : { universityDetails: [{ ...record, ...overrides }] };
 }
 
 /**
@@ -290,81 +314,6 @@ export function buildDeleteProfileRecordPayload(
 ) {
   return {
     [idField]: faker.string.uuid(),
-    ...overrides,
-  };
-}
-
-/* ===========================================================================================
- * The nested education family — updateSchoolDetails / updateCollegeDetails /
- * updateUniversityDetails (Excel rows 107-109).
- *
- * These are NOT aliases of `saveOrUpdate*Details`. That family takes the flat `UserProfileRO`
- * discriminated by `requestType`; this one takes an ARRAY of full records under a per-type key,
- * each carrying the row id, the course/standard/field detail, a free-text `about`, and an
- * `attachmentPath` list of uploaded-file uuids. Two different DTOs, two different shapes.
- *
- * Every record id defaults to a **non-existent** row: an update that resolves would overwrite
- * real profile history, which the API offers no way to restore.
- * ======================================================================================== */
-
-/** School history, nested form. */
-export function buildUpdateSchoolDetailsPayload(overrides: Record<string, unknown> = {}) {
-  return {
-    schoolDetails: [
-      {
-        schoolID: String(nonExistentProfileRecordId()),
-        schoolName: qaLabel('school'),
-        standard: '11th to 12th',
-        course: 'Computer Science & Mathematics',
-        yearFrom: '2017',
-        yearTo: '2019',
-        logoPath: '',
-        about: 'QA automation placeholder',
-        attachmentPath: [],
-      },
-    ],
-    ...overrides,
-  };
-}
-
-/** College history, nested form. */
-export function buildUpdateCollegeDetailsPayload(overrides: Record<string, unknown> = {}) {
-  return {
-    collegeDetails: [
-      {
-        collegeID: String(nonExistentProfileRecordId()),
-        collegeName: qaLabel('college'),
-        degree: 'Bachelors',
-        course: 'Computer Application',
-        field: 'Computer Application',
-        yearFrom: '2019',
-        yearTo: '2022',
-        logoPath: '',
-        about: 'QA automation placeholder',
-        attachmentPath: [],
-      },
-    ],
-    ...overrides,
-  };
-}
-
-/** University history, nested form. Excel gives yearFrom/yearTo as NUMBERS on this one. */
-export function buildUpdateUniversityDetailsPayload(overrides: Record<string, unknown> = {}) {
-  return {
-    universityDetails: [
-      {
-        universityID: String(nonExistentProfileRecordId()),
-        universityName: qaLabel('university'),
-        degree: 'Masters',
-        course: 'Computer Application',
-        field: 'Computer Application',
-        yearFrom: 2019,
-        yearTo: 2022,
-        logoPath: '',
-        about: 'QA automation placeholder',
-        attachmentPath: [],
-      },
-    ],
     ...overrides,
   };
 }

@@ -234,3 +234,70 @@ succeed") and shrink as the environment gains data.
 500s, 25 envelope/status-parity, 19 the `getActiveSession`/`getLoginHistory` 409, 15 missing rate
 limiting, 11 XSS reflections, 8 accepts-bad-input. The 404 group is the API answering 404 where a
 400 belongs — also a finding, not the bench calling dead routes.
+
+---
+
+# Contract re-parse — 2026-09-11
+
+**The vendored Excel contract was incomplete, and the Excel gate had been passing against it.**
+The user pointed at row 37 (`/v2/katchup/sendMessage`) as present in the workbook; it was absent
+from `docs/excel/endpoints.json`. It was not the only one.
+
+## What was wrong
+
+| | before | after |
+| --- | ---: | ---: |
+| rows | 322 | **357** |
+| mandatory | 301 | **333** |
+| KatchupAPI rows | 232 | **266** |
+
+35 endpoints recovered, 0 lost. Three causes, all in the original parser:
+
+1. **KatchupAPI rows 4–37 were dropped wholesale.** The tab's real layout is
+   `B=module J=name K=url L=request N=response`; the old parser hunted for the first URL-shaped
+   cell, which is column **A** — free-text notes that merely quote a URL.
+2. **The request column was read as "longest JSON cell"**, which is the **response** sample. A
+   conformance gate fed that would demand response fields in request payloads.
+3. **Two row shapes were silently discarded**: a junk value in the layout column (KatchupAPI R66
+   holds `" z"` in K, the URL in A) and a path with no leading slash (KMAILAPI R33,
+   `sentMail/getMailCredentials/`).
+
+`scripts/parse-excel-contract.js` now carries an explicit per-tab column map — the three tabs do
+not share a shape — and is wired as `npm run contract:parse -- "<path to .xlsx>"`.
+
+## The correction it forced to earlier work
+
+Rows 107–109 are **`saveOrUpdateCollegeDetails` / `saveOrUpdateSchoolDetails` /
+`saveOrUpdateUniversityDetails`**, not `update*Details`. The old parse truncated the names, and on
+2026-09-10 that produced `tests/profile/educationNested.spec.ts` against three routes **that never
+existed** — along with three `[deployment]` findings reporting them as undeployed. The spec and its
+client routes are deleted. `/v2/kall/endKall` (R88) is genuinely in the contract and genuinely
+404s; that finding stands.
+
+## The defect the corrected contract exposed
+
+The workbook documents these three as taking a **nested array** (`{ schoolDetails: [ { … } ] }`).
+The bench sent a flat `requestType` DTO. Verified live:
+
+```
+FLAT   (what the bench sent)       -> 400 "Invalid kpostID"
+NESTED (what the Excel documents)  -> 200 "School details updated successfully"
+```
+
+Every case on those three routes had been exercising a rejected request. With a payload the
+endpoint accepts, 12 previously-green tests now fail on **real** findings: a school record with no
+name, a null name, attendance ending before it starts, and a graduation year of 2099 are all
+accepted with HTTP 200; a UTF-8 name returns 500.
+
+This is the same pattern as the KMail clear-status fix — completing a payload moves the failure
+from the door to the business logic, and what was hidden becomes visible.
+
+## Conformance, honestly stated
+
+**97.87%** against the complete 333-endpoint contract, where the previous **100%** was against an
+incomplete 301. The five remaining gaps are real and named in the gate output (`signup` missing
+`module`/`pinCode`/`areaName`/`state`/`city`, `forgotPasswordUpdate` missing
+`oldPassword`/`confirmPassword`, and three others).
+
+`npm run audit:excel` is pinned at threshold 100 and therefore **fails today**. That is the gate
+doing its job; lowering it to go green would discard the finding.
